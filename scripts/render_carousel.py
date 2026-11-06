@@ -48,7 +48,7 @@ def validate_request(raw):
     if not isinstance(raw, dict):
         raise CarouselError("Pedido deve ser objeto JSON")
     allowed = {"topic", "slides", "slide_count", "photo_mode", "photo_terms",
-               "source", "style", "items", "cta", "brand", "hashtags", "only_pages", "aspect"}
+               "source", "style", "items", "cta", "brand", "hashtags", "only_pages", "aspect", "photo_id"}
     if set(raw) - allowed:
         raise CarouselError("Campos não permitidos: " + ", ".join(sorted(set(raw) - allowed)))
     topic = _one_line(raw.get("topic"), "topic", 280)
@@ -67,6 +67,12 @@ def validate_request(raw):
     source = raw.get("source", "auto")
     if source not in ("auto", "wikimedia", "pixabay"):
         raise CarouselError("source inválido: somente fontes gratuitas permitidas")
+    photo_id = raw.get("photo_id")
+    if photo_id is not None and (
+        type(photo_id) is not int or not 1 <= photo_id <= 999999999 or
+        source == "wikimedia"
+    ):
+        raise CarouselError("photo_id requer ID inteiro de foto Pixabay e fonte auto/pixabay")
     style = raw.get("style", "reference")
     if style not in VALID_STYLES:
         raise CarouselError("style inválido")
@@ -118,7 +124,8 @@ def validate_request(raw):
         raise CarouselError("hashtags inválidas")
     return {
         "topic": topic, "slide_count": count, "photo_mode": mode,
-        "photo_terms": terms, "source": source, "style": style, "aspect": aspect,
+        "photo_terms": terms, "source": source, "photo_id": photo_id,
+        "style": style, "aspect": aspect,
         "slides": normalized_slides,
         "items": normalized_items, "brand": brand, "cta": cta, "hashtags": hashtags,
         "only_pages": only_pages,
@@ -461,7 +468,8 @@ def render_one(path, output, env):
     if not req["slides"]:
         req["slides"] = _generate_slides_with_local_llm(req)
     cache = Path(env.get("CAROUSEL_CACHE_DIR", "/tmp/moneyprint-carousel-cache"))
-    candidates = search_free_photos(req["photo_terms"], req["source"], env, cache)
+    candidates = search_free_photos(req["photo_terms"], req["source"], env, cache,
+                                    photo_id=req["photo_id"])
     desired = 1 if req["photo_mode"] == "same" else len(req["only_pages"])
     chosen, files = [], []
     try:
