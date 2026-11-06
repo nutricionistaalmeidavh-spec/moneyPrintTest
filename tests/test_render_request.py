@@ -5,7 +5,7 @@ from pathlib import Path
 from scripts.render_request import (
     RequestError, validate_request, select_visual_mode,
     select_requests, build_config, build_manifest, clean_terms,
-    redact_log, local_slides, normalize_generated_terms,
+    redact_log, local_slides, normalize_generated_terms, acceptable_script, target_word_count,
 )
 
 
@@ -77,6 +77,12 @@ class RenderTests(unittest.TestCase):
     def test_secrets_do_not_leak_into_artifacts(self):
         self.assertEqual(redact_log("key=abc123", {"PEXELS_API_KEY": "abc123"}),
                          "key=[REDACTED]")
+
+    def test_roteiro_curto_e_metaliguagem_rejeitados(self):
+        self.assertEqual(target_word_count(30), 75)
+        self.assertFalse(acceptable_script("O script aborda ferramentas gratuitas.", 30))
+        self.assertFalse(acceptable_script("software " * 20, 30))
+        self.assertTrue(acceptable_script("Use soluções abertas e faça testes antes de decidir. " * 9, 30))
 
     def test_local_media_exists(self):
         try:
