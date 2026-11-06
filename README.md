@@ -32,16 +32,18 @@ Pedido com roteiro e termos definidos pelo ChatGPT (evita carregar LLM no runner
 }
 ```
 
-### Buscar vídeos reais de bancos gratuitos
+### Buscar vídeos reais sem chave de API
 
-A busca automática de filmagens reais utiliza **Pexels** ou **Pixabay**. Para ativá-la, crie uma chave gratuita e cadastre UMA vez em **Settings → Secrets and variables → Actions**:
+O modo padrão é **Wikimedia Commons**, pela API pública, **sem cadastro ou chave**.
 
-- `PEXELS_API_KEY`: https://www.pexels.com/api/
-- ou `PIXABAY_API_KEY`: https://pixabay.com/api/docs/
+- `"visual_mode":"auto"`: pesquisa até três vídeos reais no Wikimedia Commons, converte os clipes para MP4 e usa na edição. Se não encontrar vídeos com licença aprovada, cria artes originais locais e informa o fallback.
+- `"visual_mode":"stock"`: exige vídeos reais do Wikimedia Commons e falha explicitamente se não houver. **Não exige API key**.
+- `"visual_mode":"local"`: sempre gera artes originais locais, sem acessar bancos de filmagem.
+- `"visual_mode":"pexels"` ou `"visual_mode":"pixabay"`: são **opções manuais** para quem já possui chaves gratuitas. Não são exigidas nem ativadas automaticamente.
 
-Não coloque chaves no código, em arquivos `.json` ou nos comentários. O conector GitHub do ChatGPT não tem permissão para criar GitHub Secrets.
+A pesquisa no Commons limita arquivos a **CC0** ou **CC BY** com metadados de licença, autor e página de origem. Os arquivos `creditos.txt` e `licencas_midia.json` são entregues junto ao vídeo; **publique os créditos na descrição** e confira o licenciamento antes de distribuir o MP4. Clipes são convertidos de WebM/OGV para MP4 usando FFmpeg. Nem todo tema tem vídeos adequados. Também podem existir direitos de imagem, marcas e outras restrições além do copyright.
 
-Com `"visual_mode":"auto"`, se nenhuma chave existir, o projeto produz vídeos com **artes locais automáticas** (não são filmagens reais). `"visual_mode":"stock"` exige uma chave gratuita e falha explicitamente sem ela; `"visual_mode":"local"` sempre usa artes locais. Mesmo com chave, a busca pode retornar pouca mídia e falhar para assuntos muito específicos.
+Não há scraping do Pexels/Pixabay. A emissão de novas chaves do Pexels está suspensa desde 2026; Pixabay requer chave para sua API.
 
 ### Rodar novamente
 
@@ -50,11 +52,11 @@ Em **Actions → Gerar vídeo MoneyPrinterTurbo → Run workflow**, informe o ca
 ### Arquitetura sem cobranças obrigatórias
 
 - **Motor**: MoneyPrinterTurbo open source via PyPI, versão fixada.
-- **Geração de roteiro quando necessário**: Ollama em Docker no runner, com `qwen2.5:0.5b`.
+- **Geração de roteiro quando necessário**: Ollama em Docker no runner, com `qwen2.5:1.5b`.
 - **Voz brasileira**: Piper TTS local, modelo pt_BR-faber-medium (download sob demanda e conferência SHA256).
 - **Legendas**: faster-whisper com modelo tiny.
 - **Edição**: MoviePy/FFmpeg do MoneyPrinterTurbo.
-- **Vídeo stock**: Pexels/Pixabay com chave gratuita opcional. Sem chave há fallback de artes originais.
+- **Vídeos reais**: Wikimedia Commons sem chave por padrão, com créditos e licenças; Pexels/Pixabay são opcionais explícitos para quem já possui chave.
 - **Execução**: GitHub Actions, com artefatos retidos por 7 dias.
 
 GitHub Actions de repositórios públicos costuma ter execução gratuita em runners padrão, sujeita à política e aos limites do GitHub. A qualidade da locução, disponibilidade de bancos e tempo de renderização devem ser aferidos em execução real.
@@ -69,4 +71,4 @@ Rodar testes sem dependências de produção:
 python -m unittest discover -s tests -v
 ```
 
-A duração em segundos orienta a geração do roteiro; o MP4 final segue a duração real da narração. O modelo pequeno pode gerar textos incorretos; prefira fornecer roteiro revisado e termos relevantes. Whisper tiny também pode errar legendas. O teste unitário não substitui o teste real de renderização no GitHub.
+A duração em segundos orienta a geração do roteiro, e há validação de quantidade de palavras, mas o MP4 final segue a duração real da narração. O Ollama local pode falhar em produzir texto adequado (nesse caso a tarefa encerra com erro). Para máxima confiabilidade, peça ao ChatGPT para fornecer roteiro e termos no arquivo do pedido. Whisper tiny também pode errar legendas. O teste unitário não substitui o teste real de renderização no GitHub.
