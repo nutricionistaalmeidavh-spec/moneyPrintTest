@@ -60,7 +60,7 @@ def fetch_piper(folder):
 def voices_piper(story, output):
     if shutil.which("piper") is None:
         run([sys.executable,"-m","pip","install","-q","piper-tts==1.8.0"])
-    model=fetch_piper(output/"piper-model")
+    model=fetch_piper(Path("/tmp/frutalandia-piper-model"))
     voice_dir=output/"audio"
     voice_dir.mkdir(exist_ok=True)
     segments=[]
