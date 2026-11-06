@@ -28,7 +28,7 @@ DEFAULT_TERMS = ["desk setup computer monitor laptop window",
                  "modern home office monitor plants",
                  "dual monitor workstation desk",
                  "bright minimalist desk setup"]
-VALID_STYLES = {"reference", "cinematic", "minimal", "contrast"}
+VALID_STYLES = {"reference", "brush", "cinematic", "minimal", "contrast"}
 IMAGE_HEIGHT = {"4:5": 1350, "9:16": 1920}
 
 
@@ -76,8 +76,8 @@ def validate_request(raw):
     style = raw.get("style", "reference")
     if style not in VALID_STYLES:
         raise CarouselError("style inválido")
-    aspect = raw.get("aspect", "4:5" if style == "reference" else "9:16")
-    if aspect not in IMAGE_HEIGHT or (style != "reference" and aspect != "9:16"):
+    aspect = raw.get("aspect", "4:5" if style in ("reference", "brush") else "9:16")
+    if aspect not in IMAGE_HEIGHT or (style not in ("reference", "brush") and aspect != "9:16"):
         raise CarouselError("aspect não compatível com o estilo")
     brand = _one_line(raw.get("brand", "ArtiSys"), "brand", 32)
     cta = _one_line(raw.get("cta", "Salve este post para consultar depois."),
@@ -91,10 +91,12 @@ def validate_request(raw):
         raise CarouselError("slides deve conter exatamente slide_count páginas")
     normalized_slides = []
     for slide in slides:
-        if not isinstance(slide, dict) or set(slide) - {"title", "body"}:
+        if not isinstance(slide, dict) or set(slide) - {"title", "body", "highlight"}:
             raise CarouselError("Página inválida")
         normalized_slides.append({
             "title": _one_line(slide.get("title"), "title", 96),
+            "highlight": _one_line(slide.get("highlight", ""), "highlight", 84,
+                                   allow_empty=True),
             "body": _one_line(slide.get("body", ""), "body", 260,
                               allow_empty=True),
         })
@@ -267,9 +269,95 @@ def _make_reference_page(background, slide, req, index, total):
     return image
 
 
+def _make_brush_page(background, slide, req, index, total):
+    """Full photo, large central text, white brush stroke with crisp black lettering.
+
+    The source photograph remains visible; no dashboards, rectangles, logos or
+    hard black outlines. Works entirely with Pillow; no image AI or paid service.
+    """
+    from PIL import Image, ImageDraw
+    canvas = background.copy().convert("RGB")
+    draw = ImageDraw.Draw(canvas)
+    w, h = canvas.size
+    max_width = int(w * .89)
+    intro = slide["title"]
+    highlighted = slide.get("highlight", "")
+    # Other pages get a brush headline automatically.
+    if not highlighted:
+        highlighted, intro = intro, ""
+    intro_font, intro_lines, intro_sz = (
+        _fit_lines(draw, intro, max_width, 3, 65, 38)
+        if intro else (_get_font(42), [], 42))
+    brush_font, brush_lines, brush_sz = _fit_lines(
+        draw, highlighted, max_width - 80, 3, 76, 42)
+    body = slide.get("body", "")
+    body_font, body_lines, body_sz = (
+        _fit_lines(draw, body, max_width, 4, 49, 30, bold=False)
+        if body else (_get_font(36, False), [], 36))
+    intro_step = round(intro_sz * 1.18)
+    brush_step = round(brush_sz * 1.20)
+    body_step = round(body_sz * 1.25)
+    intro_h = len(intro_lines) * intro_step
+    brush_h = len(brush_lines) * brush_step
+    body_h = len(body_lines) * body_step
+    gap1, gap2 = 24, 38
+    block_height = intro_h + (gap1 if intro_lines else 0) + brush_h + (
+        gap2 + body_h if body_lines else 0)
+    y = max(round(h * .25), round(h * .47 - block_height * .45))
+    if y + block_height > round(h * .82):
+        y = round(h * .82) - block_height
+    if y < round(h * .13):
+        raise CarouselError("Texto excede área segura; diminua o conteúdo")
+    def centered_text(text, font, top, color, shadow=True):
+        # Soft offset shadow, never the heavy stroked font from the old renderer.
+        if shadow:
+            draw.text((w // 2 + 3, top + 3), text, anchor="mt",
+                      font=font, fill=(0, 0, 0))
+        draw.text((w // 2, top), text, anchor="mt", font=font, fill=color)
+    for line in intro_lines:
+        centered_text(line, intro_font, y, "white")
+        y += intro_step
+    if intro_lines:
+        y += gap1
+    for i, line in enumerate(brush_lines):
+        box = draw.textbbox((0, 0), line, font=brush_font)
+        text_w = box[2] - box[0]
+        half_w = min(int(w * .47), round(text_w / 2 + 34))
+        left, right = w // 2 - half_w, w // 2 + half_w
+        band_y1 = y - 8
+        band_y2 = y + brush_step - 4
+        wave = 8
+        polygon = [(left + 18, band_y1)]
+        for x in range(left + 18, right - 10, 31):
+            polygon.append((x, band_y1 + ((x + i * 13) % 7) - 3))
+        polygon += [(right - 14, band_y1 + 6),
+                    (right + 8, band_y1 + 14),
+                    (right - 2, band_y2 - 5)]
+        for x in range(right - 8, left + 8, -29):
+            polygon.append((x, band_y2 + ((x + 3 * i) % 7) - 2))
+        polygon += [(left - 11, band_y2 - 12), (left - 6, band_y1 + 11)]
+        draw.polygon(polygon, fill="white")
+        # The label sits wholly inside the highlight so no pixelated stroke.
+        centered_text(line, brush_font, y, "black", shadow=False)
+        y += brush_step
+    if body_lines:
+        y += gap2
+        for line in body_lines:
+            centered_text(line, body_font, y, "white")
+            y += body_step
+    if index == 1:
+        arrow_y = max(round(h * .75), y + 38)
+        if arrow_y <= round(h * .88):
+            font = _get_font(51)
+            centered_text("››››››››››", font, arrow_y, "white")
+    return canvas
+
+
 def _make_page(background, slide, req, index, total):
     if req["style"] == "reference":
         return _make_reference_page(background, slide, req, index, total)
+    if req["style"] == "brush":
+        return _make_brush_page(background, slide, req, index, total)
     from PIL import Image, ImageDraw
     photo = background.copy().convert("RGBA")
     shade = Image.new("RGBA", (WIDTH, HEIGHT))
