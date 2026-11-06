@@ -4,6 +4,9 @@ on:
     branches: [feat/debora-pixabay-photo-carousel]
     paths:
       - "requests/carousels/*.json"
+      - "scripts/pixabay_carousel.py"
+      - "tests/test_pixabay_carousel.py"
+      - ".github/workflows/carrossel-debora-pixabay.yml"
   workflow_dispatch:
     inputs:
       request_path:
