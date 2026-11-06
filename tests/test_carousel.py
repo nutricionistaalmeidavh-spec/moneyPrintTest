@@ -87,6 +87,17 @@ class CarouselTests(unittest.TestCase):
         self.assertFalse(safe_photo_url("http://upload.wikimedia.org/x.jpg"))
         self.assertFalse(safe_photo_url("https://upload.wikimedia.org.evil.com/p.jpg"))
 
+    def test_curated_pixabay_id_is_optional_and_strictly_validated(self):
+        req = validate_request({"topic": "Setups", "photo_id": 8715739})
+        self.assertEqual(req["photo_id"], 8715739)
+        self.assertIsNone(validate_request({"topic": "Setups"})["photo_id"])
+        for invalid in ("8715739", -1, 0, True, 1000000000):
+            with self.subTest(invalid=invalid), self.assertRaises(CarouselError):
+                validate_request({"topic": "Setups", "photo_id": invalid})
+        with self.assertRaises(CarouselError):
+            validate_request({"topic": "Setups", "source": "wikimedia",
+                              "photo_id": 8715739})
+
     def test_pixabay_free_photo_metadata_and_untrusted_host(self):
         sample = {"hits": [{
             "id": 144, "type": "photo", "user": "FotoAutor",
