@@ -106,3 +106,27 @@ Executar testes:
 
 Não há APIs pagas obrigatórias. A execução nos runners do GitHub
 está sujeita aos limites gratuitos e às políticas de uso do GitHub.
+
+## Activepieces: carrossel diario em rascunho
+
+Fluxo: https://cloud.activepieces.com/projects/u8hdh20XYn35vxPdcf3Es/flows/fWdrDQbvjJH2TfhDlYgAB
+
+- Every Day, 09:00, timezone America/Sao_Paulo, inclusive fins de semana.
+- CODE: rotacao de 10 temas empresariais, 4 sites e 6 slides por dia.
+- Tables: salva JSON, legenda, data e status Aguardando render na Fila de Carrosseis.
+- GitHub: o workflow carousel.yml aceita workflow_dispatch.inputs.request_json,
+  que roda no runner sem criar commits diarios de conteudo.
+- Fotos: Pixabay gratuito se a chave existente estiver presente; Commons como fallback.
+- Artefatos: 6 imagens JPG + ZIP + legenda + licenciamento, sem postar em redes sociais.
+
+Antes de ativar a geracao automatica das imagens:
+1. Conectar GitHub dentro do Activepieces em Settings > Connections > GitHub, via OAuth.
+   A conexao GitHub do ChatGPT NAO e a mesma conta no Activepieces.
+2. Autorizar merge da PR #3, para o workflow existir na branch main.
+3. Adicionar a acao GitHub > Trigger Workflow Dispatch, selecionar
+   nutricionistaalmeidavh-spec/moneyPrintTest, workflow carousel.yml e ref main.
+   Mapear o input request_json a {{step_1['output'].pedido_json}}.
+4. Validar o fluxo completo e habilitar. Nao automatizar postagens em redes sociais.
+
+O fluxo Activepieces permanece rascunho e o codigo continua em PR separada.
+Nenhum token ou secret foi alterado.
