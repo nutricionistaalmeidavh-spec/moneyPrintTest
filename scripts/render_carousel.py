@@ -93,13 +93,15 @@ def validate_request(raw):
     for slide in slides:
         if not isinstance(slide, dict) or set(slide) - {"title", "body", "highlight"}:
             raise CarouselError("Página inválida")
-        normalized_slides.append({
+        normalized = {
             "title": _one_line(slide.get("title"), "title", 96),
-            "highlight": _one_line(slide.get("highlight", ""), "highlight", 84,
-                                   allow_empty=True),
             "body": _one_line(slide.get("body", ""), "body", 260,
                               allow_empty=True),
-        })
+        }
+        if "highlight" in slide:
+            normalized["highlight"] = _one_line(
+                slide.get("highlight"), "highlight", 84, allow_empty=True)
+        normalized_slides.append(normalized)
     items = raw.get("items", [])
     if not isinstance(items, list) or len(items) > 8:
         raise CarouselError("items deve ser uma lista de até 8 itens")
