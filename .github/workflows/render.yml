@@ -23,7 +23,7 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 120
     env:
-      MPT_HOME: ${{ runner.temp }}/moneyprint-runtime
+      MPT_HOME: /tmp/moneyprint-runtime
       PEXELS_API_KEY: ${{ secrets.PEXELS_API_KEY }}
       PIXABAY_API_KEY: ${{ secrets.PIXABAY_API_KEY }}
       REQUEST_PATH: ${{ inputs.request_path }}
