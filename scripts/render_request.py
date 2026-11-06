@@ -82,7 +82,7 @@ def validate_request(raw: dict) -> dict:
     if aspect not in ("9:16", "16:9", "1:1"):
         raise RequestError("aspect inválido")
     mode = raw.get("visual_mode", "auto")
-    if mode not in ("auto", "stock", "local"):
+    if mode not in ("auto", "stock", "local", "pexels", "pixabay"):
         raise RequestError("visual_mode inválido")
     return {"topic": topic.strip(), "script": script.strip(), "terms": terms,
             "duration_seconds": duration, "aspect": aspect, "visual_mode": mode}
@@ -91,13 +91,12 @@ def validate_request(raw: dict) -> dict:
 def select_visual_mode(mode: str, env: dict) -> str:
     if mode == "local":
         return "local"
-    if env.get("PEXELS_API_KEY", "").strip():
-        return "pexels"
-    if env.get("PIXABAY_API_KEY", "").strip():
-        return "pixabay"
-    if mode == "stock":
-        raise RequestError("Stock exige chave gratuita PEXELS_API_KEY ou PIXABAY_API_KEY")
-    return "local"
+    if mode in {"pexels", "pixabay"}:
+        if not env.get(f"{mode.upper()}_API_KEY", "").strip():
+            raise RequestError(f"{mode} exige chave gratuita explícita no GitHub Secret")
+        return mode
+    # Padrão gratuito e sem conta/chave: Wikimedia Commons.
+    return "wikimedia"
 
 
 def select_requests(root: Path, *, manual="", before="", after="") -> list[Path]:
@@ -351,7 +350,25 @@ def render_one(path: Path, output: Path, runtime: Path, env: dict):
                        input=script, text=True, check=True, capture_output=True)
         if not audio.is_file() or audio.stat().st_size < 256:
             raise RuntimeError("Piper não produziu áudio")
-        materials = local_slides(data["topic"], dest / "slides", data["aspect"]) if source == "local" else []
+        material_source = source
+        if source == "wikimedia":
+            from scripts.commons_media import find_free_videos
+            materials, records = find_free_videos(terms, dest)
+            if materials:
+                material_source = "wikimedia"
+            elif data["visual_mode"] == "stock":
+                raise RequestError(
+                    "Wikimedia Commons não retornou vídeos com licença permitida; "
+                    "use visual_mode=auto para fallback em artes locais")
+            else:
+                print("Aviso: sem vídeos adequados no Commons; criando artes originais.", flush=True)
+                materials = local_slides(data["topic"], dest / "slides", data["aspect"])
+                material_source = "artes_locais_fallback"
+            source = "local"  # MPT recebe vídeos/figuras baixados como mídia local.
+        elif source == "local":
+            materials = local_slides(data["topic"], dest / "slides", data["aspect"])
+        else:
+            materials = []
         manifest = build_manifest(data, script, terms, source, str(audio.resolve()), materials)
         manifest_file = dest / "manifest.json"
         manifest_file.write_text(json.dumps([manifest], ensure_ascii=False, indent=2), encoding="utf-8")
@@ -377,7 +394,7 @@ def render_one(path: Path, output: Path, runtime: Path, env: dict):
                 raise RuntimeError("MP4 esperado não encontrado")
             shutil.copy2(video_file, dest / f"video_{i}.mp4")
         (dest / "resultado.json").write_text(
-            json.dumps({"status": "success", "topic": data["topic"], "visual_source": source,
+            json.dumps({"status": "success", "topic": data["topic"], "visual_source": material_source,
                         "upstream": "harry0703/MoneyPrinterTurbo mpt==1.3.9"},
                        ensure_ascii=False, indent=2), encoding="utf-8")
     finally:
