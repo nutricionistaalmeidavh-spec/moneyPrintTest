@@ -1,0 +1,62 @@
+{
+  "topic": "4 sites para melhorar na programação (e quase ninguém fala)",
+  "source": "auto",
+  "photo_mode": "same",
+  "style": "cinematic",
+  "photo_terms": [
+    "aesthetic computer desk setup",
+    "modern programmer workstation",
+    "minimalist desktop setup",
+    "cozy computer workspace"
+  ],
+  "brand": "ArtiSys",
+  "cta": "Salva este post para testar depois.",
+  "items": [
+    {
+      "name": "Roadmap.sh",
+      "url": "https://roadmap.sh",
+      "detail": "Roadmaps e trilhas de tecnologia"
+    },
+    {
+      "name": "Exercism",
+      "url": "https://exercism.org",
+      "detail": "Prática de programação"
+    },
+    {
+      "name": "DevDocs",
+      "url": "https://devdocs.io",
+      "detail": "Documentação pesquisável"
+    },
+    {
+      "name": "Regex101",
+      "url": "https://regex101.com",
+      "detail": "Testes interativos de expressões regulares"
+    }
+  ],
+  "slides": [
+    {
+      "title": "4 sites que vão melhorar sua programação",
+      "body": "Ferramentas úteis que merecem estar nos seus favoritos."
+    },
+    {
+      "title": "1. Roadmap.sh",
+      "body": "Encontre trilhas para organizar o que estudar em tecnologia."
+    },
+    {
+      "title": "2. Exercism",
+      "body": "Pratique programação resolvendo exercícios."
+    },
+    {
+      "title": "3. DevDocs",
+      "body": "Pesquise documentação técnica sem perder o foco."
+    },
+    {
+      "title": "4. Regex101",
+      "body": "Entenda e teste expressões regulares visualmente."
+    },
+    {
+      "title": "Salva este carrossel",
+      "body": "Qual dessas ferramentas você já conhecia?"
+    }
+  ]
+}
