@@ -271,6 +271,20 @@ def _make_reference_page(background, slide, req, index, total):
     return image
 
 
+def _photo_fitness(path):
+    """Prefer balanced, readable, realistic full-desk compositions to whiteouts."""
+    from PIL import Image, ImageOps, ImageStat
+    with Image.open(path) as im:
+        face = ImageOps.fit(
+            ImageOps.exif_transpose(im.convert("RGB")),
+            (180, 225), method=Image.Resampling.BILINEAR)
+    # Where the title sits: usually the monitor(s), not the floor.
+    sample = ImageOps.grayscale(face.crop((14, 50, 165, 160)))
+    stat = ImageStat.Stat(sample)
+    mean, variation = stat.mean[0], stat.stddev[0]
+    return max(-240.0, 170.0 - 1.9 * abs(mean - 100.0) + variation * .75)
+
+
 def _make_brush_page(background, slide, req, index, total):
     """Full photo, large central text, white brush stroke with crisp black lettering.
 
@@ -311,11 +325,24 @@ def _make_brush_page(background, slide, req, index, total):
     if y < round(h * .13):
         raise CarouselError("Texto excede área segura; diminua o conteúdo")
     def centered_text(text, font, top, color, shadow=True):
-        # Soft offset shadow, never the heavy stroked font from the old renderer.
+        # Choose dark letters on bright workstations, white letters on dark screens.
+        # Never use thick strokes that pixelate typography.
+        ink = color
+        if color == "white":
+            from PIL import ImageStat
+            box = draw.textbbox((w // 2, top), text, anchor="mt", font=font)
+            region = canvas.crop((
+                max(0, box[0]), max(0, box[1]),
+                min(w, box[2]), min(h, box[3])))
+            if region.width and region.height:
+                luminance = sum(ImageStat.Stat(region).mean) / 3
+                if luminance > 160:
+                    ink = "black"
         if shadow:
-            draw.text((w // 2 + 3, top + 3), text, anchor="mt",
-                      font=font, fill=(0, 0, 0))
-        draw.text((w // 2, top), text, anchor="mt", font=font, fill=color)
+            soft_shadow = (255, 255, 255) if ink == "black" else (12, 15, 22)
+            draw.text((w // 2 + 2, top + 2), text, anchor="mt",
+                      font=font, fill=soft_shadow)
+        draw.text((w // 2, top), text, anchor="mt", font=font, fill=ink)
     for line in intro_lines:
         centered_text(line, intro_font, y, "white")
         y += intro_step
@@ -338,6 +365,7 @@ def _make_brush_page(background, slide, req, index, total):
         for x in range(right - 8, left + 8, -29):
             polygon.append((x, band_y2 + ((x + 3 * i) % 7) - 2))
         polygon += [(left - 11, band_y2 - 12), (left - 6, band_y1 + 11)]
+        draw.polygon([(x + 4, yy + 5) for x, yy in polygon], fill=(115, 118, 122))
         draw.polygon(polygon, fill="white")
         # The label sits wholly inside the highlight so no pixelated stroke.
         centered_text(line, brush_font, y, "black", shadow=False)
@@ -561,24 +589,34 @@ def render_one(path, output, env):
     candidates = search_free_photos(req["photo_terms"], req["source"], env, cache,
                                     photo_id=req["photo_id"])
     desired = 1 if req["photo_mode"] == "same" else len(req["only_pages"])
+    all_downloaded = []
     chosen, files = [], []
     try:
-        for candidate in candidates:
-            if len(files) >= desired:
-                break
-            target = dest / ("_working_" + str(len(files)) + ".jpg")
+        # Download a small bounded candidate pool to inspect actual composition,
+        # rather than blindly selecting the first Pixabay result (often white desks).
+        inspection_limit = 8 if req["photo_mode"] == "same" else min(12, desired + 3)
+        for candidate in candidates[:inspection_limit]:
+            target = dest / ("_working_" + str(len(all_downloaded)) + ".jpg")
             try:
                 download_photo(candidate, target)
-                # Decoder verified in download_photo; normalize independently in _cover.
-                chosen.append(candidate)
-                files.append(target)
+                quality = _photo_fitness(target)
+                all_downloaded.append((quality, candidate, target))
             except (OSError, PhotoError, ValueError):
                 target.unlink(missing_ok=True)
                 continue
-        if not files:
+        if not all_downloaded:
             raise PhotoError("As fotos encontradas não puderam ser baixadas")
-        if req["photo_mode"] == "varied" and len(files) < desired:
+        # The list was already ordered by semantic workstation metadata.
+        # Blend that ordering with actual visual luminance.
+        scored = sorted(
+            enumerate(all_downloaded),
+            key=lambda pair: pair[1][0] + max(0, 120 - pair[0] * 12),
+            reverse=True)
+        picked = [item for _, item in scored[:desired]]
+        if req["photo_mode"] == "varied" and len(picked) < desired:
             raise PhotoError("Fotos distintas insuficientes; tente photo_mode=same")
+        chosen = [item[1] for item in picked]
+        files = [item[2] for item in picked]
         if req["photo_mode"] == "same":
             return compose_carousel(req, files[0], dest, chosen[0])
         outpaths = []
@@ -592,7 +630,7 @@ def render_one(path, output, env):
         _deliver(req, dest, outpaths, chosen)
         return outpaths
     finally:
-        for photo in files:
+        for _, _, photo in all_downloaded:
             photo.unlink(missing_ok=True)
 
 
