@@ -1,0 +1,46 @@
+name: Carrossel Débora - Fotos reais Pixabay
+on:
+  push:
+    branches: [feat/debora-pixabay-photo-carousel]
+    paths:
+      - "requests/carousels/*.json"
+  workflow_dispatch:
+    inputs:
+      request_path:
+        description: "Caminho JSON do carrossel"
+        required: true
+        type: string
+
+permissions:
+  contents: read
+
+jobs:
+  create-photo-carousel:
+    runs-on: ubuntu-latest
+    timeout-minutes: 40
+    env:
+      PIXABAY_API_KEY: ${{ secrets.PIXABAY_API_KEY }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 1
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+      - name: Instalar Pillow (open source)
+        run: python -m pip install "Pillow==11.3.0"
+      - name: Testes de segurança e layout
+        run: python -m unittest discover -s tests -v
+      - name: Buscar FOTO REAL pelo Pixabay e montar 5 slides
+        run: |
+          python -m scripts.pixabay_carousel \
+            --job "requests/carousels/debora-peito-mais-macio.json" \
+            --output outputs/debora-pixabay
+      - name: Publicar as 5 imagens, ZIP, prévia e fonte
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: debora-carrossel-pixabay-${{ github.run_id }}
+          path: outputs/debora-pixabay/
+          retention-days: 14
+          if-no-files-found: warn
