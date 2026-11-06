@@ -202,7 +202,8 @@ def render_slides(src: Path, output: Path, job: dict) -> list[Path]:
         ft,lines=fit_text(draw,content)
         step=int(ft.size*1.26)
         blockheight=len(lines)*step
-        y=max(340,int(H*.51-blockheight/2))
+        # Mantém a região superior do bebê livre, com texto na parte inferior da foto.
+        y=max(340,int(H*.70-blockheight/2))
         # Branco é SOMENTE contorno de letra; foto continua nítida.
         for line in lines:
             box=draw.textbbox((0,0),line,font=ft)
