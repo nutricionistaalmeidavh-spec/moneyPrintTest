@@ -48,7 +48,8 @@ class CarouselTests(unittest.TestCase):
     def test_minimal_request_is_free_and_reuses_one_photo(self):
         request = validate_request({"topic": "Ferramentas para programadores"})
         self.assertEqual(request["photo_mode"], "same")
-        self.assertEqual(request["style"], "cinematic")
+        self.assertEqual(request["style"], "reference")
+        self.assertEqual(request["aspect"], "4:5")
         self.assertEqual(request["slide_count"], 6)
         self.assertEqual(request["source"], "auto")
         self.assertGreater(len(request["photo_terms"]), 0)
@@ -157,6 +158,31 @@ class CarouselTests(unittest.TestCase):
                 with self.subTest(path=path), self.assertRaises(CarouselError):
                     select_requests(root, manual=path)
 
+    def test_reference_layout_keeps_photo_visible_and_text_centered(self):
+        from PIL import Image
+        from scripts.render_carousel import _cover, _make_page
+        with tempfile.TemporaryDirectory() as tmp:
+            photo = Path(tmp) / "setup.jpg"
+            Image.new("RGB", (1080, 1350), (180, 205, 210)).save(photo)
+            req = validate_request({"topic": "Teste", "slides": sample_slides()})
+            background = _cover(photo, req["aspect"])
+            result = _make_page(background, req["slides"][0], req, 1, 6)
+            self.assertEqual(result.size, (1080, 1350))
+            # No top branding, bottom navigation, or full-photo dark gradient.
+            for p in [(25, 25), (520, 90), (24, 1280), (520, 1300)]:
+                self.assertEqual(background.getpixel(p), result.getpixel(p))
+            # Reference-style headline is composited in central zone.
+            difference = sum(background.getpixel((x, y)) != result.getpixel((x, y))
+                             for y in range(400, 1050, 40)
+                             for x in range(110, 1000, 40))
+            self.assertGreater(difference, 10)
+
+    def test_reference_accepts_9by16_but_legacy_preserves_old_aspect(self):
+        self.assertEqual(validate_request({"topic": "x", "aspect": "9:16"})["aspect"], "9:16")
+        self.assertEqual(validate_request({"topic": "x", "style": "cinematic"})["aspect"], "9:16")
+        with self.assertRaises(CarouselError):
+            validate_request({"topic": "x", "aspect": "3:2"})
+
     def test_compose_six_jpgs_caption_credits_and_zip(self):
         from PIL import Image
         with tempfile.TemporaryDirectory() as tmp:
@@ -170,7 +196,7 @@ class CarouselTests(unittest.TestCase):
             self.assertEqual(len(image_paths), 6)
             for path in image_paths:
                 with Image.open(path) as im:
-                    self.assertEqual(im.size, (1080, 1920))
+                    self.assertEqual(im.size, (1080, 1350))
                     self.assertEqual(im.format, "JPEG")
             self.assertTrue((out / "carrossel.zip").is_file())
             self.assertTrue((out / "creditos.txt").is_file())
