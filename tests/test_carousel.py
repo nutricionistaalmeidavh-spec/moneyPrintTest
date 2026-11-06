@@ -104,6 +104,34 @@ class CarouselTests(unittest.TestCase):
                    url="https://upload.wikimedia.org/wikipedia/commons/b/bc/land.jpg")
         self.assertEqual(choose_candidate([bad, good])["url"], good["url"])
 
+    def test_prefers_minimal_daylight_setups_over_game_screens(self):
+        original = parse_candidates(sample_candidate())[0]
+        gaming = dict(original, title="gamer 3d neon console playstation",
+                      width=2400, height=3400)
+        daylight = dict(original, title="minimalist home office desk daylight laptop",
+                        width=1500, height=1700,
+                        url="https://upload.wikimedia.org/wikipedia/commons/a/ab/office.jpg")
+        self.assertEqual(choose_candidate([gaming, daylight])["title"],
+                         daylight["title"])
+
+    def test_rerender_single_page_preserves_page_number(self):
+        from PIL import Image
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            photo = root / "background.jpg"
+            Image.new("RGB", (1000, 1600), "#556678").save(photo)
+            req = validate_request({"topic": "4 sites", "slides": sample_slides(),
+                                    "only_pages": [3]})
+            out = root / "out"
+            rendered = compose_carousel(req, photo, out,
+                                        parse_candidates(sample_candidate())[0])
+            self.assertEqual([p.name for p in rendered], ["03.jpg"])
+            with zipfile.ZipFile(out / "carrossel.zip") as archive:
+                self.assertIn("03.jpg", archive.namelist())
+                self.assertNotIn("01.jpg", archive.namelist())
+            with self.assertRaises(CarouselError):
+                validate_request({"topic": "x", "only_pages": [7]})
+
     def test_select_requests_is_strict(self):
         with tempfile.TemporaryDirectory() as tmp:
             root = Path(tmp)
