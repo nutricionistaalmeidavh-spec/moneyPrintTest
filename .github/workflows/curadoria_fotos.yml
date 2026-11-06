@@ -1,0 +1,33 @@
+name: Curadoria de fotos amamentacao (Pixabay e Commons)
+on:
+  push:
+    branches: [feat/curadoria-fotos-amamentacao]
+    paths:
+      - "scripts/curate_photos_pdf.py"
+      - ".github/workflows/curadoria_fotos.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  coletar:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+      - name: Instalar libs livres de criação de PDF
+        run: python -m pip install "requests==2.32.5" "Pillow==11.3.0" "reportlab==4.4.4"
+      - name: Buscar 10 fotografias distintas e gerar PDF
+        run: python scripts/curate_photos_pdf.py
+      - name: Publicar PDF e fontes como artifact
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: fotos-amamentacao-10
+          path: out/curadoria_amamentacao/
+          if-no-files-found: warn
+          retention-days: 7
