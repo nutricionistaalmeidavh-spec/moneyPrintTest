@@ -72,3 +72,12 @@ python -m unittest discover -s tests -v
 ```
 
 A duração em segundos orienta a geração do roteiro, e há validação de quantidade de palavras, mas o MP4 final segue a duração real da narração. O Ollama local pode falhar em produzir texto adequado (nesse caso a tarefa encerra com erro). Para máxima confiabilidade, peça ao ChatGPT para fornecer roteiro e termos no arquivo do pedido. Whisper tiny também pode errar legendas. O teste unitário não substitui o teste real de renderização no GitHub.
+
+
+## Novo: carrosséis fotográficos gratuitos
+
+Além dos vídeos, o repositório gera carrosséis de 6 JPGs verticais (1080 × 1350 (4:5)), com **fotos reais de setups** (Pixabay gratuito se houver chave configurada, Wikimedia Commons como fallback) e textos aplicados por cima. Permite repetir a mesma fotografia em todas as páginas, gerar legenda, preview e ZIP, sem publicação automática nem APIs pagas obrigatórias.
+
+**Como usar:** peça pelo ChatGPT/GitHub a criação de um novo JSON em `carousel_requests/`; o workflow `Gerar carrossel com fotos gratuitas` entrega o ZIP em Actions → Artifacts. O Ollama local elabora os textos quando não são fornecidos; imagens não são geradas por IA. A chave existente `PIXABAY_API_KEY`, se configurada em Secrets, é utilizada sem ser exposta.
+
+Leia o [guia detalhado do carrossel](docs/carrossel.md).
