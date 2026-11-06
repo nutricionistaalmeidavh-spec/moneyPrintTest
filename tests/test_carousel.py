@@ -117,6 +117,15 @@ class CarouselTests(unittest.TestCase):
         self.assertEqual(choose_candidate([gaming, daylight])["title"],
                          daylight["title"])
 
+    def test_full_workstation_ranks_above_laptop_and_notebook_closeup(self):
+        from scripts.carousel_media import photo_score
+        info = parse_candidates(sample_candidate())[0]
+        closeup = dict(info, title="desk, laptop, notebook, pen, workplace, home office",
+                       width=2200, height=3200)
+        workstation = dict(info, title="office desk setup monitor keyboard laptop window plants",
+                           width=1600, height=1600)
+        self.assertGreater(photo_score(workstation), photo_score(closeup))
+
     def test_local_ollama_generates_six_pages_without_external_api(self):
         from scripts.render_carousel import _generate_slides_with_local_llm
         req = validate_request({"topic": "Boas práticas de programação"})
