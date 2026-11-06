@@ -254,6 +254,9 @@ def _make_page(background, slide, req, index, total):
 
 def build_caption(req):
     lines = [req["topic"], ""]
+    if not req["items"] and req["slides"]:
+        lines.append("Neste carrossel:")
+        lines.extend("• " + slide["title"] for slide in req["slides"][1:-1])
     for item in req["items"]:
         line = "• " + item["name"]
         if item["detail"]:
