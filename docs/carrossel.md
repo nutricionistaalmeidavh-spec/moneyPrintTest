@@ -55,6 +55,9 @@ Pedido determinístico sem LLM (conteúdo abaixo é JSON):
 - topic: tema; obrigatório.
 - slide_count: de 2 a 10; padrão 6.
 - photo_mode: same (padrão, mesma foto em todo carrossel) ou varied.
+- photo_id: opcional, ID numérico de uma fotografia específica do Pixabay, para
+  usar um fundo aprovado previamente e manter a mesma composição em novas
+  execuções; exige PIXABAY_API_KEY configurada. Não inclui o arquivo original.
 - source: auto (Pixabay, se houver chave, com fallback Commons),
   pixabay (chave obrigatória) ou wikimedia (sem chave).
 - photo_terms: até 8 termos de busca, preferencialmente em inglês.
