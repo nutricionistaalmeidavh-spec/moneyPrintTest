@@ -7,7 +7,7 @@ from pathlib import Path
 
 from scripts.render_carousel import (
     CarouselError, build_caption, choose_candidate, compose_carousel,
-    parse_candidates, safe_photo_url, select_requests, validate_request,
+    parse_candidates, parse_pixabay_candidates, safe_photo_url, select_requests, validate_request,
 )
 
 
@@ -48,7 +48,7 @@ class CarouselTests(unittest.TestCase):
         self.assertEqual(request["photo_mode"], "same")
         self.assertEqual(request["style"], "cinematic")
         self.assertEqual(request["slide_count"], 6)
-        self.assertEqual(request["source"], "wikimedia")
+        self.assertEqual(request["source"], "auto")
         self.assertGreater(len(request["photo_terms"]), 0)
 
     def test_rejects_paid_and_unsafe_parameters(self):
@@ -83,6 +83,20 @@ class CarouselTests(unittest.TestCase):
             host="https://attacker.example/wikipedia/commons/a.jpg")))
         self.assertFalse(safe_photo_url("http://upload.wikimedia.org/x.jpg"))
         self.assertFalse(safe_photo_url("https://upload.wikimedia.org.evil.com/p.jpg"))
+
+    def test_pixabay_free_photo_metadata_and_untrusted_host(self):
+        sample = {"hits": [{
+            "id": 144, "type": "photo", "user": "FotoAutor",
+            "tags": "cozy desk setup", "imageWidth": 2100, "imageHeight": 1600,
+            "pageURL": "https://pixabay.com/photos/desk-144/",
+            "largeImageURL": "https://pixabay.com/get/modern_desktop_1280.jpg",
+        }]}
+        result = parse_pixabay_candidates(sample)
+        self.assertEqual(len(result), 1)
+        self.assertEqual(result[0]["provider"], "Pixabay")
+        self.assertEqual(result[0]["license"], "Pixabay Content License")
+        sample["hits"][0]["largeImageURL"] = "https://example.invalid/desk.jpg"
+        self.assertEqual(parse_pixabay_candidates(sample), [])
 
     def test_prefers_large_portrait_photo(self):
         good = parse_candidates(sample_candidate())[0]
