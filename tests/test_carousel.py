@@ -221,6 +221,31 @@ class CarouselTests(unittest.TestCase):
                   for y in range(600, 850, 20)]
         self.assertTrue(any(r > 235 and g > 235 and b > 235 for r, g, b in pixels))
 
+    def test_bright_setup_uses_dark_ink_for_intro_without_heavy_outline(self):
+        from PIL import Image
+        from scripts.render_carousel import _make_page, _photo_fitness
+        req = validate_request({
+            "topic": "4 sites", "style": "brush",
+            "slides": [
+                {"title": "4 sites pra deixar sua",
+                 "highlight": "empresa eficiente", "body": "(e ninguém te conta)"},
+                *sample_slides()[1:],
+            ]
+        })
+        with tempfile.TemporaryDirectory() as tmp:
+            bg = Image.new("RGB", (1080, 1350), (246, 246, 246))
+            bright = Path(tmp) / "bright.jpg"
+            dark = Path(tmp) / "dark.jpg"
+            bg.save(bright)
+            Image.new("RGB", (1080, 1350), (62, 75, 90)).save(dark)
+            self.assertGreater(_photo_fitness(dark), _photo_fitness(bright))
+            out = _make_page(bg, req["slides"][0], req, 1, 6)
+            # Intro region must gain dark ink even though the image was white.
+            dark_pixels = sum(1 for y in range(240, 535, 10)
+                              for x in range(150, 940, 10)
+                              if max(out.getpixel((x, y))) < 135)
+            self.assertGreater(dark_pixels, 6)
+
     def test_reference_accepts_9by16_but_legacy_preserves_old_aspect(self):
         self.assertEqual(validate_request({"topic": "x", "aspect": "9:16"})["aspect"], "9:16")
         self.assertEqual(validate_request({"topic": "x", "style": "cinematic"})["aspect"], "9:16")
