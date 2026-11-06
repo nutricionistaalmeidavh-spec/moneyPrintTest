@@ -227,7 +227,7 @@ def _make_reference_page(background, slide, req, index, total):
     w, h = image.size
     max_width = int(w * 0.88)
     title_font, title_lines, title_size = _fit_lines(
-        draw, slide["title"], max_width, 4, 74 if index == 1 else 86,
+        draw, slide["title"], max_width, 4, 65 if index == 1 else 80,
         52 if index == 1 else 58)
     body_font, body_lines, body_size = (
         _fit_lines(draw, slide["body"], max_width, 3,
@@ -257,12 +257,12 @@ def _make_reference_page(background, slide, req, index, total):
     if body_lines:
         y = paint(body_lines, body_font, y + gap, body_step, 6)
     if index == 1:
-        arrow_y = max(int(h * .70), y + int(h * .04))
+        arrow_y = max(int(h * .66), y + int(h * .035))
         if arrow_y < int(h * .86):
-            arrows = "›  " * 10
-            arrow_font = _get_font(69)
+            arrows = "›" * 14
+            arrow_font = _get_font(55)
             draw.text((w // 2, arrow_y), arrows.strip(), anchor="mt",
-                      font=arrow_font, fill="white", stroke_width=5,
+                      font=arrow_font, fill="white", stroke_width=4,
                       stroke_fill="black")
     return image
 
