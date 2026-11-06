@@ -1,0 +1,128 @@
+{
+  "id": "audio-do-amanha-ep01",
+  "title": "O Áudio de Amanhã — Episódio 1",
+  "format": {
+    "aspect": "9:16",
+    "fps": 24,
+    "target_seconds": 48,
+    "language": "pt-BR",
+    "style": "CGI 3D cinematográfico original; frutas antropomórficas com corpos humanos, texturas polidas, expressões exageradas, roupas modernas, iluminação quente e profundidade de campo. Drama cômico."
+  },
+  "characters": [
+    {
+      "id": "moranguete",
+      "name": "Moranguete",
+      "look": "Cabeça de morango, cabelo castanho ondulado, top verde, joias douradas e bolsa rosa.",
+      "voice_profile": "moranguete",
+      "voice_direction": "jovem brasileira; curiosa, ligeiramente apavorada; expressiva"
+    },
+    {
+      "id": "uva",
+      "name": "Uva",
+      "look": "Cabeça de cacho de uvas roxas, cabelo escuro, top preto e joias prateadas.",
+      "voice_profile": "uva",
+      "voice_direction": "brasileira jovem, dramática e desafiadora"
+    },
+    {
+      "id": "mae-pera",
+      "name": "Mãe Pera",
+      "look": "Cabeça de pera verde-amarela, coque, roupa floral e brincos de argola.",
+      "voice_profile": "mae-pera",
+      "voice_direction": "brasileira adulta, protetora e firme"
+    },
+    {
+      "id": "pai-caju",
+      "name": "Pai Caju",
+      "look": "Cabeça alaranjada de caju, barba, boné e camisa polo azul-marinho.",
+      "voice_profile": "pai-caju",
+      "voice_direction": "brasileiro adulto, resmungão e carismático"
+    }
+  ],
+  "scenes": [
+    {
+      "id": "s01",
+      "seconds": 8,
+      "place": "Sala de casa à noite",
+      "shot": "Plano médio com aproximação cinematográfica",
+      "action": "Moranguete recebe uma voz misteriosa que parece vir do futuro; ondas de luz azul emanam do celular, mas não aparecem interfaces nem balões de WhatsApp.",
+      "dialogue": [
+        {
+          "speaker": "moranguete",
+          "text": "Gente... esse áudio acabou de me contar o que vai acontecer amanhã!"
+        }
+      ]
+    },
+    {
+      "id": "s02",
+      "seconds": 8,
+      "place": "Sala e cozinha",
+      "shot": "Travelling lateral e contraplano",
+      "action": "Uva se aproxima, desconfiada, enquanto o brilho azul reflete nas frutas.",
+      "dialogue": [
+        {
+          "speaker": "uva",
+          "text": "Se esse áudio é do futuro, me fala primeiro se eu vou ficar rica!"
+        }
+      ]
+    },
+    {
+      "id": "s03",
+      "seconds": 8,
+      "place": "Cozinha à noite",
+      "shot": "Plano geral e corte rápido",
+      "action": "As luzes piscam; Pai Caju entra indignado olhando o disjuntor.",
+      "dialogue": [
+        {
+          "speaker": "pai-caju",
+          "text": "Quem mexeu nesse disjuntor? Eu arrumei isso ontem!"
+        }
+      ]
+    },
+    {
+      "id": "s04",
+      "seconds": 8,
+      "place": "Porta da sala",
+      "shot": "Close no rosto preocupado",
+      "action": "Mãe Pera tenta acalmar o grupo e percebe um novo aviso sonoro vindo do celular.",
+      "dialogue": [
+        {
+          "speaker": "mae-pera",
+          "text": "Ninguém vai subir aquela escada até a gente entender isso!"
+        }
+      ]
+    },
+    {
+      "id": "s05",
+      "seconds": 8,
+      "place": "Escadaria às 9h17",
+      "shot": "Plano americano com câmera baixa",
+      "action": "Uva tenta subir a escada; Moranguete a puxa de volta; a família fica em choque.",
+      "dialogue": [
+        {
+          "speaker": "moranguete",
+          "text": "Uva, para! No áudio dizia exatamente nove e dezessete!"
+        }
+      ]
+    },
+    {
+      "id": "s06",
+      "seconds": 8,
+      "place": "Escadaria",
+      "shot": "Close dramático e congelamento no suspense",
+      "action": "Um barulho ecoa no andar de cima; todos se entreolham; corte em suspense.",
+      "dialogue": [
+        {
+          "speaker": "uva",
+          "text": "Então... quem está lá em cima agora?"
+        }
+      ]
+    }
+  ],
+  "policies": {
+    "paid_providers": false,
+    "auto_publish": false,
+    "allow_voice_cloning": false,
+    "visual_mode": "animated-characters",
+    "no_whatsapp_overlay": true
+  }
+}
