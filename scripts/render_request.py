@@ -17,7 +17,7 @@ from pathlib import Path
 PIPER_MODEL = "pt_BR-faber-medium"
 PIPER_BASE = "https://huggingface.co/rhasspy/piper-voices/resolve/main/pt/pt_BR/faber/medium/"
 PIPER_SHA256 = "858555e3a064209c57088fe6bd70c4c3dc54d03eaa00c45d5ecaf43a33f95aa7"
-OLLAMA_MODEL = "qwen2.5:0.5b"
+OLLAMA_MODEL = "qwen2.5:1.5b"
 OLLAMA_IMAGE = "ollama/ollama:0.12.7"
 REQUEST_PATTERN = re.compile(r"requests/[A-Za-z0-9][A-Za-z0-9_.-]{0,100}\.json\Z")
 COMMIT_PATTERN = re.compile(r"[0-9a-f]{40}\Z")
@@ -184,27 +184,62 @@ def start_ollama() -> bool:
     return True
 
 
+def target_word_count(duration: int) -> int:
+    """Piper Faber PT-BR fala perto de 2,5 palavras/s no runner de QA."""
+    return round(duration * 2.5)
+
+
+def acceptable_script(script: str, duration: int) -> bool:
+    """Rejeita resumos metalinguísticos e roteiros curtos sem inventar duração."""
+    if not isinstance(script, str):
+        return False
+    words = re.findall(r"\b[\wÀ-ÿ]+\b", script, flags=re.UNICODE)
+    desired = target_word_count(duration)
+    if len(words) < desired * 0.83 or len(words) > desired * 1.35:
+        return False
+    normalized = script.casefold().lstrip(' "\\n')
+    return not normalized.startswith((
+        "o script ", "este script ", "o roteiro ", "este roteiro ",
+        "o texto ", "este texto ", "a resposta ",
+    ))
+
+
 def generate_text(topic: str, duration: int) -> dict:
-    prompt = (
-        "Responda SOMENTE JSON válido com chaves 'script' (texto em português brasileiro) "
-        "e 'terms' (lista de quatro buscas curtas em inglês para vídeos de stock). "
-        f"Tema: {topic}. Use aproximadamente {max(40, round(duration * 2.2))} palavras. "
-        "Não invente dados específicos sem fontes."
+    desired = target_word_count(duration)
+    for attempt in range(3):
+        prompt = (
+            "Você é um roteirista brasileiro profissional de vídeos curtos. "
+            "Escreva o TEXTO COMPLETO falado pelo narrador diretamente ao público, "
+            "em português brasileiro natural, com abertura envolvente, 2-3 dicas úteis "
+            "e fechamento. Não descreva o roteiro, não diga 'o script aborda', "
+            "não explique o que vai fazer e não inclua marcações ou títulos. "
+            "Não invente preços, dados estatísticos ou fatos específicos. "
+            f"TEMA: {topic}. DURAÇÃO: {duration} segundos. "
+            f"OBRIGATÓRIO: o texto falado deve ter ENTRE {round(desired * .9)} E "
+            f"{round(desired * 1.15)} PALAVRAS, conte as palavras antes de responder. "
+            "Retorne APENAS JSON válido com 'script' (fala completa) e 'terms' "
+            "(4 termos curtos de pesquisa em inglês para vídeos de apoio). "
+            f"Esta é a tentativa {attempt + 1}; não entregue um resumo."
+        )
+        data = json.dumps({
+            "model": OLLAMA_MODEL, "prompt": prompt, "stream": False,
+            "format": "json", "options": {"temperature": 0.35, "num_predict": 1000}
+        }).encode()
+        req = urllib.request.Request(
+            "http://127.0.0.1:11434/api/generate", data=data,
+            headers={"Content-Type": "application/json"})
+        with urllib.request.urlopen(req, timeout=420) as res:
+            reply = json.load(res)
+        try:
+            generated = json.loads(reply["response"])
+        except (ValueError, TypeError, KeyError):
+            continue
+        if isinstance(generated, dict) and acceptable_script(generated.get("script", ""), duration):
+            return generated
+    raise RequestError(
+        "O modelo local não gerou roteiro na duração solicitada após 3 tentativas; "
+        "para manter qualidade, a renderização foi interrompida sem criar vídeo curto."
     )
-    data = json.dumps({"model": OLLAMA_MODEL, "prompt": prompt,
-                       "stream": False, "format": "json",
-                       "options": {"temperature": 0.2, "num_predict": 650}}).encode()
-    req = urllib.request.Request("http://127.0.0.1:11434/api/generate", data=data,
-                                 headers={"Content-Type": "application/json"})
-    with urllib.request.urlopen(req, timeout=250) as res:
-        reply = json.load(res)
-    try:
-        generated = json.loads(reply["response"])
-    except (ValueError, TypeError, KeyError) as exc:
-        raise RequestError("Modelo local não produziu JSON válido") from exc
-    if not isinstance(generated, dict):
-        raise RequestError("Resposta inválida do Ollama")
-    return generated
 
 
 def local_slides(topic: str, folder: Path, aspect: str) -> list[str]:
