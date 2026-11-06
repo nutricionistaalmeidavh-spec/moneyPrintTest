@@ -30,7 +30,7 @@ class StoryTest(unittest.TestCase):
 
     def test_auto_publish_is_blocked(self):
         self.raw["policies"]["auto_publish"] = True
-        with self.assertRaisesRegex(StoryError, "publica"):
+        with self.assertRaisesRegex(StoryError, "automática proibida"):
             validate_story(self.raw)
 
     def test_no_bare_script_or_placeholder_render(self):
