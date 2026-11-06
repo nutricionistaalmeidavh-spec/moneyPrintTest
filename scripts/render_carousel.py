@@ -24,9 +24,12 @@ from scripts.carousel_media import (
 WIDTH, HEIGHT = 1080, 1920
 COMMIT_PATTERN = re.compile(r"[a-f0-9]{40}\Z")
 REQUEST_PATTERN = re.compile(r"carousel_requests/[A-Za-z0-9][A-Za-z0-9_.-]{0,100}\.json\Z")
-DEFAULT_TERMS = ["aesthetic desk setup", "modern computer workspace",
-                 "programmer desk monitor", "minimalist laptop workspace"]
-VALID_STYLES = {"cinematic", "minimal", "contrast"}
+DEFAULT_TERMS = ["desk setup computer monitor laptop window",
+                 "modern home office monitor plants",
+                 "dual monitor workstation desk",
+                 "bright minimalist desk setup"]
+VALID_STYLES = {"reference", "cinematic", "minimal", "contrast"}
+IMAGE_HEIGHT = {"4:5": 1350, "9:16": 1920}
 
 
 class CarouselError(ValueError):
@@ -45,7 +48,7 @@ def validate_request(raw):
     if not isinstance(raw, dict):
         raise CarouselError("Pedido deve ser objeto JSON")
     allowed = {"topic", "slides", "slide_count", "photo_mode", "photo_terms",
-               "source", "style", "items", "cta", "brand", "hashtags", "only_pages"}
+               "source", "style", "items", "cta", "brand", "hashtags", "only_pages", "aspect"}
     if set(raw) - allowed:
         raise CarouselError("Campos não permitidos: " + ", ".join(sorted(set(raw) - allowed)))
     topic = _one_line(raw.get("topic"), "topic", 280)
@@ -64,9 +67,12 @@ def validate_request(raw):
     source = raw.get("source", "auto")
     if source not in ("auto", "wikimedia", "pixabay"):
         raise CarouselError("source inválido: somente fontes gratuitas permitidas")
-    style = raw.get("style", "cinematic")
+    style = raw.get("style", "reference")
     if style not in VALID_STYLES:
         raise CarouselError("style inválido")
+    aspect = raw.get("aspect", "4:5" if style == "reference" else "9:16")
+    if aspect not in IMAGE_HEIGHT or (style != "reference" and aspect != "9:16"):
+        raise CarouselError("aspect não compatível com o estilo")
     brand = _one_line(raw.get("brand", "ArtiSys"), "brand", 32)
     cta = _one_line(raw.get("cta", "Salve este post para consultar depois."),
                     "cta", 140)
@@ -112,7 +118,8 @@ def validate_request(raw):
         raise CarouselError("hashtags inválidas")
     return {
         "topic": topic, "slide_count": count, "photo_mode": mode,
-        "photo_terms": terms, "source": source, "style": style, "slides": normalized_slides,
+        "photo_terms": terms, "source": source, "style": style, "aspect": aspect,
+        "slides": normalized_slides,
         "items": normalized_items, "brand": brand, "cta": cta, "hashtags": hashtags,
         "only_pages": only_pages,
     }
@@ -192,16 +199,70 @@ def _fit_lines(draw, text, max_width, max_lines, initial, minimum, bold=True):
     raise CarouselError("Texto não cabe na imagem; reduza o conteúdo")
 
 
-def _cover(photo):
+def _cover(photo, aspect="4:5"):
     from PIL import Image, ImageOps
     with Image.open(photo) as input_image:
         original = ImageOps.exif_transpose(input_image)
         rgb = original.convert("RGB")
-    return ImageOps.fit(rgb, (WIDTH, HEIGHT), method=Image.Resampling.LANCZOS,
+    return ImageOps.fit(rgb, (WIDTH, IMAGE_HEIGHT[aspect]), method=Image.Resampling.LANCZOS,
                         centering=(0.5, 0.5))
 
 
+def _make_reference_page(background, slide, req, index, total):
+    """Original TikTok photo-post aesthetic: photo first, centered outlined type.
+
+    No branding badge, artificial gradient, footer, progress strip or screenshots
+    of social-network UI. Keep the photograph prominent, not a backdrop to UI.
+    """
+    from PIL import ImageDraw
+    image = background.copy().convert("RGB")
+    draw = ImageDraw.Draw(image)
+    w, h = image.size
+    max_width = int(w * 0.88)
+    title_font, title_lines, title_size = _fit_lines(
+        draw, slide["title"], max_width, 4, 74 if index == 1 else 86,
+        52 if index == 1 else 58)
+    body_font, body_lines, body_size = (
+        _fit_lines(draw, slide["body"], max_width, 3,
+                   59 if index == 1 else 55, 38)
+        if slide["body"] else (_get_font(44), [], 44))
+    title_step = int(title_size * 1.15)
+    body_step = int(body_size * 1.22)
+    title_height = title_step * len(title_lines)
+    body_height = body_step * len(body_lines)
+    gap = int(h * .052) if body_lines else 0
+    # The reference places the main statement around 41-50% of the photo,
+    # secondary sentence around 57%, and swipe chevrons below.
+    group_height = title_height + gap + body_height
+    first_line_y = max(int(h * .26), int(h * .48 - group_height * .48))
+    if first_line_y + group_height > int(h * .78):
+        first_line_y = int(h * .78) - group_height
+    if first_line_y < int(h * .19):
+        raise CarouselError("Texto muito longo para o formato da foto")
+    def paint(lines, font, y, line_height, stroke):
+        for line in lines:
+            draw.text((w // 2, y), line, anchor="mt", font=font,
+                      fill=(255, 255, 255), stroke_width=stroke,
+                      stroke_fill=(0, 0, 0))
+            y += line_height
+        return y
+    y = paint(title_lines, title_font, first_line_y, title_step, 7)
+    if body_lines:
+        y = paint(body_lines, body_font, y + gap, body_step, 6)
+    if index == 1:
+        arrow_y = max(int(h * .70), y + int(h * .04))
+        if arrow_y < int(h * .86):
+            arrows = "›  " * 10
+            arrow_font = _get_font(69)
+            draw.text((w // 2, arrow_y), arrows.strip(), anchor="mt",
+                      font=arrow_font, fill="white", stroke_width=5,
+                      stroke_fill="black")
+    return image
+
+
 def _make_page(background, slide, req, index, total):
+    if req["style"] == "reference":
+        return _make_reference_page(background, slide, req, index, total)
     from PIL import Image, ImageDraw
     photo = background.copy().convert("RGBA")
     shade = Image.new("RGBA", (WIDTH, HEIGHT))
@@ -295,7 +356,7 @@ def compose_carousel(req, photo, out, item):
     """Render with a single photo (all slides); never export the original photo."""
     out = Path(out)
     out.mkdir(parents=True, exist_ok=True)
-    source = _cover(photo)
+    source = _cover(photo, req["aspect"])
     paths = []
     for number, slide in enumerate(req["slides"], start=1):
         if number not in req["only_pages"]:
@@ -323,14 +384,16 @@ def _deliver(req, out, paths, records):
         encoding="utf-8")
     # Create an overview suitable for visual approval.
     thumbs = []
+    with Image.open(paths[0]) as first:
+        thumb_height = round(270 * first.height / first.width)
     for path in paths:
         with Image.open(path) as img:
-            thumbs.append(ImageOps.fit(img.convert("RGB"), (270, 480)))
+            thumbs.append(ImageOps.fit(img.convert("RGB"), (270, thumb_height)))
     cols = min(3, len(thumbs))
     rows = (len(thumbs) + cols - 1) // cols
-    preview = Image.new("RGB", (cols * 270, rows * 480), (14, 23, 33))
+    preview = Image.new("RGB", (cols * 270, rows * thumb_height), (14, 23, 33))
     for i, thumb in enumerate(thumbs):
-        preview.paste(thumb, ((i % cols) * 270, (i // cols) * 480))
+        preview.paste(thumb, ((i % cols) * 270, (i // cols) * thumb_height))
     preview.save(out / "preview.jpg", quality=84)
     zip_path = out / "carrossel.zip"
     with zipfile.ZipFile(zip_path, "w", compression=zipfile.ZIP_DEFLATED) as zf:
@@ -423,7 +486,7 @@ def render_one(path, output, env):
         outpaths = []
         for asset_index, page_number in enumerate(req["only_pages"]):
             slide = req["slides"][page_number - 1]
-            bg = _cover(files[asset_index])
+            bg = _cover(files[asset_index], req["aspect"])
             target = dest / f"{page_number:02d}.jpg"
             _make_page(bg, slide, req, page_number, req["slide_count"]).save(
                 target, format="JPEG", quality=91, optimize=True, subsampling=0)
