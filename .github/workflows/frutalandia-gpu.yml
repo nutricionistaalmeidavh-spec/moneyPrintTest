@@ -63,7 +63,7 @@ jobs:
       - name: Instalar Kaggle CLI e identificar proprietário autenticado
         shell: bash
         run: |
-          python -m pip install -q "kaggle>=2.2.4,<3" "kagglehub>=0.3,<1"
+          python -m pip install -q "kaggle>=2.2.4,<3" "kagglehub>=0.3,<1" "six>=1.16,<2"
           python - <<'PY'
           import os
           import re
@@ -78,7 +78,7 @@ jobs:
       - name: Verificar cota e gerar notebook privado
         shell: bash
         run: |
-          kaggle quota
+          kaggle quota || echo "Não foi possível consultar a cota; push fará a verificação"
           python -m scripts.frutalandia_kaggle_bundle --story "$STORY_PATH" \
             --username "$KAGGLE_OWNER" --out .kaggle-frutalandia
           python -m py_compile .kaggle-frutalandia/run.py
