@@ -76,7 +76,7 @@ A duração em segundos orienta a geração do roteiro, e há validação de qua
 
 ## Novo: carrosséis fotográficos gratuitos
 
-Além dos vídeos, o repositório gera carrosséis de 6 JPGs verticais (1080 × 1920), com **fotos reais de setups** (Pixabay gratuito se houver chave configurada, Wikimedia Commons como fallback) e textos aplicados por cima. Permite repetir a mesma fotografia em todas as páginas, gerar legenda, preview e ZIP, sem publicação automática nem APIs pagas obrigatórias.
+Além dos vídeos, o repositório gera carrosséis de 6 JPGs verticais (1080 × 1350 (4:5)), com **fotos reais de setups** (Pixabay gratuito se houver chave configurada, Wikimedia Commons como fallback) e textos aplicados por cima. Permite repetir a mesma fotografia em todas as páginas, gerar legenda, preview e ZIP, sem publicação automática nem APIs pagas obrigatórias.
 
 **Como usar:** peça pelo ChatGPT/GitHub a criação de um novo JSON em `carousel_requests/`; o workflow `Gerar carrossel com fotos gratuitas` entrega o ZIP em Actions → Artifacts. O Ollama local elabora os textos quando não são fornecidos; imagens não são geradas por IA. A chave existente `PIXABAY_API_KEY`, se configurada em Secrets, é utilizada sem ser exposta.
 
