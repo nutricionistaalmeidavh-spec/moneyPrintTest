@@ -352,7 +352,10 @@ def render_one(path: Path, output: Path, runtime: Path, env: dict):
             raise RuntimeError("Piper não produziu áudio")
         material_source = source
         if source == "wikimedia":
-            from scripts.commons_media import find_free_videos
+            if __package__:
+                from .commons_media import find_free_videos
+            else:
+                from commons_media import find_free_videos
             materials, records = find_free_videos(terms, dest)
             if materials:
                 material_source = "wikimedia"
