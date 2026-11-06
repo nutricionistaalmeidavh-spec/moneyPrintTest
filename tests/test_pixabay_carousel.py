@@ -65,8 +65,10 @@ class PixabayCarouselTests(unittest.TestCase):
             self.assertEqual(len(outs), 5)
             slide = Image.open(outs[0]).convert("RGB")
             self.assertEqual(slide.size, (1080, 1920))
-            self.assertEqual(slide.getpixel((10, 800)), (115, 139, 166))
-            self.assertEqual(slide.getpixel((1050, 900)), (115, 139, 166))
+            # JPEG da foto de teste tem pequenas variações de compressão.
+            for x, y in [(10, 800), (1050, 900)]:
+                pixel = slide.getpixel((x, y))
+                self.assertTrue(all(abs(a - b) <= 5 for a, b in zip(pixel, (115, 139, 166))))
             # Text is stroked, but no blurred cards/panels may paint the rest.
             self.assertNotEqual(slide.getpixel((540, 1050)), (255, 247, 232))
 
