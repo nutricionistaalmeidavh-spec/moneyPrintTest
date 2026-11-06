@@ -39,6 +39,29 @@ def clean_terms(terms: list[str]) -> list[str]:
     return unique
 
 
+def normalize_generated_terms(raw, topic: str) -> list[str]:
+    """LLMs locais pequenos variam o formato; não rejeitar o pedido por formatação."""
+    if isinstance(raw, str):
+        items = re.split(r"[,;\n]", raw)
+    elif isinstance(raw, list):
+        items = raw
+    else:
+        items = []
+    cleaned = []
+    for item in items:
+        if not isinstance(item, str):
+            continue
+        term = re.sub(r"\s+", " ", item).strip(" ,.-;")
+        term = re.sub(r"[^A-Za-z0-9À-ÿ \-]", "", term).strip()[:70].strip()
+        if len(term) >= 2 and term not in cleaned:
+            cleaned.append(term)
+        if len(cleaned) == 6:
+            break
+    if not cleaned:
+        cleaned = ["office teamwork", "business technology", "working on laptop"]
+    return cleaned
+
+
 def validate_request(raw: dict) -> dict:
     if not isinstance(raw, dict):
         raise RequestError("O pedido deve ser JSON objeto")
@@ -282,7 +305,7 @@ def render_one(path: Path, output: Path, runtime: Path, env: dict):
             if not script:
                 script = generated.get("script", "")
             if not terms:
-                terms = clean_terms(generated.get("terms", []))
+                terms = normalize_generated_terms(generated.get("terms"), data["topic"])
         if not isinstance(script, str) or not script.strip() or len(script) > 2400 or not terms:
             raise RequestError("Roteiro ou termos não produzidos pelo modelo local")
         script = script.strip()
