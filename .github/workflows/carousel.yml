@@ -16,7 +16,11 @@ on:
       request_path:
         description: "Pedido existente, ex.: carousel_requests/exemplo.json"
         type: string
-        required: true
+        required: false
+      request_json:
+        description: "JSON do carrossel, enviado pelo Activepieces (sem token)"
+        type: string
+        required: false
 
 permissions:
   contents: read
@@ -42,6 +46,7 @@ jobs:
     timeout-minutes: 80
     env:
       REQUEST_PATH: ${{ inputs.request_path }}
+      CAROUSEL_REQUEST_JSON: ${{ inputs.request_json }}
       PUSH_BEFORE: ${{ github.event.before }}
       PUSH_AFTER: ${{ github.sha }}
       PIXABAY_API_KEY: ${{ secrets.PIXABAY_API_KEY }}
@@ -66,6 +71,25 @@ jobs:
         with:
           path: /tmp/moneyprint-carousel-cache
           key: carousel-search-${{ env.CAROUSEL_CACHE_DAY }}
+      - name: Preparar pedido inline do Activepieces (sem commit)
+        if: ${{ env.CAROUSEL_REQUEST_JSON != '' }}
+        run: |
+          python - <<'PY'
+          import json, os
+          from pathlib import Path
+          from scripts.render_carousel import validate_request
+          raw = os.environ["CAROUSEL_REQUEST_JSON"]
+          if len(raw.encode("utf-8")) > 32000:
+              raise ValueError("Pedido do Activepieces ultrapassa limite de 32 KB")
+          validated = validate_request(json.loads(raw))
+          if os.environ.get("REQUEST_PATH"):
+              raise ValueError("Forneça request_json OU request_path, nunca ambos")
+          name = os.environ.get("GITHUB_RUN_ID", "manual")
+          location = Path("carousel_requests") / ("activepieces-" + name + ".json")
+          location.write_text(json.dumps(validated, ensure_ascii=False), encoding="utf-8")
+          with open(os.environ["GITHUB_ENV"], "a", encoding="utf-8") as out:
+              out.write("REQUEST_PATH=" + str(location) + "\n")
+          PY
       - name: Gerar fotos com texto (não publica)
         run: python -m scripts.render_carousel
       - name: Entregar JPGs e ZIP
