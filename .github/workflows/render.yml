@@ -1,0 +1,63 @@
+name: Gerar vídeo MoneyPrinterTurbo
+on:
+  push:
+    branches: [main]
+    paths:
+      - "requests/*.json"
+  workflow_dispatch:
+    inputs:
+      request_path:
+        description: "Pedido existente, exemplo requests/exemplo.json"
+        required: true
+        type: string
+
+permissions:
+  contents: read
+
+concurrency:
+  group: moneyprint-${{ github.run_id }}
+  cancel-in-progress: false
+
+jobs:
+  render:
+    runs-on: ubuntu-latest
+    timeout-minutes: 120
+    env:
+      MPT_HOME: ${{ runner.temp }}/moneyprint-runtime
+      PEXELS_API_KEY: ${{ secrets.PEXELS_API_KEY }}
+      PIXABAY_API_KEY: ${{ secrets.PIXABAY_API_KEY }}
+      REQUEST_PATH: ${{ inputs.request_path }}
+      PUSH_BEFORE: ${{ github.event.before }}
+      PUSH_AFTER: ${{ github.sha }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - name: Python 3.11
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+      - name: Instalar MoneyPrinterTurbo e Piper offline
+        run: |
+          python -m pip install --upgrade pip
+          python -m pip install "mpt==1.3.9" "piper-tts==1.8.0"
+      - name: Garantir FFmpeg e fontes
+        run: |
+          if ! command -v ffmpeg >/dev/null; then
+            sudo apt-get update -qq
+            sudo apt-get install -y ffmpeg fonts-dejavu-core
+          fi
+          ffmpeg -version | head -n 1
+      - name: Testes de validação
+        run: python -m unittest discover -s tests -v
+      - name: Renderizar pedidos novos ou pedido manual
+        run: python scripts/render_request.py
+      - name: Disponibilizar MP4, roteiro e diagnóstico
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: moneyprint-${{ github.run_id }}
+          path: outputs/
+          retention-days: 7
+          if-no-files-found: warn
