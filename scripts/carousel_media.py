@@ -114,15 +114,32 @@ def parse_pixabay_candidates(data):
     return out
 
 
+def photo_score(item):
+    """Prefer calm desk/workspace images over gaming, neon and generated art."""
+    title = " " + str(item.get("title", "")).lower() + " "
+    positives = {
+        "minimal": 150, "daylight": 150, "natural light": 150,
+        "sunlight": 150, "workspace": 110, "home office": 95,
+        "office": 40, "desk": 100, "laptop": 70,
+        "workstation": 65, "plant": 50, "keyboard": 25,
+    }
+    negatives = {
+        "gamer": -220, "gaming": -220, "video game": -160,
+        "playstation": -250, "console": -180, "anime": -180,
+        "neon": -160, "3d": -210, "render": -160, "bedroom": -70,
+    }
+    quality = sum(weight for word, weight in positives.items() if word in title)
+    quality += sum(weight for word, weight in negatives.items() if word in title)
+    ratio = item["width"] / max(1, item["height"])
+    portrait = 160 if ratio < 1.15 else 0
+    resolution = (min(item["width"], 2000) + min(item["height"], 2200)) / 35
+    return quality + portrait + resolution
+
+
 def choose_candidate(items):
     if not items:
         raise PhotoError("Nenhuma foto licenciada foi encontrada")
-    def score(item):
-        ratio = item["width"] / max(1, item["height"])
-        portrait = 200 if ratio < 1.15 else 0
-        return (portrait + min(item["width"], 2000) / 20 +
-                min(item["height"], 2200) / 20)
-    return max(items, key=score)
+    return max(items, key=photo_score)
 
 
 def _get_json_cached(url, *, cache_dir):
@@ -192,9 +209,7 @@ def search_free_photos(terms, source, env, cache_dir):
     if not all_items:
         raise PhotoError("Nenhuma foto livre disponível; revise a busca ou a conexão do provedor. "
                          + ", ".join(errors[:3]))
-    return sorted(all_items, key=lambda item: (
-        200 if item["width"] / item["height"] < 1.15 else 0,
-        min(item["width"], 2000) + min(item["height"], 2200)), reverse=True)
+    return sorted(all_items, key=photo_score, reverse=True)
 
 
 def download_photo(item, target):
