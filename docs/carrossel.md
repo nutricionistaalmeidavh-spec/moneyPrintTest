@@ -128,5 +128,5 @@ Antes de ativar a geracao automatica das imagens:
    Mapear o input request_json a {{step_1['output'].pedido_json}}.
 4. Validar o fluxo completo e habilitar. Nao automatizar postagens em redes sociais.
 
-O fluxo Activepieces permanece rascunho e o codigo continua em PR separada.
+A etapa editorial do Activepieces esta publicada e ativa diariamente; a etapa GitHub esta desabilitada por falta de conexao OAuth. O codigo continua em PR separada.
 Nenhum token ou secret foi alterado.
