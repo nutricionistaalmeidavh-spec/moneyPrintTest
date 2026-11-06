@@ -118,15 +118,20 @@ def photo_score(item):
     """Prefer calm desk/workspace images over gaming, neon and generated art."""
     title = " " + str(item.get("title", "")).lower() + " "
     positives = {
-        "minimal": 150, "daylight": 150, "natural light": 150,
-        "sunlight": 150, "workspace": 110, "home office": 95,
-        "office": 40, "desk": 100, "laptop": 70,
-        "workstation": 65, "plant": 50, "keyboard": 25,
+        "monitor": 230, "computer screen": 110, "multiple screens": 150,
+        "dual monitor": 180, "desk setup": 160, "workstation": 150,
+        "window": 135, "natural light": 135, "sunlight": 130,
+        "plant": 105, "modern": 35, "minimal": 80,
+        "keyboard": 70, "desk": 90, "workspace": 60, "office": 60,
+        "computer": 35, "interior": 45, "room": 25,
     }
     negatives = {
-        "gamer": -220, "gaming": -220, "video game": -160,
-        "playstation": -250, "console": -180, "anime": -180,
-        "neon": -160, "3d": -210, "render": -160, "bedroom": -70,
+        "notebook": -170, "pen": -135, "paper": -145,
+        "notepad": -115, "book": -75, "writing": -60,
+        "close up": -200, "closeup": -200, "macro": -195,
+        "gamer": -250, "gaming": -245, "video game": -200,
+        "playstation": -250, "console": -195, "anime": -200,
+        "neon": -200, "3d": -230, "render": -200, "bedroom": -90,
     }
     quality = sum(weight for word, weight in positives.items() if word in title)
     quality += sum(weight for word, weight in negatives.items() if word in title)
@@ -202,7 +207,9 @@ def search_free_photos(terms, source, env, cache_dir):
                         all_items.append(item)
             except (OSError, PhotoError, ValueError, TimeoutError) as exc:
                 errors.append(type(exc).__name__)
-            if len(all_items) >= 8:
+            # Evaluate all search terms: first-result popularity often selects
+            # isolated laptops rather than the full desk setups requested.
+            if len(all_items) >= 100:
                 break
         if all_items:
             break
