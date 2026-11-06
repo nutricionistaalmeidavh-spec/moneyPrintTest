@@ -5,7 +5,7 @@ from pathlib import Path
 from scripts.render_request import (
     RequestError, validate_request, select_visual_mode,
     select_requests, build_config, build_manifest, clean_terms,
-    redact_log, local_slides,
+    redact_log, local_slides, normalize_generated_terms,
 )
 
 
@@ -60,6 +60,13 @@ class RenderTests(unittest.TestCase):
         self.assertEqual(result["bgm_type"], "")
         self.assertEqual(result["custom_audio_file"], "/tmp/voice.wav")
         self.assertEqual(result["video_materials"][0]["provider"], "local")
+
+    def test_llm_terms_are_normalized_without_rejecting_topic(self):
+        self.assertEqual(
+            normalize_generated_terms(["business\nsoftware", {}, "company finance  "], "x"),
+            ["business software", "company finance"],
+        )
+        self.assertTrue(normalize_generated_terms(None, "My topic"))
 
     def test_term_limits(self):
         self.assertEqual(clean_terms([" open source ", "management", "open source"]),
