@@ -42,6 +42,7 @@ class PixabayCarouselTests(unittest.TestCase):
 
     def test_rejects_untrusted_photo_hosts(self):
         self.assertTrue(safe_photo_url(source_photo_url(stock_hit())))
+        self.assertTrue(safe_photo_url("https://pixabay.com/get/g123456_photo_1280.jpg"))
         self.assertFalse(safe_photo_url("https://attacker.example/bad.jpg"))
         self.assertFalse(safe_photo_url("http://cdn.pixabay.com/bad.jpg"))
         self.assertFalse(safe_photo_url("https://pixabay.com.evil.example/1.jpg"))
