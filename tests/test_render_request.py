@@ -27,11 +27,13 @@ class RenderTests(unittest.TestCase):
                 validate_request(request)
 
     def test_free_stock_and_offline_fallback(self):
-        self.assertEqual(select_visual_mode("auto", {}), "local")
-        self.assertEqual(select_visual_mode("auto", {"PEXELS_API_KEY": "abc"}), "pexels")
-        self.assertEqual(select_visual_mode("auto", {"PIXABAY_API_KEY": "abc"}), "pixabay")
-        with self.assertRaisesRegex(RequestError, "PEXELS_API_KEY"):
-            select_visual_mode("stock", {})
+        self.assertEqual(select_visual_mode("auto", {}), "wikimedia")
+        self.assertEqual(select_visual_mode("stock", {}), "wikimedia")
+        self.assertEqual(select_visual_mode("auto", {"PEXELS_API_KEY": "abc"}), "wikimedia")
+        self.assertEqual(select_visual_mode("local", {}), "local")
+        self.assertEqual(select_visual_mode("pexels", {"PEXELS_API_KEY": "abc"}), "pexels")
+        with self.assertRaisesRegex(RequestError, "pexels"):
+            select_visual_mode("pexels", {})
 
     def test_paths_cannot_escape_requests(self):
         with tempfile.TemporaryDirectory() as temp:
