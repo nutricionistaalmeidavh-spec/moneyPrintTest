@@ -311,14 +311,14 @@ for idx, scene_spec in enumerate(story["scenes"]):
 
 sc=bpy.context.scene
 sc.frame_start=1
-sc.frame_end=frame_cursor-1
+sc.frame_end=1 if os.environ.get("FRUTALANDIA_SMOKE")=="1" else frame_cursor-1
 sc.render.resolution_x=RES_X
 sc.render.resolution_y=RES_Y
-sc.render.resolution_percentage=100
+sc.render.resolution_percentage=50 if os.environ.get("FRUTALANDIA_SMOKE")=="1" else 100
 sc.render.fps=FPS
 sc.world.color=(.15,.11,.16)
 sc.render.engine="CYCLES"
-sc.cycles.samples=4
+sc.cycles.samples=1 if os.environ.get("FRUTALANDIA_SMOKE")=="1" else 4
 sc.cycles.use_denoising=True
 chosen="CPU"
 try:
