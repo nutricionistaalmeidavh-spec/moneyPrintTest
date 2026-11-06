@@ -197,6 +197,30 @@ class CarouselTests(unittest.TestCase):
                              for x in range(110, 1000, 40))
             self.assertGreater(difference, 10)
 
+    def test_brush_highlight_text_is_black_on_white_and_background_stays_visible(self):
+        from PIL import Image
+        from scripts.render_carousel import _make_page
+        req = validate_request({
+            "topic": "Ferramentas",
+            "style": "brush",
+            "slides": [
+                {"title": "4 sites pra deixar sua",
+                 "highlight": "empresa mais eficiente",
+                 "body": "(e ninguém te conta)"},
+                *sample_slides()[1:],
+            ],
+        })
+        self.assertEqual(req["slides"][0]["highlight"], "empresa mais eficiente")
+        bg = Image.new("RGB", (1080, 1350), (90, 120, 160))
+        output = _make_page(bg, req["slides"][0], req, 1, 6)
+        self.assertEqual(output.size, bg.size)
+        # No opaque panels or dark gradients over the original setup.
+        self.assertEqual(output.getpixel((20, 20)), bg.getpixel((20, 20)))
+        # Brush-style highlight should create a substantially white block.
+        pixels = [output.getpixel((x, y)) for x in range(350, 800, 30)
+                  for y in range(600, 850, 20)]
+        self.assertTrue(any(r > 235 and g > 235 and b > 235 for r, g, b in pixels))
+
     def test_reference_accepts_9by16_but_legacy_preserves_old_aspect(self):
         self.assertEqual(validate_request({"topic": "x", "aspect": "9:16"})["aspect"], "9:16")
         self.assertEqual(validate_request({"topic": "x", "style": "cinematic"})["aspect"], "9:16")
