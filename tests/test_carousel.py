@@ -1,5 +1,7 @@
 """Regressões: carrossel fotográfico gratuito, texto e entrega."""
 import json
+import io
+from unittest.mock import patch
 import tempfile
 import unittest
 import zipfile
@@ -113,6 +115,17 @@ class CarouselTests(unittest.TestCase):
                         url="https://upload.wikimedia.org/wikipedia/commons/a/ab/office.jpg")
         self.assertEqual(choose_candidate([gaming, daylight])["title"],
                          daylight["title"])
+
+    def test_local_ollama_generates_six_pages_without_external_api(self):
+        from scripts.render_carousel import _generate_slides_with_local_llm
+        req = validate_request({"topic": "Boas práticas de programação"})
+        fake = {"response": json.dumps({"slides": sample_slides()})}
+        with patch("scripts.render_request.start_ollama", return_value=False):
+            with patch("scripts.render_carousel.urlopen",
+                       return_value=io.BytesIO(json.dumps(fake).encode())):
+                result = _generate_slides_with_local_llm(req)
+        self.assertEqual(len(result), 6)
+        self.assertEqual(result[1]["title"], "Roadmap.sh")
 
     def test_rerender_single_page_preserves_page_number(self):
         from PIL import Image
