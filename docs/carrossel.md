@@ -5,7 +5,7 @@ Pixabay gratuito (chave opcional), Wikimedia Commons e Ollama self-hosted.
 
 ## O que produz
 
-- 2 a 10 arquivos JPEG de 1080 x 1920, padrão seis;
+- 2 a 10 arquivos JPEG de 1080 x 1350 (4:5) por padrão; 1080 x 1920 opcional, padrão seis;
 - mesmo fundo fotográfico em todas as páginas (padrão) ou fundos distintos;
 - títulos de alta legibilidade e textos reais sobre o fundo;
 - preview.jpg para aprovar e carrossel.zip com todos os JPEGs;
@@ -26,7 +26,7 @@ Pedido mínimo (conteúdo abaixo é JSON):
       "slide_count": 6,
       "source": "auto",
       "photo_mode": "same",
-      "style": "cinematic"
+      "style": "reference"
     }
 
 O Ollama + Qwen local produz os textos das páginas quando não são
@@ -58,7 +58,8 @@ Pedido determinístico sem LLM (conteúdo abaixo é JSON):
 - source: auto (Pixabay, se houver chave, com fallback Commons),
   pixabay (chave obrigatória) ou wikimedia (sem chave).
 - photo_terms: até 8 termos de busca, preferencialmente em inglês.
-- style: cinematic, minimal ou contrast.
+- style: reference (padrão, texto grande branco centralizado com contorno preto, sem barra, sem logo e sem degradê), cinematic, minimal ou contrast.
+- aspect: 4:5 (padrão no modo reference), 9:16 opcional. Os estilos antigos mantêm 9:16.
 - brand: marca (padrão ArtiSys).
 - cta: chamada final.
 - hashtags: até 10 hashtags.
