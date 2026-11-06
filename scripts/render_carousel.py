@@ -45,13 +45,19 @@ def validate_request(raw):
     if not isinstance(raw, dict):
         raise CarouselError("Pedido deve ser objeto JSON")
     allowed = {"topic", "slides", "slide_count", "photo_mode", "photo_terms",
-               "source", "style", "items", "cta", "brand", "hashtags"}
+               "source", "style", "items", "cta", "brand", "hashtags", "only_pages"}
     if set(raw) - allowed:
         raise CarouselError("Campos não permitidos: " + ", ".join(sorted(set(raw) - allowed)))
     topic = _one_line(raw.get("topic"), "topic", 280)
     count = raw.get("slide_count", 6)
     if type(count) is not int or not 2 <= count <= 10:
         raise CarouselError("slide_count deve estar entre 2 e 10")
+    only_pages = raw.get("only_pages", list(range(1, count + 1)))
+    if (not isinstance(only_pages, list) or not 1 <= len(only_pages) <= count or
+        any(type(page) is not int or not 1 <= page <= count for page in only_pages) or
+        len(set(only_pages)) != len(only_pages)):
+        raise CarouselError("only_pages deve conter páginas únicas entre 1 e slide_count")
+    only_pages = sorted(only_pages)
     mode = raw.get("photo_mode", "same")
     if mode not in ("same", "varied"):
         raise CarouselError("photo_mode inválido")
@@ -108,6 +114,7 @@ def validate_request(raw):
         "topic": topic, "slide_count": count, "photo_mode": mode,
         "photo_terms": terms, "source": source, "style": style, "slides": normalized_slides,
         "items": normalized_items, "brand": brand, "cta": cta, "hashtags": hashtags,
+        "only_pages": only_pages,
     }
 
 
@@ -291,6 +298,8 @@ def compose_carousel(req, photo, out, item):
     source = _cover(photo)
     paths = []
     for number, slide in enumerate(req["slides"], start=1):
+        if number not in req["only_pages"]:
+            continue
         target = out / f"{number:02d}.jpg"
         _make_page(source, slide, req, number, len(req["slides"])).save(
             target, format="JPEG", quality=91, optimize=True, subsampling=0)
@@ -390,7 +399,7 @@ def render_one(path, output, env):
         req["slides"] = _generate_slides_with_local_llm(req)
     cache = Path(env.get("CAROUSEL_CACHE_DIR", "/tmp/moneyprint-carousel-cache"))
     candidates = search_free_photos(req["photo_terms"], req["source"], env, cache)
-    desired = 1 if req["photo_mode"] == "same" else req["slide_count"]
+    desired = 1 if req["photo_mode"] == "same" else len(req["only_pages"])
     chosen, files = [], []
     try:
         for candidate in candidates:
@@ -412,10 +421,11 @@ def render_one(path, output, env):
         if req["photo_mode"] == "same":
             return compose_carousel(req, files[0], dest, chosen[0])
         outpaths = []
-        for i, slide in enumerate(req["slides"], start=1):
-            bg = _cover(files[i - 1])
-            target = dest / f"{i:02d}.jpg"
-            _make_page(bg, slide, req, i, req["slide_count"]).save(
+        for asset_index, page_number in enumerate(req["only_pages"]):
+            slide = req["slides"][page_number - 1]
+            bg = _cover(files[asset_index])
+            target = dest / f"{page_number:02d}.jpg"
+            _make_page(bg, slide, req, page_number, req["slide_count"]).save(
                 target, format="JPEG", quality=91, optimize=True, subsampling=0)
             outpaths.append(target)
         _deliver(req, dest, outpaths, chosen)
