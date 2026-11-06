@@ -57,8 +57,10 @@ def validate_job(raw: dict) -> dict:
 def safe_photo_url(url: str) -> bool:
     try:
         p = urlsplit(url)
-        return (p.scheme=="https" and p.hostname=="cdn.pixabay.com"
-                and p.path.lower().endswith((".jpg",".jpeg",".png",".webp")))
+        return (p.scheme=="https" and
+                ((p.hostname=="cdn.pixabay.com" and
+                  p.path.lower().endswith((".jpg",".jpeg",".png",".webp"))) or
+                 (p.hostname=="pixabay.com" and p.path.startswith("/get/"))))
     except (TypeError, ValueError):
         return False
 
@@ -127,7 +129,13 @@ def fetch_candidates(secret: str, searches: list[str]) -> list[dict]:
         except Exception as exc:
             # NÃO incluir exception ou URL, pois incluem a secret como query string.
             raise CarouselError("Pixabay recusou a consulta ou não respondeu; confira a secret e permissões") from None
-    return select_candidates(results)
+    picked=select_candidates(results)
+    print(f"Pixabay: {len(results)} fotos retornadas; {len(picked)} candidatas relevantes.", flush=True)
+    if not picked:
+        hosts=sorted(set(urlsplit(str(z.get("webformatURL",""))).hostname or "" for z in results))[:5]
+        print(f"Pixabay: domínios dos resultados {hosts}.", flush=True)
+        print(f"Pixabay: primeiras tags {[str(z.get('tags',''))[:90] for z in results[:5]]}.", flush=True)
+    return picked
 
 
 def get_photo(url: str) -> Image.Image:
