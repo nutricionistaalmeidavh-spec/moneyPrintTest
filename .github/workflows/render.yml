@@ -1,7 +1,7 @@
 name: Gerar vídeo MoneyPrinterTurbo
 on:
   push:
-    branches: [main]
+    branches: [main, feat/moneyprinter-actions-free]
     paths:
       - "requests/*.json"
   workflow_dispatch:
