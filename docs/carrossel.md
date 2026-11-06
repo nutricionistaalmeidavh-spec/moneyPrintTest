@@ -64,6 +64,9 @@ Pedido determinístico sem LLM (conteúdo abaixo é JSON):
 - hashtags: até 10 hashtags.
 - items: até 8 objetos opcionais com name, detail e url (HTTPS).
 - slides: lista com um title e body por página, se desejar edição manual.
+- only_pages: números das páginas que deseja gerar novamente (ex.: [3]);
+  o ZIP conterá apenas essas páginas editadas. A seleção da foto é refeita
+  pelos termos de busca; em execuções diferentes o fundo pode mudar.
 
 ## Fotos Pixabay e licenciamento
 
