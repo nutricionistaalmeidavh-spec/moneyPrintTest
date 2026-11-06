@@ -67,7 +67,7 @@ jobs:
           path: /tmp/moneyprint-carousel-cache
           key: carousel-search-${{ env.CAROUSEL_CACHE_DAY }}
       - name: Gerar fotos com texto (não publica)
-        run: python scripts/render_carousel.py
+        run: python -m scripts.render_carousel
       - name: Entregar JPGs e ZIP
         if: always()
         uses: actions/upload-artifact@v4
