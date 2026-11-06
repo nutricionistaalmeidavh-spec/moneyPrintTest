@@ -2,12 +2,12 @@
   "topic": "4 sites para melhorar na programação (e quase ninguém fala)",
   "source": "auto",
   "photo_mode": "same",
-  "style": "cinematic",
+  "style": "reference",
   "photo_terms": [
-    "aesthetic computer desk setup",
-    "modern programmer workstation",
-    "minimalist desktop setup",
-    "cozy computer workspace"
+    "computer desk monitor laptop window",
+    "modern desk setup with monitor",
+    "home office desk with plants",
+    "desktop computer workstation"
   ],
   "brand": "ArtiSys",
   "cta": "Salva este post para testar depois.",
@@ -35,28 +35,29 @@
   ],
   "slides": [
     {
-      "title": "4 sites que vão melhorar sua programação",
-      "body": "Ferramentas úteis que merecem estar nos seus favoritos."
+      "title": "4 sites para te deixar melhor na programação",
+      "body": "(e quase ninguém fala)"
     },
     {
-      "title": "1. Roadmap.sh",
-      "body": "Encontre trilhas para organizar o que estudar em tecnologia."
+      "title": "1. ROADMAP.SH",
+      "body": "Organize o que estudar com trilhas visuais."
     },
     {
-      "title": "2. Exercism",
-      "body": "Pratique programação resolvendo exercícios."
+      "title": "2. EXERCISM",
+      "body": "Aprenda programando, com exercícios gratuitos."
     },
     {
-      "title": "3. DevDocs",
-      "body": "Pesquise documentação técnica sem perder o foco."
+      "title": "3. DEVDOCS",
+      "body": "Documentação de linguagens e bibliotecas."
     },
     {
-      "title": "4. Regex101",
-      "body": "Entenda e teste expressões regulares visualmente."
+      "title": "4. REGEX101",
+      "body": "Teste expressões regulares de forma visual."
     },
     {
-      "title": "Salva este carrossel",
-      "body": "Qual dessas ferramentas você já conhecia?"
+      "title": "SALVA ESSE POST",
+      "body": "E segue a ArtiSys para descobrir mais!"
     }
-  ]
+  ],
+  "aspect": "4:5"
 }
