@@ -1,2 +1,4 @@
 Frutalândia EP01 — teste real autorizado em 2026-11-06.
 GPU Kaggle T4 via KAGGLE_API_TOKEN; não publicar; saída MP4 em artifact.
+
+Retry 2: Kaggle CLI Python six dependency corrected.
