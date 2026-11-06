@@ -131,7 +131,8 @@ def photo_score(item):
         "close up": -200, "closeup": -200, "macro": -195,
         "gamer": -250, "gaming": -245, "video game": -200,
         "playstation": -250, "console": -195, "anime": -200,
-        "neon": -200, "3d": -230, "render": -200, "bedroom": -90,
+        "neon": -200, "3d": -230, "render": -200,
+        "ai generated": -250, "bedroom": -90,
     }
     quality = sum(weight for word, weight in positives.items() if word in title)
     quality += sum(weight for word, weight in negatives.items() if word in title)
@@ -188,9 +189,18 @@ def search_commons(term, cache_dir):
         API_COMMONS + "?" + query, cache_dir=cache_dir))
 
 
-def search_free_photos(terms, source, env, cache_dir):
+def search_free_photos(terms, source, env, cache_dir, *, photo_id=None):
     """Pixabay preferred only when free API key explicitly configured."""
     key = env.get("PIXABAY_API_KEY", "").strip()
+    if photo_id is not None:
+        if not key:
+            raise PhotoError("photo_id exige PIXABAY_API_KEY gratuita no GitHub Secrets")
+        query = urlencode({"key": key, "id": photo_id, "image_type": "photo"})
+        photos = parse_pixabay_candidates(_get_json_cached(
+            API_PIXABAY + "?" + query, cache_dir=cache_dir))
+        if not photos:
+            raise PhotoError("Foto Pixabay solicitada por ID não encontrada ou indisponível")
+        return photos
     if source == "pixabay" and not key:
         raise PhotoError("PIXABAY_API_KEY não configurada nos Secrets do GitHub")
     providers = (["pixabay", "wikimedia"] if source == "auto" and key else
