@@ -295,7 +295,16 @@ camera.data.dof.use_dof=False
 
 frame_cursor=1
 scene_frames={}
+previous_focus=None
+scene_filter=os.environ.get("FRUTALANDIA_SCENE_ID","").strip()
+if scene_filter and scene_filter not in {sc["id"] for sc in story["scenes"]}:
+    raise RuntimeError("FRUTALANDIA_SCENE_ID inválido")
 for idx, scene_spec in enumerate(story["scenes"]):
+    if scene_filter and scene_spec["id"]!=scene_filter:
+        # Preserve original timeline indices but avoid building 5 unrelated
+        # sets/actors. Reduces BVH/shader memory and greatly improves preview.
+        frame_cursor+=scene_spec["seconds"]*FPS
+        continue
     X=room(scene_spec,idx)
     identities = (
         ["moranguete","uva"] if idx in (0,1) else
@@ -341,7 +350,7 @@ for idx, scene_spec in enumerate(story["scenes"]):
     focus=positions[lead_index]
     if idx==5:
         focus=X
-    if first>1:
+    if first>1 and previous_focus is not None:
         camera.location=(previous_focus, -9.1, 3.6)
         look=Vector((previous_focus,0,2.15))
         camera.rotation_euler=(look-camera.location).to_track_quat("-Z","Y").to_euler()
