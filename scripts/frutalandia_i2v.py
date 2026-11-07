@@ -123,8 +123,8 @@ def prepare_reference(story: dict, output_dir: Path) -> list[Path]:
         roi=source.crop((x0,y0,x1,y1))
         character=char_by_id[hero]
         target=scene.get("counter_override",{}).get(hero,character["forehead_counter"])
-        centers={"moranguete":(250,202),"uva":(614,173),
-                 "mae-pera":(972,169),"pai-caju":(1468,184)}
+        centers={"moranguete":(254,209),"uva":(605,184),
+                 "mae-pera":(1050,171),"pai-caju":(1460,165)}
         coords=centers[hero]
         draw=ImageDraw.Draw(roi)
         _cover_counter(draw,(coords[0]-x0,coords[1]-y0),target)
