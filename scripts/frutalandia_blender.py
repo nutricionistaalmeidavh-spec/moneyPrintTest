@@ -352,6 +352,6 @@ print("FRUTALANDIA RENDER",sc.frame_end,"frames",chosen,flush=True)
 },indent=2))
 bpy.ops.render.render(animation=True)
 files=list(outdir.glob("silent*.mp4"))
-if not files or max(p.stat().st_size for p in files)<100000:
+if not files or max(p.stat().st_size for p in files) < (1000 if os.environ.get("FRUTALANDIA_SMOKE")=="1" else 100000):
     raise RuntimeError("Blender não criou vídeo silencioso válido")
 print("FRUTALANDIA_RENDER_OK",max(files,key=lambda p:p.stat().st_size),flush=True)
