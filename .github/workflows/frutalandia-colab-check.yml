@@ -1,0 +1,80 @@
+name: Frutalândia Colab — validar notebooks e frame 3D
+
+on:
+  pull_request:
+    paths:
+      - "notebooks/frutalandia-*.ipynb"
+      - "tests/test_frutalandia_colab.py"
+      - "scripts/frutalandia_blender.py"
+      - "scripts/frutalandia_episode_runner.py"
+      - ".github/workflows/frutalandia-colab-check.yml"
+  push:
+    branches:
+      - feat/frutalandia-cenas-paralelas-contador
+    paths:
+      - ".github/workflows/frutalandia-colab-check.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  notebook-contract:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+      - name: Validar notebook JSON, sintaxe de células, cenas e script Blender
+        run: |
+          python -m unittest discover -s tests -p 'test_frutalandia_colab.py' -v
+          python -m unittest discover -s tests -p 'test_frutalandia_scenes.py' -v
+          python -m compileall -q scripts/frutalandia_blender.py scripts/frutalandia_episode_runner.py
+  blender-workbench-frame:
+    needs: notebook-contract
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    env:
+      FRUTALANDIA_RENDER_ENGINE: WORKBENCH
+      FRUTALANDIA_SMOKE: "1"
+      FRUTALANDIA_SCENE_ID: s06
+      LIBGL_ALWAYS_SOFTWARE: "1"
+      PYTHONUNBUFFERED: "1"
+    steps:
+      - uses: actions/checkout@v4
+      - name: Instalar dependências 100% open source
+        shell: bash
+        run: |
+          timeout 180s sudo apt-get update -qq
+          timeout 300s sudo apt-get install -y -qq blender ffmpeg xvfb xauth libgl1-mesa-dri fonts-dejavu-core
+      - name: Renderizar frame 3D de Mãe Pera com contador ERR via Xvfb
+        shell: bash
+        run: |
+          mkdir -p outputs/colab-smoke
+          timeout 240s xvfb-run -a blender -b -t 2 --python scripts/frutalandia_blender.py -- \
+            stories/frutalandia/contador-do-butico-ep01.json outputs/colab-smoke \
+            > outputs/colab-smoke/render.log 2>&1 || {
+            tail -60 outputs/colab-smoke/render.log; exit 1;
+          }
+          cat outputs/colab-smoke/blender-render-config.json
+          test -n "$(find outputs/colab-smoke -maxdepth 1 -name 'silent*.mp4' -size +1000c -print -quit)"
+          clip="$(find outputs/colab-smoke -maxdepth 1 -name 'silent*.mp4' -print -quit)"
+          ffprobe -v error -select_streams v:0 -show_entries stream=codec_name,width,height -of default=noprint_wrappers=1 "$clip"
+          python - <<'PY'
+          import json
+          from pathlib import Path
+          data=json.loads(Path("outputs/colab-smoke/blender-render-config.json").read_text())
+          assert data["selected_scene"]=="s06", data
+          assert data["engine"]=="Blender WORKBENCH",data
+          print("WORKBENCH_SCENE6_SMOKE_OK")
+          PY
+      - name: Guardar frame para inspecionar qualidade
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: frutalandia-workbench-frame-${{ github.run_id }}
+          path: outputs/colab-smoke/
+          retention-days: 7
+          if-no-files-found: warn
