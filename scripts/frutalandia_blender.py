@@ -348,7 +348,9 @@ for idx, scene_spec in enumerate(story["scenes"]):
     # corte entre cenas; movimento cinematográfico dentro de cada tomada
     lead_index=identities.index(speaker)
     focus=positions[lead_index]
-    if idx==5:
+    if idx==5 or (idx==3 and story.get("id")=="contador-do-butico-ep01"):
+        # At Mãe Pera's arrival, focus the character whose counter reads 999+
+        # instead of cropping her face while the Uva delivers the line.
         focus=X
     if first>1 and previous_focus is not None:
         camera.location=(previous_focus, -9.1, 3.6)
@@ -400,6 +402,18 @@ if background:
     else:
         background.inputs["Color"].default_value=(.22,.16,.23,1)
         background.inputs["Strength"].default_value=.48
+if VISUAL_V2:
+    # Avoid desaturated default filmic/AgX look for colorful animated comedy.
+    try:
+        sc.view_settings.view_transform="Standard"
+        for candidate in ("Medium High Contrast","High Contrast","Medium High Contrast - AgX"):
+            try:
+                sc.view_settings.look=candidate
+                break
+            except (TypeError,ValueError):
+                pass
+    except (TypeError,ValueError):
+        pass
 requested_engine=os.environ.get("FRUTALANDIA_RENDER_ENGINE","CYCLES").upper()
 if requested_engine not in ("CYCLES","WORKBENCH","EEVEE"):
     raise RuntimeError("Motor 3D deve ser CYCLES, WORKBENCH ou EEVEE")
