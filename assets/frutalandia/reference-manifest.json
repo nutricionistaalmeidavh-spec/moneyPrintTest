@@ -1,0 +1,60 @@
+{
+  "title": "Frutalândia — referência mestra dos personagens",
+  "file": "assets/frutalandia/elenco-master.webp",
+  "sha256": "0a2b6738f99e5983b68d90d419ebcdf4d9d7fc3f20f880d0b987c226faa3e5ca",
+  "source_original_sha256": "aaddeb695186701a77f6d4b6cf8473ae4fa99d53dc8150982eab111b0829879d",
+  "dimensions": [
+    1672,
+    941
+  ],
+  "source": "Imagem do elenco gerada nesta conversa, copiada ao repo como WebP de alta qualidade, sem alterar os personagens",
+  "low_bandwidth_file": "assets/frutalandia/elenco-reference.webp",
+  "low_bandwidth_sha256": "2f54c8ab1ec23bc4e1c105a07b0c45696e2757960cfa9185e2c9c963938e4592",
+  "canonical_counters": {
+    "moranguete": "000",
+    "uva": "007",
+    "mae-pera": "999+",
+    "pai-caju": "038"
+  },
+  "character_crops": {
+    "moranguete": [
+      80,
+      70,
+      430,
+      875
+    ],
+    "uva": [
+      420,
+      45,
+      800,
+      865
+    ],
+    "mae-pera": [
+      800,
+      40,
+      1220,
+      880
+    ],
+    "pai-caju": [
+      1240,
+      30,
+      1605,
+      880
+    ]
+  },
+  "first_frame_speaker": {
+    "s01": "uva",
+    "s02": "moranguete",
+    "s03": "pai-caju",
+    "s04": "mae-pera",
+    "s05": "pai-caju",
+    "s06": "mae-pera"
+  },
+  "known_differences": [
+    "Moranguete tem 042 na imagem, mas o roteiro canônico pede 000",
+    "Pai Caju tem 000 na imagem, mas o roteiro canônico pede 038",
+    "Uva aparece com figurino e traços masculinos na referência, embora o roteiro original use falas no feminino; rever dublagem na aprovação editorial"
+  ],
+  "paid_required": false,
+  "auto_publish": false
+}
