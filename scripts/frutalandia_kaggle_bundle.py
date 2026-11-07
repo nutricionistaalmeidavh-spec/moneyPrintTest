@@ -32,7 +32,7 @@ def make_kernel(story_file: Path, blender_file: Path, renderer_file: Path,
     target.mkdir(parents=True, exist_ok=True)
     payload = json.dumps({name: base64.b64encode(data).decode("ascii") for name, data in pieces.items()})
     script = (
-        "import base64, json, os, pathlib, subprocess, sys\n"
+        "import base64, json, os, pathlib, subprocess, sys, shutil\n"
         "from pathlib import Path\n"
         "work = Path('/kaggle/working')\n"
         "work.mkdir(exist_ok=True)\n"
@@ -40,6 +40,17 @@ def make_kernel(story_file: Path, blender_file: Path, renderer_file: Path,
         "for name, data in files.items():\n"
         "    (work / name).write_bytes(base64.b64decode(data))\n"
         "os.chdir(work)\n"
+        "print('FRUTALANDIA_PREFLIGHT=begin', flush=True)\n"
+        "if shutil.which('blender') is None:\n"
+        "    raise RuntimeError('Blender ausente, Kaggle sem DNS apt; usar GitHub Actions CPU')\n"
+        "if shutil.which('ffmpeg') is None or shutil.which('ffprobe') is None:\n"
+        "    raise RuntimeError('FFmpeg/FFprobe ausentes; abortar sem instalar')\n"
+        "if shutil.which('nvidia-smi') is None:\n"
+        "    raise RuntimeError('Accelerator None: NVIDIA GPU não alocada')\n"
+        "gpu=subprocess.run(['nvidia-smi','-L'],capture_output=True,text=True,timeout=10)\n"
+        "if gpu.returncode or 'GPU' not in gpu.stdout:\n"
+        "    raise RuntimeError('GPU NVIDIA indisponível; não fazer render sem aceleração')\n"
+        "print('FRUTALANDIA_PREFLIGHT=ok', gpu.stdout[:200],flush=True)\n"
         "cmd = [sys.executable, 'render_episode.py', '--story', 'story.json', "
         "'--output', str(work)]\n"
         + "cmd += " + repr(['--scene-id', scene_id] if scene_id else []) + "\n"
