@@ -2,7 +2,6 @@
 
 No GPU is necessary to run these tests.
 """
-import base64
 import json
 import tempfile
 import unittest
@@ -10,7 +9,7 @@ from pathlib import Path
 
 from scripts.frutalandia_i2v import (
     load_story, get_scene_prompt, read_reference, prepare_reference,
-    validate_preview, check_available_gpu, REFERENCE_B64,
+    validate_preview, check_available_gpu, REFERENCE, REFERENCE_B64,
 )
 
 ROOT=Path(__file__).resolve().parents[1]
@@ -18,8 +17,9 @@ ROOT=Path(__file__).resolve().parents[1]
 
 class ReferenceI2VTests(unittest.TestCase):
     def test_original_generated_reference_is_committed_not_remote_url(self):
+        self.assertTrue(REFERENCE.is_file())
         self.assertTrue(REFERENCE_B64.is_file())
-        data=base64.b64decode(REFERENCE_B64.read_text().strip(),validate=True)
+        data=REFERENCE.read_bytes()
         self.assertTrue(data.startswith(b"RIFF"))
         self.assertEqual(data[8:12],b"WEBP")
         manifest=json.loads((ROOT/"assets/frutalandia/reference-manifest.json").read_text())
