@@ -21,6 +21,22 @@ class VisualV2Tests(unittest.TestCase):
                      "mandacaru","bandeirinha","brilho_olho","pestana"):
             self.assertIn(term,source)
 
+    def test_mouth_opening_never_exceeds_face_proportions(self):
+        # Regression for a visibly giant oval mouth in first Eevee screenshot:
+        # animation MUST use the original tiny local scale, not 1.8 units.
+        source=(ROOT/"scripts/frutalandia_visual_v2.py").read_text(encoding="utf-8")
+        tree=ast.parse(source)
+        helper=next(n for n in tree.body if isinstance(n,ast.FunctionDef)
+                    and n.name=="mouth_open_scale")
+        namespace={}
+        exec(compile(ast.Module(body=[helper],type_ignores=[]),"<visual-v2>","exec"),namespace)
+        fn=namespace["mouth_open_scale"]
+        for speaking in (False,True):
+            for phase in (0,1,2):
+                self.assertGreater(fn(speaking,phase),.0)
+                self.assertLessEqual(fn(speaking,phase),.16)
+        self.assertGreater(fn(True,1),fn(False,1))
+
     def test_blender_uses_3d_visuals_and_preview_mode(self):
         src=(ROOT/"scripts/frutalandia_blender.py").read_text(encoding="utf-8")
         for term in ("frutalandia_visual_v2","detail_character(","detail_market(",
