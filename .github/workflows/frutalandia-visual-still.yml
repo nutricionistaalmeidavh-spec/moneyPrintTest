@@ -1,0 +1,61 @@
+name: Frutalândia V2 — frame de aprovação visual
+
+on:
+  push:
+    branches:
+      - feat/frutalandia-visual-v2-preview
+    paths:
+      - ".github/workflows/frutalandia-visual-still.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  still-pbr:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    env:
+      FRUTALANDIA_VISUAL_VERSION: "2"
+      FRUTALANDIA_RENDER_ENGINE: EEVEE
+      FRUTALANDIA_PREVIEW_FRAMES: "1"
+      FRUTALANDIA_PREVIEW_STILL_ONLY: "1"
+      FRUTALANDIA_SCENE_ID: s04
+      LIBGL_ALWAYS_SOFTWARE: "1"
+      PYTHONUNBUFFERED: "1"
+    steps:
+      - uses: actions/checkout@v4
+      - name: Blender e Mesa open source
+        run: |
+          timeout 180s sudo apt-get update -qq
+          timeout 300s sudo apt-get install -y -qq blender ffmpeg xvfb xauth libgl1-mesa-dri fonts-dejavu-core
+      - name: Renderizar um frame real com materiais, cenário e contadores
+        shell: bash
+        run: |
+          mkdir -p outputs/visual-still
+          timeout 480s xvfb-run -a -s '-screen 0 1280x1024x24' blender -b -t 2 \
+            --python scripts/frutalandia_blender.py -- \
+            stories/frutalandia/contador-do-butico-ep01.json outputs/visual-still \
+            > outputs/visual-still/blender.log 2>&1 || {
+              tail -80 outputs/visual-still/blender.log; exit 1;
+            }
+          test -s outputs/visual-still/preview.png
+          python - <<'PY'
+          from pathlib import Path
+          import struct
+          p=Path('outputs/visual-still/preview.png')
+          raw=p.read_bytes()
+          assert raw[:8] == b'\x89PNG\r\n\x1a\n'
+          width,height=struct.unpack('>II',raw[16:24])
+          assert (width,height)==(540,960),(width,height)
+          assert len(raw)>5000,len(raw)
+          print("PBR_REAL_FRAME_540X960",len(raw))
+          PY
+      - name: Preservar PNG e log para revisão visual
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: frutalandia-v2-frame-PBR-${{ github.run_id }}
+          path: outputs/visual-still/
+          retention-days: 14
+          if-no-files-found: warn
