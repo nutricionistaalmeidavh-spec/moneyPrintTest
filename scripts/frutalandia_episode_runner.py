@@ -175,15 +175,15 @@ def make_subtitles(story, output):
 
 
 def ensure_blender():
+    """A rede do Kaggle pode bloquear DNS; não tentar apt-get no notebook."""
     blender=shutil.which("blender")
     if blender:
+        print("FRUTALANDIA_PREFLIGHT=blender_found",flush=True)
         return blender
-    run(["apt-get","update","-qq"])
-    run(["apt-get","install","-y","-qq","blender","ffmpeg","fonts-dejavu-core"])
-    blender=shutil.which("blender")
-    if not blender:
-        raise RuntimeError("Blender não foi instalado")
-    return blender
+    raise RuntimeError(
+        "Blender ausente/indisponível no Kaggle; não usar apt-get. "
+        "Use GitHub Actions CPU ou runtime open-source previamente anexado."
+    )
 
 
 def assemble(story, output, silent, voice_engine):
@@ -255,7 +255,11 @@ def main():
             render_story["scenes"]=matching
             render_story["format"]["target_seconds"]=matching[0]["seconds"]
             os.environ["FRUTALANDIA_SCENE_ID"]=args.scene_id
+        print("FRUTALANDIA_STAGE=preflight",flush=True)
         engine=ensure_blender()
+        if not shutil.which("ffmpeg") or not shutil.which("ffprobe"):
+            raise RuntimeError("FFmpeg/FFprobe ausentes; não instalar via Kaggle DNS")
+        print("FRUTALANDIA_STAGE=render_ready",flush=True)
         silent_candidates=list(output.glob("silent*.mp4"))
         if not silent_candidates:
             run([engine,"-b","-t","4","--python",str(Path(__file__).with_name("blender_frutas.py")),
