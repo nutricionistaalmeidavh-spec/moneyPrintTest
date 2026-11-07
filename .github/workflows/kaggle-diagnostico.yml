@@ -39,7 +39,9 @@ jobs:
           PY
           mkdir -p outputs/diagnostics
           echo "Verificando status de kernel privado existente, sem iniciar novo job GPU."
-          echo "Usuário identificado: $KAGGLE_OWNER"
+          export KAGGLE_OWNER="$(sed -n 's/^KAGGLE_OWNER=//p' "$GITHUB_ENV" | tail -n 1)"
+          [[ "$KAGGLE_OWNER" =~ ^[a-z0-9][a-z0-9_-]{1,39}$ ]] || { echo "::error::Kaggle username inválido"; exit 1; }
+          echo "Usuário Kaggle confirmado para consulta."
           kaggle kernels list --mine --csv | tee outputs/diagnostics/kernels-list.txt || true
           echo "Consultar notebook esperado pelo nome informado:"
           kaggle kernels status "$KAGGLE_OWNER/frutalandia-ep01" 2>&1 | tee outputs/diagnostics/kernel-status.txt || true
