@@ -43,6 +43,8 @@ concurrency:
 
 jobs:
   validate:
+    outputs:
+      selected: ${{ steps.selection.outputs.value }}
     runs-on: ubuntu-latest
     timeout-minutes: 10
     steps:
@@ -50,6 +52,18 @@ jobs:
       - uses: actions/setup-python@v5
         with:
           python-version: "3.11"
+      - id: selection
+        name: Selecionar all ou uma cena a partir do trigger versionado
+        env:
+          DISPATCH_SCENE: ${{ inputs.scene || 'all' }}
+        shell: bash
+        run: |
+          requested="$DISPATCH_SCENE"
+          if [[ "$GITHUB_EVENT_NAME" == "push" ]]; then
+            requested="$(head -n 1 triggers/produce-contador.txt | tr -d '[:space:]')"
+          fi
+          [[ "$requested" =~ ^(all|s0[1-6])$ ]] || { echo "::error::Cenas permitidas: all ou s01-s06"; exit 1; }
+          echo "value=$requested" >> "$GITHUB_OUTPUT"
       - name: Testar seleção de cenas, consistência, contadores e bundling
         run: |
           python -m unittest discover -s tests -v
@@ -70,7 +84,7 @@ jobs:
       KAGGLE_API_TOKEN: ${{ secrets.KAGGLE_API_TOKEN }}
       STORY: stories/frutalandia/contador-do-butico-ep01.json
       SCENE: ${{ matrix.scene }}
-      SELECTED: ${{ inputs.scene || 'all' }}
+      SELECTED: ${{ needs.validate.outputs.selected }}
     steps:
       - uses: actions/checkout@v4
       - id: choose
@@ -166,8 +180,8 @@ jobs:
           retention-days: 7
 
   assemble:
-    needs: scene
-    if: ${{ github.event_name == 'push' || inputs.scene == 'all' || inputs.base_run_id != '' }}
+    needs: [validate, scene]
+    if: ${{ github.event_name != 'pull_request' && (needs.validate.outputs.selected == 'all' || inputs.base_run_id != '') }}
     runs-on: ubuntu-latest
     timeout-minutes: 25
     steps:
