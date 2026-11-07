@@ -1,0 +1,48 @@
+name: Frutalândia Contador — smoke Blender s06
+
+on:
+  pull_request:
+    paths:
+      - ".github/workflows/frutalandia-counter-smoke.yml"
+      - "scripts/frutalandia_blender.py"
+      - "stories/frutalandia/contador-do-butico-ep01.json"
+
+permissions:
+  contents: read
+
+jobs:
+  frame-contador:
+    runs-on: ubuntu-latest
+    timeout-minutes: 35
+    env:
+      FRUTALANDIA_SMOKE: "1"
+      FRUTALANDIA_SCENE_ID: "s06"
+    steps:
+      - uses: actions/checkout@v4
+      - name: Instalar Blender e FFmpeg open source
+        run: |
+          sudo apt-get update -qq
+          sudo apt-get install -y -qq blender ffmpeg
+      - name: Renderizar frame da cena final (contador ERR)
+        run: |
+          mkdir -p outputs/smoke-contador
+          blender -b -t 2 --python scripts/frutalandia_blender.py -- \
+            stories/frutalandia/contador-do-butico-ep01.json outputs/smoke-contador
+          test -s outputs/smoke-contador/blender-render-config.json
+          python - <<'PY'
+          import json
+          from pathlib import Path
+          d=json.loads(Path("outputs/smoke-contador/blender-render-config.json").read_text())
+          assert d["selected_scene"]=="s06",d
+          assert d["frames"]>1,d
+          assert list(Path("outputs/smoke-contador").glob("silent*.mp4")), "sem render 3D"
+          print("Frame de Mãe Pera com contador: renderização real executada")
+          PY
+      - name: Disponibilizar amostra para inspeção
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: frutalandia-contador-smoke
+          path: outputs/smoke-contador/
+          retention-days: 2
+          if-no-files-found: warn
