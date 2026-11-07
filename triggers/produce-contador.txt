@@ -1,2 +1,3 @@
-FRUTALANDIA CONTADOR — executar 6 cenas independentes no Kaggle GPU gratuito.
-Autorização do usuário para disparar workflow; não fazer merge e não publicar em redes.
+s01
+Smoke real do Kaggle: reexecutar somente a cena s01 depois de corrigir o título do notebook (409 Conflict).
+Sem publicação automática, sem serviços pagos.
