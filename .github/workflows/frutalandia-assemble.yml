@@ -1,0 +1,54 @@
+name: Frutalândia — remontar episódio existente
+
+on:
+  workflow_dispatch:
+    inputs:
+      source_run_id:
+        description: "ID do GitHub Actions run que gerou os seis artifacts fruit-scene-*"
+        required: true
+        type: string
+
+permissions:
+  contents: read
+  actions: read
+
+jobs:
+  reassemble:
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+    env:
+      SOURCE_RUN_ID: ${{ inputs.source_run_id }}
+    steps:
+      - uses: actions/checkout@v4
+      - name: Verificar run_id
+        shell: bash
+        run: |
+          [[ "$SOURCE_RUN_ID" =~ ^[0-9]{6,15}$ ]] || { echo "::error::run_id inválido"; exit 1; }
+      - name: Baixar os seis MP4s originais do GitHub Artifacts
+        uses: actions/download-artifact@v4
+        with:
+          run-id: ${{ inputs.source_run_id }}
+          github-token: ${{ github.token }}
+          pattern: fruit-scene-*
+          merge-multiple: true
+          path: outputs/frutalandia-clips/
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+      - name: Instalar FFmpeg open source
+        run: |
+          sudo apt-get update -qq
+          sudo apt-get install -y -qq ffmpeg
+      - name: Verificar todos os clips e gerar MP4 final
+        run: |
+          python -m scripts.frutalandia_scenes assemble \
+            --story stories/frutalandia/contador-do-butico-ep01.json \
+            --input-dir outputs/frutalandia-clips \
+            --output-dir outputs/frutalandia-final
+      - name: Publicar apenas artifact interno, nunca TikTok
+        uses: actions/upload-artifact@v4
+        with:
+          name: frutalandia-remontagem-${{ github.run_id }}
+          path: outputs/frutalandia-final/
+          retention-days: 7
+          if-no-files-found: error

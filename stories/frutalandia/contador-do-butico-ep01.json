@@ -1,0 +1,135 @@
+{
+  "id": "contador-do-butico-ep01",
+  "title": "Frutalândia — O Contador do Butico (Ep. 1)",
+  "format": {
+    "aspect": "9:16",
+    "fps": 24,
+    "target_seconds": 48,
+    "language": "pt-BR",
+    "style": "Animação CGI 3D original de comédia adulta, sertão nordestino, feira livre, barraquinhas de frutas, bandeirinhas, chão de paralelepípedo, mandacaru, sol quente. Frutas antropomórficas com corpos humanos, expressões exageradas, roupa moderna, contadores digitais legíveis e fixos nas testas. Sem nudez nem atos explícitos."
+  },
+  "characters": [
+    {
+      "id": "moranguete",
+      "name": "Moranguete",
+      "look": "Morango jovem adulta, cabelo castanho ondulado, top verde, joias douradas, bolsa rosa, corpo humano; contador 000 na testa.",
+      "voice_profile": "moranguete",
+      "voice_direction": "Sotaque nordestino natural, feminina jovem adulta, surpresa e engraçada",
+      "forehead_counter": "000"
+    },
+    {
+      "id": "uva",
+      "name": "Uva",
+      "look": "Uva roxa jovem adulta, cabelo preto, top preto e joias prateadas; corpo humano; contador 007 na testa.",
+      "voice_profile": "uva",
+      "voice_direction": "Sotaque nordestino natural, feminina jovem adulta, irreverente e dramática",
+      "forehead_counter": "007"
+    },
+    {
+      "id": "mae-pera",
+      "name": "Mãe Pera",
+      "look": "Pera verde-amarela adulta, coque, vestido floral, brincos dourados, postura confiante; contador 999+ na testa.",
+      "voice_profile": "mae-pera",
+      "voice_direction": "Sotaque nordestino brasileiro natural, mulher madura espirituosa e debochada",
+      "forehead_counter": "999+"
+    },
+    {
+      "id": "pai-caju",
+      "name": "Pai Caju",
+      "look": "Caju maduro, barba, boné azul, polo azul-marinho, reação incrédula; contador 038 na testa.",
+      "voice_profile": "pai-caju",
+      "voice_direction": "Sotaque nordestino brasileiro natural, homem mais velho, resmungão e carismático",
+      "forehead_counter": "038"
+    }
+  ],
+  "scenes": [
+    {
+      "id": "s01",
+      "seconds": 8,
+      "place": "Feira nordestina com barraquinhas e bandeirinhas ao sol",
+      "shot": "Close rápido na testa e zoom out cômico",
+      "action": "Uva adulta se vê no espelhinho da banca; seu contador 007 acende na testa, ela se assusta e tenta cobrir a cabeça. Feira cheia de frutas antropomórficas adultas.",
+      "dialogue": [
+        {
+          "speaker": "uva",
+          "text": "Oxe! Quem foi o fi duma égua que botou meu histórico na testa?!"
+        }
+      ]
+    },
+    {
+      "id": "s02",
+      "seconds": 8,
+      "place": "Em frente à banca de frutas, feira nordestina",
+      "shot": "Contraplano cômico entre Moranguete e Uva",
+      "action": "Moranguete chega com contador 000; olha o 007 da amiga, abre os olhos; Uva esconde a testa com uma cestinha.",
+      "dialogue": [
+        {
+          "speaker": "moranguete",
+          "text": "Sete o quê, mulher? Ave Maria, eu nem queria saber!"
+        }
+      ]
+    },
+    {
+      "id": "s03",
+      "seconds": 8,
+      "place": "Feira nordestina, banca de farinha",
+      "shot": "Plano médio, tilt dramático para contador 038",
+      "action": "Pai Caju chega com saco de farinha e contador 038; Moranguete o encara; ele derruba um pouco de farinha e tenta tapar o número com o boné.",
+      "dialogue": [
+        {
+          "speaker": "pai-caju",
+          "text": "Trinta e oito é difamação digital, minha fia! É mentira!"
+        }
+      ]
+    },
+    {
+      "id": "s04",
+      "seconds": 8,
+      "place": "Entrada principal da feira com mandacaru ao fundo",
+      "shot": "Contra-plongée, travelling de entrada triunfal, close na testa",
+      "action": "Mãe Pera entra abanando com leque, contador 999+ pisca na testa; a multidão de frutas se espanta, Uva arregala os olhos.",
+      "dialogue": [
+        {
+          "speaker": "uva",
+          "text": "Vixe Maria! Mainha travou foi o sistema inteiro, visse?!"
+        }
+      ]
+    },
+    {
+      "id": "s05",
+      "seconds": 8,
+      "place": "Meio da feira, família reunida",
+      "shot": "Close Pai Caju indignado, cortes de reação",
+      "action": "Pai Caju derruba o saco de farinha; contador dele 038; Mãe Pera sorri com contador 999+; Moranguete leva a mão à boca. Pausa de comédia.",
+      "dialogue": [
+        {
+          "speaker": "pai-caju",
+          "text": "Pera! Tu me jurou que eu tinha sido o primeiro, mulher!"
+        }
+      ]
+    },
+    {
+      "id": "s06",
+      "seconds": 8,
+      "place": "Feira nordestina diante da banca de frutas",
+      "shot": "Close no contador de Mãe Pera e na cara horrorizada de Pai Caju",
+      "action": "Contador de Mãe Pera muda de 999+ para ERR, escrito na testa em vermelho; Pai Caju trava e a feira inteira cai na risada; efeito de trombone. Congela no suspense.",
+      "counter_override": {
+        "mae-pera": "ERR"
+      },
+      "dialogue": [
+        {
+          "speaker": "mae-pera",
+          "text": "Foi, homem! O primeiro daquela terça! E nem contei direito!"
+        }
+      ]
+    }
+  ],
+  "policies": {
+    "paid_providers": false,
+    "auto_publish": false,
+    "allow_voice_cloning": false,
+    "visual_mode": "animated-characters",
+    "no_whatsapp_overlay": true
+  }
+}
