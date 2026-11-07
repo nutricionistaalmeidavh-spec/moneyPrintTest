@@ -1,0 +1,61 @@
+{
+  "topic": "4 sites pra melhorar sua empresa",
+  "slide_count": 6,
+  "source": "auto",
+  "photo_mode": "same",
+  "style": "editorial",
+  "aspect": "3:5",
+  "brand": "ArtiSys",
+  "slides": [
+    {
+      "title": "4 sites pra melhorar sua",
+      "highlight": "EMPRESA",
+      "body": "(e ninguém te conta)"
+    },
+    {
+      "title": "1. KESTRA",
+      "highlight": "AUTOMAÇÃO",
+      "body": "Orquestre processos e pipelines.",
+      "detail": "Conheça a versão gratuita e self-hosted.",
+      "url": "kestra.io"
+    },
+    {
+      "title": "2. PART-DB",
+      "highlight": "ESTOQUE",
+      "body": "Catalogue peças e componentes.",
+      "detail": "Conheça a versão gratuita e self-hosted.",
+      "url": "part-db.de"
+    },
+    {
+      "title": "3. LLAMA.CPP",
+      "highlight": "IA",
+      "body": "Rode modelos de linguagem locais.",
+      "detail": "Conheça a versão gratuita e self-hosted.",
+      "url": "github.com/ggml-org/llama.cpp"
+    },
+    {
+      "title": "4. FRAPPE HELPDESK",
+      "highlight": "ATENDIMENTO",
+      "body": "Centralize tickets da equipe.",
+      "detail": "Conheça a versão gratuita e self-hosted.",
+      "url": "frappe.io/helpdesk"
+    },
+    {
+      "title": "SALVA ESSE POST!",
+      "highlight": "PRA TESTAR DEPOIS",
+      "body": "Segue a ArtiSys pra mais dicas!"
+    }
+  ],
+  "photo_terms": [
+    "full premium computer desk setup monitor laptop keyboard",
+    "modern office setup complete workstation on desk",
+    "minimalist desk dual screens plants window wide angle"
+  ],
+  "cta": "Salve para testar depois",
+  "hashtags": [
+    "#ArtiSys",
+    "#automacao",
+    "#gestao",
+    "#opensource"
+  ]
+}
