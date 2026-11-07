@@ -27,6 +27,7 @@ def make_kernel(story_file: Path, blender_file: Path, renderer_file: Path,
     pieces = {
         "story.json": json.dumps(story, ensure_ascii=False).encode("utf-8"),
         "blender_frutas.py": blender_file.read_bytes(),
+        "frutalandia_visual_v2.py": blender_file.with_name("frutalandia_visual_v2.py").read_bytes(),
         "render_episode.py": renderer_file.read_bytes(),
     }
     target.mkdir(parents=True, exist_ok=True)

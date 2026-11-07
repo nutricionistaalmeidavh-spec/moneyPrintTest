@@ -1,0 +1,106 @@
+name: Frutalândia — QA visual V2 (prévia 2s)
+# Revisão visual 2.1: boca proporcional, câmera em Mãe Pera, vestido floral e contraste.
+
+on:
+  push:
+    branches:
+      - feat/frutalandia-visual-v2-preview
+    paths:
+      - ".github/workflows/frutalandia-visual-preview.yml"
+      - "scripts/frutalandia_visual_v2.py"
+      - "scripts/frutalandia_blender.py"
+      - "scripts/frutalandia_kaggle_bundle.py"
+      - "tests/test_frutalandia_visual_v2.py"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  unit:
+    runs-on: ubuntu-latest
+    timeout-minutes: 8
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+      - name: Contratos de identidade visual, roteiro e montagem
+        run: |
+          python -m unittest discover -s tests -p 'test_frutalandia_visual_v2.py' -v
+          python -m unittest discover -s tests -p 'test_frutalandia_scenes.py' -v
+          python -m compileall -q scripts/frutalandia_blender.py scripts/frutalandia_visual_v2.py scripts/frutalandia_kaggle_bundle.py
+
+  visual-preview:
+    needs: unit
+    runs-on: ubuntu-latest
+    timeout-minutes: 28
+    env:
+      FRUTALANDIA_VISUAL_VERSION: "2"
+      FRUTALANDIA_RENDER_ENGINE: EEVEE
+      FRUTALANDIA_SCENE_ID: s04
+      FRUTALANDIA_PREVIEW_FRAMES: "24"
+      LIBGL_ALWAYS_SOFTWARE: "1"
+      PYTHONUNBUFFERED: "1"
+    steps:
+      - uses: actions/checkout@v4
+      - name: Instalar Blender, FFmpeg e Mesa gratuitos
+        shell: bash
+        run: |
+          timeout 180s sudo apt-get update -qq
+          timeout 300s sudo apt-get install -y -qq blender ffmpeg xvfb xauth libgl1-mesa-dri fonts-dejavu-core
+          blender -b -noaudio --python-expr "import bpy; print('BLENDER_VERSION',bpy.app.version_string)"
+      - name: Criar prévia real de 24 quadros (2 segundos) da feira e elenco
+        shell: bash
+        run: |
+          mkdir -p outputs/visual-v2
+          timeout 840s xvfb-run -a -s '-screen 0 1280x1024x24' blender -b -t 2 \
+            --python scripts/frutalandia_blender.py -- \
+            stories/frutalandia/contador-do-butico-ep01.json outputs/visual-v2 \
+            > outputs/visual-v2/blender.log 2>&1 || {
+              echo '::error::Blender V2 falhou ou excedeu tempo'
+              tail -90 outputs/visual-v2/blender.log
+              exit 1
+            }
+          tail -25 outputs/visual-v2/blender.log
+      - name: Validar PNG e MP4 reais, 9:16 e duração de 2s
+        shell: bash
+        run: |
+          python - <<'PY'
+          from pathlib import Path
+          import json,subprocess
+          directory=Path('outputs/visual-v2')
+          still=directory/'preview.png'
+          assert still.is_file() and still.stat().st_size>5000, 'Imagem de prévia não gerada'
+          clips=sorted(directory.glob('frutalandia-preview*.mp4'))
+          assert len(clips)>=1, 'Nenhum vídeo de prévia'
+          video=max(clips,key=lambda p:p.stat().st_size)
+          assert video.stat().st_size>10000
+          proc=subprocess.run(['ffprobe','-v','error','-show_format','-show_streams',
+                               '-of','json',str(video)],
+                               check=True,capture_output=True,text=True)
+          data=json.loads(proc.stdout)
+          stream=next((x for x in data['streams'] if x['codec_type']=='video'),None)
+          assert stream is not None
+          assert (stream['width'],stream['height'])==(540,960), stream
+          duration=float(data['format']['duration'])
+          assert 1.8<=duration<=2.5,duration
+          config=json.loads((directory/'blender-render-config.json').read_text())
+          assert config['selected_scene']=='s04',config
+          assert config['engine']=='Blender EEVEE',config
+          (directory/'preview-qa.json').write_text(json.dumps({
+             'status':'visual_review_required','engine':'EEVEE',
+             'seconds':duration,'width':540,'height':960,
+             'png':still.name,'video':video.name,
+             'full_episode_authorized':False,'paid_providers':False,'auto_publish':False
+          },ensure_ascii=False,indent=2))
+          print('VISUAL_V2_2S_PREVIEW_VERIFIED',video,still)
+          PY
+      - name: Disponibilizar imagem e vídeo para revisão antes de render 48s
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: frutalandia-v2-previa-2s-${{ github.run_id }}
+          path: outputs/visual-v2/
+          if-no-files-found: warn
+          retention-days: 14

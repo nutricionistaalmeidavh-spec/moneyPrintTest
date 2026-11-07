@@ -10,6 +10,7 @@ import os
 import sys
 from pathlib import Path
 from mathutils import Vector
+import importlib.util
 
 args = sys.argv[sys.argv.index("--") + 1:] if "--" in sys.argv else []
 if len(args) != 2:
@@ -27,6 +28,14 @@ FPS = 12
 RES_X, RES_Y = 360, 640
 CHAR_IDS = [x["id"] for x in story["characters"]]
 MATS = {}
+VISUAL_V2 = None
+if os.environ.get("FRUTALANDIA_VISUAL_VERSION", "2") == "2":
+    quality_path=Path(__file__).with_name("frutalandia_visual_v2.py")
+    if not quality_path.is_file():
+        raise RuntimeError("Módulo de personagem e direção visual V2 ausente")
+    spec=importlib.util.spec_from_file_location("frutalandia_visual_v2",quality_path)
+    VISUAL_V2=importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(VISUAL_V2)
 COUNTERS = {c["id"]: c.get("forehead_counter", "") for c in story["characters"]}
 
 
@@ -77,6 +86,9 @@ SOFA = mat("sofa veludo", (.25,.19,.41))
 PHONE = mat("brilho azul celular", (.07,.58,1.0), emit=6)
 SHADOW = mat("tapete", (.14,.12,.23))
 WOOD = mat("mesa", (.35,.18,.09))
+if VISUAL_V2:
+    for _material in list(bpy.data.materials):
+        VISUAL_V2.enhance_material(_material)
 
 
 def sphere(name, loc, scale, material, parent=None, segments=20, rings=12):
@@ -223,12 +235,16 @@ def build_character(char_id, x, stage_i):
     if char_id=="moranguete":
         cube("bolsa_rosa", (.56,.15,1.40),(.23,.16,.32),PINK,root)
         cube("celular_luminoso", (.83,-.45,1.59),(.13,.045,.22),PHONE,root)
+    if VISUAL_V2:
+        VISUAL_V2.detail_character(char_id,root,h,stage_i,sphere,cube,torus)
     return root,h,mouth
 
 
 def room(stage, i):
     X=i*21.0
-    cube("piso_cenario", (X,0,-.25), (8,8,.23), FLOOR)
+    piso=FLOOR if story.get("id")!="contador-do-butico-ep01" else mat(
+        "paralelepipedo feira",(.58,.45,.32),rough=.8)
+    cube("piso_cenario", (X,0,-.25), (8,8,.23), piso)
     cube("parede_atras", (X,4,3.65), (8,.25,3.7), WALL)
     cube("rodape", (X,3.65,.24), (7,.12,.14), WOOD)
     cube("tapete_sala", (X,-.2,.017),(2.7,2,.018),SHADOW)
@@ -265,6 +281,8 @@ def room(stage, i):
         o.rotation_euler=direction.to_track_quat("-Z","Y").to_euler()
     light("luz_quente_cinematografica",(X-3.5,-3,7),1000,(1,.67,.42),6)
     light("rim_lighting_azul",(X+3,2,5.5),520,(.24,.55,1),4)
+    if VISUAL_V2 and story.get("id")=="contador-do-butico-ep01":
+        VISUAL_V2.detail_market(X,i,cube,sphere)
     return X
 
 
@@ -277,7 +295,16 @@ camera.data.dof.use_dof=False
 
 frame_cursor=1
 scene_frames={}
+previous_focus=None
+scene_filter=os.environ.get("FRUTALANDIA_SCENE_ID","").strip()
+if scene_filter and scene_filter not in {sc["id"] for sc in story["scenes"]}:
+    raise RuntimeError("FRUTALANDIA_SCENE_ID inválido")
 for idx, scene_spec in enumerate(story["scenes"]):
+    if scene_filter and scene_spec["id"]!=scene_filter:
+        # Preserve original timeline indices but avoid building 5 unrelated
+        # sets/actors. Reduces BVH/shader memory and greatly improves preview.
+        frame_cursor+=scene_spec["seconds"]*FPS
+        continue
     X=room(scene_spec,idx)
     identities = (
         ["moranguete","uva"] if idx in (0,1) else
@@ -315,12 +342,17 @@ for idx, scene_spec in enumerate(story["scenes"]):
                 arm=bpy.data.objects[root["arm_%s"%side]]
                 arm.rotation_euler.y=(.25 if actor==speaker else .08)*math.sin(phase)
                 arm.keyframe_insert(data_path="rotation_euler",frame=t)
+    if VISUAL_V2:
+        for cid,(root,h,mouth) in zip(identities,cast):
+            VISUAL_V2.animate_details(root,h,first,last,speaker,cid)
     # corte entre cenas; movimento cinematográfico dentro de cada tomada
     lead_index=identities.index(speaker)
     focus=positions[lead_index]
-    if idx==5:
+    if idx==5 or (idx==3 and story.get("id")=="contador-do-butico-ep01"):
+        # At Mãe Pera's arrival, focus the character whose counter reads 999+
+        # instead of cropping her face while the Uva delivers the line.
         focus=X
-    if first>1:
+    if first>1 and previous_focus is not None:
         camera.location=(previous_focus, -9.1, 3.6)
         look=Vector((previous_focus,0,2.15))
         camera.rotation_euler=(look-camera.location).to_track_quat("-Z","Y").to_euler()
@@ -348,16 +380,59 @@ else:
     sc.frame_start,sc.frame_end=1,frame_cursor-1
 if os.environ.get("FRUTALANDIA_SMOKE")=="1":
     sc.frame_end=sc.frame_start
+preview_frames=int(os.environ.get("FRUTALANDIA_PREVIEW_FRAMES","0"))
+if preview_frames:
+    if not 1 <= preview_frames <= 48:
+        raise RuntimeError("FRUTALANDIA_PREVIEW_FRAMES precisa estar entre 1 e 48")
+    sc.frame_end=min(sc.frame_end,sc.frame_start+preview_frames-1)
+if preview_frames and VISUAL_V2:
+    # A prévia fica mais nítida que a versão básica Workbench.
+    RES_X,RES_Y=540,960
 sc.render.resolution_x=RES_X
 sc.render.resolution_y=RES_Y
 sc.render.resolution_percentage=50 if os.environ.get("FRUTALANDIA_SMOKE")=="1" else 100
 sc.render.fps=FPS
-sc.world.color=(.15,.11,.16)
+sc.world.color=(.34,.52,.66) if story.get("id")=="contador-do-butico-ep01" else (.15,.11,.16)
+sc.world.use_nodes=True
+background=sc.world.node_tree.nodes.get("Background")
+if background:
+    if story.get("id")=="contador-do-butico-ep01":
+        background.inputs["Color"].default_value=(.48,.67,.84,1)
+        background.inputs["Strength"].default_value=.7
+    else:
+        background.inputs["Color"].default_value=(.22,.16,.23,1)
+        background.inputs["Strength"].default_value=.48
+if VISUAL_V2:
+    # Avoid desaturated default filmic/AgX look for colorful animated comedy.
+    try:
+        sc.view_settings.view_transform="Standard"
+        for candidate in ("Medium High Contrast","High Contrast","Medium High Contrast - AgX"):
+            try:
+                sc.view_settings.look=candidate
+                break
+            except (TypeError,ValueError):
+                pass
+    except (TypeError,ValueError):
+        pass
 requested_engine=os.environ.get("FRUTALANDIA_RENDER_ENGINE","CYCLES").upper()
-if requested_engine not in ("CYCLES","WORKBENCH"):
-    raise RuntimeError("Motor 3D deve ser CYCLES ou WORKBENCH")
+if requested_engine not in ("CYCLES","WORKBENCH","EEVEE"):
+    raise RuntimeError("Motor 3D deve ser CYCLES, WORKBENCH ou EEVEE")
 chosen="CPU"
-if requested_engine=="WORKBENCH":
+if requested_engine=="EEVEE":
+    # Eevee uses actual PBR, procedural fruit textures and cinematic scene lights.
+    # Renderer name differs between Blender 3.x/4.x; select supported enum.
+    eevee_activated=False
+    for engine_name in ("BLENDER_EEVEE_NEXT","BLENDER_EEVEE"):
+        try:
+            sc.render.engine=engine_name
+            eevee_activated=True
+            chosen=engine_name+" (shaders PBR)"
+            break
+        except (TypeError,ValueError):
+            pass
+    if not eevee_activated:
+        raise RuntimeError("Eevee indisponível nesta versão do Blender")
+elif requested_engine=="WORKBENCH":
     # Open-source fast recovery when Cycles BVH crashes on free Linux runners.
     # Real animated 3D meshes and cameras; shaded viewport output, not fake video.
     sc.render.engine="BLENDER_WORKBENCH"
@@ -395,15 +470,42 @@ sc.render.ffmpeg.format="MPEG4"
 sc.render.ffmpeg.codec="H264"
 sc.render.ffmpeg.constant_rate_factor="MEDIUM"
 sc.render.ffmpeg.ffmpeg_preset="GOOD"
-sc.render.filepath=str(outdir/"silent.mp4")
+sc.render.filepath=str(outdir/("frutalandia-preview.mp4" if preview_frames else "silent.mp4"))
 print("FRUTALANDIA RENDER",sc.frame_end,"frames",chosen,flush=True)
 (outdir/"blender-render-config.json").write_text(json.dumps({
     "engine":"Blender "+requested_engine,"device":chosen,"frames":sc.frame_end,"fps":FPS,
     "resolution":[RES_X,RES_Y], "scene_count":len(story["scenes"]),
     "selected_scene":selected_scene or "all"
 },indent=2))
+if preview_frames:
+    # Produce one reviewable PNG from the same PBR scene before the clip.
+    png_path=outdir/"preview.png"
+    sc.render.image_settings.file_format="PNG"
+    sc.render.filepath=str(png_path)
+    sc.frame_set(sc.frame_start+min(preview_frames//2,preview_frames-1))
+    bpy.ops.render.render(write_still=True)
+    if not png_path.is_file() or png_path.stat().st_size<5000:
+        raise RuntimeError("Prévia PNG não foi gerada")
+    print("FRUTALANDIA_PREVIEW_PNG",png_path,flush=True)
+    sc.render.image_settings.file_format="FFMPEG"
+    sc.render.ffmpeg.format="MPEG4"
+    sc.render.ffmpeg.codec="H264"
+    sc.render.filepath=str(outdir/"frutalandia-preview.mp4")
+if os.environ.get("FRUTALANDIA_PREVIEW_STILL_ONLY")=="1":
+    # Fast visual gate: inspect one real Eevee frame before expensive clip.
+    still_path=outdir/"preview.png"
+    sc.render.image_settings.file_format="PNG"
+    sc.render.filepath=str(still_path)
+    sc.frame_set(sc.frame_start)
+    bpy.ops.render.render(write_still=True)
+    if not still_path.is_file() or still_path.stat().st_size<5000:
+        raise RuntimeError("Imagem de prévia PBR ausente")
+    print("FRUTALANDIA_PREVIEW_STILL_OK",still_path,flush=True)
+    raise SystemExit(0)
 bpy.ops.render.render(animation=True)
-files=list(outdir.glob("silent*.mp4"))
+files=list(outdir.glob("frutalandia-preview*.mp4" if preview_frames else "silent*.mp4"))
 if not files or max(p.stat().st_size for p in files) < (1000 if os.environ.get("FRUTALANDIA_SMOKE")=="1" else 100000):
     raise RuntimeError("Blender não criou vídeo silencioso válido")
 print("FRUTALANDIA_RENDER_OK",max(files,key=lambda p:p.stat().st_size),flush=True)
+if preview_frames:
+    print("FRUTALANDIA_PREVIEW_OK frames="+str(preview_frames),flush=True)
