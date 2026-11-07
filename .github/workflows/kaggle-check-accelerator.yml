@@ -33,6 +33,8 @@ jobs:
               f.write("KAGGLE_OWNER="+username+"\n")
           print("Kaggle conectado; consultar metadata.")
           PY
+          export KAGGLE_OWNER="$(sed -n 's/^KAGGLE_OWNER=//p' "$GITHUB_ENV" | tail -n 1)"
+          [[ "$KAGGLE_OWNER" =~ ^[a-z0-9][a-z0-9_-]{1,39}$ ]] || exit 1
           timeout 80s kaggle kernels pull "$KAGGLE_OWNER/frutalandia-i2v-ref-s01" \
             -p outputs/kaggle-gpu-check -m
           python - <<'PY'
