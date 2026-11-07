@@ -15,11 +15,15 @@ SLUG = re.compile(r"^[a-z0-9][a-z0-9_-]{1,39}$")
 
 
 def make_kernel(story_file: Path, blender_file: Path, renderer_file: Path,
-                target: Path, username: str, slug: str = "frutalandia-ep01") -> Path:
+                target: Path, username: str, slug: str = "frutalandia-ep01",
+                scene_id: str | None = None) -> Path:
     from scripts.novelinha_frutas import validate_story
     if not SLUG.fullmatch(username) or not SLUG.fullmatch(slug):
         raise ValueError("Usuário ou slug do Kaggle inválido")
     story = validate_story(json.loads(story_file.read_text(encoding="utf-8")))
+    if scene_id is not None:
+        from scripts.frutalandia_scenes import get_scene
+        get_scene(story, scene_id)
     pieces = {
         "story.json": json.dumps(story, ensure_ascii=False).encode("utf-8"),
         "blender_frutas.py": blender_file.read_bytes(),
@@ -36,8 +40,10 @@ def make_kernel(story_file: Path, blender_file: Path, renderer_file: Path,
         "for name, data in files.items():\n"
         "    (work / name).write_bytes(base64.b64decode(data))\n"
         "os.chdir(work)\n"
-        "rc = subprocess.call([sys.executable, 'render_episode.py', '--story', 'story.json', "
-        "'--output', str(work)])\n"
+        "cmd = [sys.executable, 'render_episode.py', '--story', 'story.json', "
+        "'--output', str(work)]\n"
+        + "cmd += " + repr(['--scene-id', scene_id] if scene_id else []) + "\n"
+        + "rc = subprocess.call(cmd)\n"
         "if rc != 0:\n"
         "    raise RuntimeError('Render da novelinha falhou; consulte o log do Kaggle')\n"
     )
@@ -60,11 +66,13 @@ def main() -> None:
     parser = argparse.ArgumentParser()
     parser.add_argument("--story", type=Path, required=True)
     parser.add_argument("--username", required=True)
+    parser.add_argument("--slug", default="frutalandia-ep01")
+    parser.add_argument("--scene-id", default=None)
     parser.add_argument("--out", type=Path, default=Path(".kaggle-frutalandia"))
     args = parser.parse_args()
     make_kernel(args.story, Path("scripts/frutalandia_blender.py"),
                 Path("scripts/frutalandia_episode_runner.py"), args.out,
-                args.username.lower())
+                args.username.lower(), slug=args.slug, scene_id=args.scene_id)
     print("Kernel privado preparado sem credenciais no código")
 
 
