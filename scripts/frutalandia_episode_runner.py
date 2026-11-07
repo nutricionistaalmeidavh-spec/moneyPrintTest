@@ -175,15 +175,21 @@ def make_subtitles(story, output):
 
 
 def ensure_blender():
+    """Resolve installed Blender without ever running apt in Kaggle.
+
+    Kaggle notebooks may have DNS unavailable. An apt-get update there can
+    block for many minutes before the first rendered frame. Environment
+    provisioning belongs to the GitHub Actions host, not the Kaggle kernel.
+    """
     blender=shutil.which("blender")
     if blender:
+        print("FRUTALANDIA_PREFLIGHT Blender encontrado:",blender,flush=True)
         return blender
-    run(["apt-get","update","-qq"])
-    run(["apt-get","install","-y","-qq","blender","ffmpeg","fonts-dejavu-core"])
-    blender=shutil.which("blender")
-    if not blender:
-        raise RuntimeError("Blender não foi instalado")
-    return blender
+    raise RuntimeError(
+        "Blender ausente/indisponível no runtime do Kaggle. "
+        "Não executar apt-get update: DNS do Kaggle pode estar bloqueado. "
+        "Use a Action de recuperação CPU no GitHub ou anexe runtime open-source pré-provisionado."
+    )
 
 
 def assemble(story, output, silent, voice_engine):
@@ -244,21 +250,31 @@ def main():
     try:
         if not story.get("scenes") or sum(s["seconds"] for s in story["scenes"])!=story["format"]["target_seconds"]:
             raise RuntimeError("Storyboard inválido")
+        print("FRUTALANDIA_STAGE=preflight",flush=True)
         engine=ensure_blender()
+        ffmpeg=shutil.which("ffmpeg")
+        ffprobe=shutil.which("ffprobe")
+        if not ffmpeg or not ffprobe:
+            raise RuntimeError("FFmpeg/FFprobe ausentes; ambiente incompleto e não há apt no Kaggle.")
+        print("FRUTALANDIA_STAGE=renderer_ready",flush=True)
         silent_candidates=list(output.glob("silent*.mp4"))
         if not silent_candidates:
+            print("FRUTALANDIA_STAGE=blender_render_start",flush=True)
             run([engine,"-b","-t","4","--python",str(Path(__file__).with_name("blender_frutas.py")),
                  "--",str(args.story.resolve()),str(output)])
             silent_candidates=list(output.glob("silent*.mp4"))
         if not silent_candidates:
             raise RuntimeError("Blender não gerou clipe 3D")
         silent=max(silent_candidates,key=lambda x:x.stat().st_size)
+        print("FRUTALANDIA_STAGE=blender_render_done",flush=True)
         studio=os.environ.get("VOICE_STUDIO_URL","").strip()
         if studio:
             voice_engine=voice_studio_optional(story,output,studio)
         else:
             voice_engine=voices_piper(story,output)
+        print("FRUTALANDIA_STAGE=audio_done",flush=True)
         assemble(story,output,silent,voice_engine)
+        print("FRUTALANDIA_STAGE=complete",flush=True)
         status.write_text(json.dumps({"status":"success"}))
     except Exception as exc:
         status.write_text(json.dumps({"status":"failed","error":type(exc).__name__+": "+str(exc)},
