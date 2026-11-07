@@ -27,6 +27,7 @@ FPS = 12
 RES_X, RES_Y = 360, 640
 CHAR_IDS = [x["id"] for x in story["characters"]]
 MATS = {}
+COUNTERS = {c["id"]: c.get("forehead_counter", "") for c in story["characters"]}
 
 
 def mat(name, rgb, metallic=0.0, rough=0.35, emit=0.0):
@@ -206,6 +207,19 @@ def build_character(char_id, x, stage_i):
             torus("brinco", (side*.64,-.07,-.21),(.36,.58,.36),
                   GOLD if char_id!="uva" else SILVER,h)
     mouth=torus("boca_falante", (0,eye_y-.05,-.28),(.57,.60,.46),LIPS,h)
+    if COUNTERS.get(char_id):
+        font=bpy.data.curves.new("contador-testa-"+char_id, type="FONT")
+        font.body=COUNTERS[char_id]
+        font.align_x="CENTER"
+        font.size=.24
+        font.extrude=.003
+        font.materials.append(mat("luz dos contadores",(.96,.18,.12),emit=1.8))
+        label=bpy.data.objects.new("contador-testa-"+char_id+"-"+str(stage_i),font)
+        bpy.context.collection.objects.link(label)
+        label.parent=h
+        label.location=(0,-.61,.49)
+        label.rotation_euler=(math.pi/2,0,0)
+        root["counter_object"]=label.name
     if char_id=="moranguete":
         cube("bolsa_rosa", (.56,.15,1.40),(.23,.16,.32),PINK,root)
         cube("celular_luminoso", (.83,-.45,1.59),(.13,.045,.22),PHONE,root)
@@ -218,7 +232,15 @@ def room(stage, i):
     cube("parede_atras", (X,4,3.65), (8,.25,3.7), WALL)
     cube("rodape", (X,3.65,.24), (7,.12,.14), WOOD)
     cube("tapete_sala", (X,-.2,.017),(2.7,2,.018),SHADOW)
-    if i in (0,1,3):
+    if story.get("id")=="contador-do-butico-ep01":
+        # Feira livre do sertão: toldos, bancas, paredes quentes e caixas de fruta.
+        cube("banca_feira", (X+2,1,.72),(1.6,.65,.12),WOOD)
+        cube("caixas_feira", (X-2.5,1,.40),(.90,.75,.38),WOOD)
+        cube("toldo_feira", (X+1.6,1.2,3.9),(2.6,1.55,.10),PINK)
+        cube("barraca_amarela", (X-3,1.6,2.7),(.12,.12,2.55),YELLOW)
+        for k in range(5):
+            sphere("frutas_na_banca",(X+1.0+k*.45,.62,.93),(.20,.2,.23),ORANGE)
+    elif i in (0,1,3):
         cube("sofa", (X+2,1,1.02), (1.7,.65,.55), SOFA)
         cube("costas_sofa", (X+2,1.62,1.36),(1.85,.22,.72), SOFA)
         cube("mesa_centro", (X,-2,.6), (1.2,.66,.12),WOOD)
@@ -254,6 +276,7 @@ camera.data.lens=42
 camera.data.dof.use_dof=False
 
 frame_cursor=1
+scene_frames={}
 for idx, scene_spec in enumerate(story["scenes"]):
     X=room(scene_spec,idx)
     identities = (
@@ -263,13 +286,19 @@ for idx, scene_spec in enumerate(story["scenes"]):
         ["moranguete","uva"] if idx==4 else
         ["moranguete","uva","mae-pera","pai-caju"]
     )
+    speaking=[d["speaker"] for d in scene_spec["dialogue"]]
+    identities=list(dict.fromkeys(speaking+identities))[:4]
     positions = [X+((j-(len(identities)-1)/2)*1.55) for j in range(len(identities))]
     cast = [build_character(cid,x,idx) for cid,x in zip(identities,positions)]
     first=frame_cursor
     last=first+scene_spec["seconds"]*FPS-1
+    scene_frames[scene_spec["id"]]=(first,last)
     speaker=scene_spec["dialogue"][0]["speaker"]
     for cidx,(root,head,mouth) in enumerate(cast):
         actor = identities[cidx]
+        override=scene_spec.get("counter_override",{}).get(actor)
+        if override is not None and "counter_object" in root:
+            bpy.data.objects[root["counter_object"]].data.body=override
         for t in range(first,last+1,6):
             phase=(t-first)*.15+cidx*1.8
             root.rotation_euler.z=.045*math.sin(phase)
@@ -310,8 +339,15 @@ for idx, scene_spec in enumerate(story["scenes"]):
     frame_cursor=last+1
 
 sc=bpy.context.scene
-sc.frame_start=1
-sc.frame_end=1 if os.environ.get("FRUTALANDIA_SMOKE")=="1" else frame_cursor-1
+selected_scene=os.environ.get("FRUTALANDIA_SCENE_ID", "").strip()
+if selected_scene:
+    if selected_scene not in scene_frames:
+        raise RuntimeError("FRUTALANDIA_SCENE_ID inválido")
+    sc.frame_start,sc.frame_end=scene_frames[selected_scene]
+else:
+    sc.frame_start,sc.frame_end=1,frame_cursor-1
+if os.environ.get("FRUTALANDIA_SMOKE")=="1":
+    sc.frame_end=sc.frame_start
 sc.render.resolution_x=RES_X
 sc.render.resolution_y=RES_Y
 sc.render.resolution_percentage=50 if os.environ.get("FRUTALANDIA_SMOKE")=="1" else 100
@@ -348,7 +384,8 @@ sc.render.filepath=str(outdir/"silent.mp4")
 print("FRUTALANDIA RENDER",sc.frame_end,"frames",chosen,flush=True)
 (outdir/"blender-render-config.json").write_text(json.dumps({
     "engine":"Blender Cycles","device":chosen,"frames":sc.frame_end,"fps":FPS,
-    "resolution":[RES_X,RES_Y], "scene_count":len(story["scenes"])
+    "resolution":[RES_X,RES_Y], "scene_count":len(story["scenes"]),
+    "selected_scene":selected_scene or "all"
 },indent=2))
 bpy.ops.render.render(animation=True)
 files=list(outdir.glob("silent*.mp4"))
