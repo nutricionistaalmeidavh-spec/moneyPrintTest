@@ -1,81 +1,61 @@
-# Frutalândia — novelinhas com OpenMontage, VoiceStudio e Kaggle
+# Frutalândia — episódio 1
 
-## Escopo atual (primeira etapa, **não** é renderização E2E)
+## Fluxo real de renderização (PR #4, sem publicação)
 
-Este workflow mantém o fluxo MoneyPrinterTurbo existente isolado.
-A nova Action **Novelinha de frutas — planejamento e preflight GPU** faz:
+Fluxo independente do MoneyPrinterTurbo convencional, com núcleo R$ 0, fonte aberta
+e saída somente para revisão.
 
-1. Carrega um episódio JSON versionado e valida duração, personagens e identidade visual.
-2. Gera `openmontage-brief.json` com cenas, ações, figurino, enquadramentos e referências visuais.
-3. Gera `voicestudio-lines.json` com cada fala, personagem e identificador de perfil de voz.
-4. Gera `character-bible.json` com identidade estável por episódio.
-5. Opcionalmente, testa a presença de GPU CUDA em um **notebook privado Kaggle**, sem renderização nem publicação.
+1. `stories/frutalandia/audio-do-amanha-ep01.json`: roteiro canônico, 4 frutas, 6 cenas e 48 segundos.
+2. `scripts/novelinha_frutas.py`: gera bible de continuidade, plano de cenas compatível com OpenMontage e falas para VoiceStudio.
+3. `scripts/frutalandia_kaggle_bundle.py`: empacota somente código + storyboard em um notebook Kaggle **privado**. Nenhum secret é empacotado.
+4. `.github/workflows/frutalandia-gpu.yml`: valida testes, identifica o usuário a partir de `KAGGLE_API_TOKEN`, consulta cota quando disponível, envia kernel com T4x2, monitora e recupera MP4.
+5. `scripts/frutalandia_blender.py`: produz **animação de objetos 3D reais** com malhas de frutas, corpos, expressões, camera, ambientes e iluminação Blender Cycles CUDA; CPU é fallback.
+6. `scripts/frutalandia_episode_runner.py`: sintetiza voz em português (Piper local), oferece VoiceStudio se um backend local **real** estiver ativo, gera trilha original, hardcode de legendas, FFmpeg e valida streams via ffprobe.
+7. Artifacts do GitHub: `frutalandia-ep01.mp4`, `capa.png`, `captions.srt`, `manifest.json`.
 
-**Não gera MP4 nem afirma ter usado OpenMontage ou VoiceStudio para sintetizar a obra.**
-O brief é o insumo para a pipeline de animação `character-animation` do OpenMontage.
-O adaptador HTTP do VoiceStudio é funcional com backend local e perfis previamente cadastrados, mas **não há backend VoiceStudio inicializado automaticamente no Actions/Kaggle nesta etapa**.
+## O que é — e o que não é
 
-## Fontes (versões de upstream a fixar na etapa de render)
+- É animação tridimensional procedural construída no Blender (personagens persistentes e animados, cortes de câmera, geometria).
+- O compositor de produção realmente executado é FFmpeg. **OpenMontage gera um plano compatível, mas seu runtime/HyperFrames não é executado no job Kaggle.**
+- O provedor padrão de voz é Piper, com timbres variados para cada fruta. **VoiceStudio é opcional**, somente se um servidor local funcional e quatro perfis cadastrados estiverem disponíveis.
+- **Não executa Wan 2.1**. A abordagem procedural foi escolhida para garantir identidade visual e caber na cota sem download de pesos enormes. Um backend Wan pode ser acrescentado como alternativa explícita.
+- A renderização nativa usa 360×640 a 12 FPS para caber no core gratuito, convertida para 720×1280/24 FPS. Isso não representa resolução nativa 720p, nem animação cinematográfica gerada por difusão.
+- Custo de API: R$0. A GPU do Kaggle depende de quota e elegibilidade, sem garantia de disponibilidade.
+- Não publica automaticamente no TikTok ou YouTube; não altera a main sem testes.
 
-- OpenMontage: https://github.com/calesthio/OpenMontage — `character-animation` com HyperFrames, atuação de personagem, validação de cenas e renderização
-- VoiceStudio: https://github.com/debpalash/VoiceStudio — API local `/v1/audio/voices` e `/v1/audio/speech`
-- Kaggle: https://github.com/Kaggle/kaggle-cli/blob/main/docs/kernels.md — `kernels push/status/output`
+## Execução
 
-Os dois projetos usam **AGPL-3.0**; observar também as licenças dos modelos, pesos e mídias externos.
+O workflow é `Frutalândia 3D — render Kaggle GPU` e foi lançado pela alteração de
+`triggers/produce-frutalandia.txt` na branch da PR #4.
 
-## Episódio inicial
+Uma vez o workflow presente na branch default, ele também pode ser iniciado manualmente pela aba Actions. O secret `KAGGLE_API_TOKEN` já configurado é usado pelo GitHub runner, sem imprimir o valor.
 
-`stories/frutalandia/audio-do-amanha-ep01.json`
+- [Workflow de render](https://github.com/nutricionistaalmeidavh-spec/moneyPrintTest/actions/workflows/frutalandia-gpu.yml)
+- [PR #4](https://github.com/nutricionistaalmeidavh-spec/moneyPrintTest/pull/4)
 
-Enredo "O Áudio de Amanhã", com Moranguete, Uva, Mãe Pera e Pai Caju. Drama cômico CGI 3D original, iluminação quente, figurino fixo, seis cenas, 48 s, formato 9:16. Sem overlays de WhatsApp.
+Gates de aceitação: os testes devem passar; a execução Kaggle precisa concluir sem falhas; saída MP4 deve existir e ter 720×1280, 48 ±1s, codec H.264 e faixa de áudio AAC. O manifest precisa afirmar `status=rendered`; nenhum status fictício é aceito.
 
-## Executar planejamento
+## QA de geometria no Actions
 
-```bash
-python -m unittest discover -s tests -v
-python scripts/novelinha_frutas.py stories/frutalandia/audio-do-amanha-ep01.json \
-  --output outputs/frutalandia-plan
-```
+O workflow `Frutalândia — QA de geometria 3D real` instala Blender no runner CPU e renderiza um frame usando `FRUTALANDIA_SMOKE=1`. Isso valida geometria, cenas e compatibilidade da versão do Blender, mas **não** substitui o E2E de 48 segundos.
 
-Os arquivos são enviados como GitHub Artifacts quando a Action é disparada manualmente. Não há cron nem postagem automática.
+## Limitações conhecidas
 
-## Testar GPU Kaggle pela Action
+- A aparência é inspirada na descrição dos personagens, não em arquivos de imagem anteriores — não há referência PNG original versionada no repositório.
+- Os movimentos de boca são estilizados; não incluem lip-sync fonético avançado.
+- Profundidade de campo e 3D polido dependem das amostras de Cycles e da GPU disponível.
+- O render do Kaggle pode expirar, ficar na fila ou falhar por configuração/limites do servidor; nesse caso o workflow falha explicitamente e preserva logs no próprio Kaggle.
+- O VoiceStudio, quando ativado, não clona vozes humanas sem autorização.
 
-A credencial esperada já é `KAGGLE_API_TOKEN` nos GitHub Secrets; ela nunca é impressa.
+## Execução local opcional
 
-No menu Actions → "Novelinha de frutas — planejamento e preflight GPU" → Run workflow:
-
-- `story_path`: caminho versionado do episódio
-- `gpu_preflight`: ativar apenas quando quiser consumir cota do Kaggle
-- `kaggle_username`: usuário **público** do Kaggle, necessário para o ID do notebook
-
-A Action cria notebook privado, pede GPU T4 e baixa diagnóstico `gpu_preflight.json`. **Este teste não renderiza vídeo.** Precisa que a conta tenha permissão de GPU e internet não é necessária para a prova.
-
-## VoiceStudio local
-
-Para testar o adaptador, inicie o VoiceStudio em loopback `127.0.0.1:3900` pelo servidor/Docker oficial e cadastre quatro perfis de voz cujos IDs correspondam ao JSON (`moranguete`, `uva`, `mae-pera`, `pai-caju`). Não faça clonagem de voz humana sem autorização.
+Se Blender e FFmpeg estiverem instalados e houver modelos Piper disponíveis:
 
 ```bash
-python scripts/novelinha_frutas.py stories/frutalandia/audio-do-amanha-ep01.json \
-  --output outputs/frutalandia-plan \
-  --voicestudio-url http://127.0.0.1:3900
+python scripts/frutalandia_episode_runner.py \
+  --story stories/frutalandia/audio-do-amanha-ep01.json --output outputs/frutalandia
 ```
 
-Caso o servidor/perfil não exista, **falha explicitamente**; não entrega áudio falso. O arquivo WAV de cada fala sai em `outputs/frutalandia-plan/audio/`.
-
-## Para concluir o episódio realmente animado (pendências)
-
-- [ ] Referências visuais originais persistentes para cada fruta, sem mudar cabelo/roupa entre as cenas
-- [ ] Executar um agente OpenMontage com `character-animation` e HyperFrames (ou provedor local de vídeo GPU explicitamente selecionado) para movimento de personagens, não imagens estáticas fingindo 3D
-- [ ] Subir VoiceStudio de forma reproduzível no executor e provisionar vozes distintas pt-BR, integrando os WAVs à linha do tempo
-- [ ] Testar o modelo de vídeo local na VRAM e cota reais do Kaggle; identificar quais cenas requerem modelo GPU em vez de rigs SVG
-- [ ] Implementar runner de render remoto, recuperação de MP4 e gates (ffprobe, cenas, áudio, consistência, licença e versão)
-- [ ] Fazer E2E do episódio 1 e só então habilitar modo de renderização, sem publicação automática
-
-### Política de custos
-
-Core: R$ 0 / open source / execução local ou nas cotas gratuitas elegíveis. Nenhum provedor comercial é habilitado automaticamente. Não modificar secrets existentes. Não executar o preflight GPU sem seleção explícita.
-
-### Política de publicação
-
-Sem postagem TikTok/YouTube automática e sem merge na main antes da validação dos testes de integração.
+Para VoiceStudio real, configure `VOICE_STUDIO_URL=http://127.0.0.1:3900`
+**no mesmo executor** e cadastre os perfis moranguete, uva, mae-pera e pai-caju.
+No Kaggle essa URL normalmente não existe; por isso Piper é o modo padrão. Nenhum serviço pago é habilitado.
