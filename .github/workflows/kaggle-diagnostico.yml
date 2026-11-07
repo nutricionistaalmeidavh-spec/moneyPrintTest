@@ -39,8 +39,13 @@ jobs:
           PY
           mkdir -p outputs/diagnostics
           echo "Verificando status de kernel privado existente, sem iniciar novo job GPU."
-          kaggle kernels status "$KAGGLE_OWNER/frutalandia-ep01" | tee outputs/diagnostics/kernel-status.txt
-          echo "Diagnóstico obtido."
+          echo "Usuário identificado: $KAGGLE_OWNER"
+          kaggle kernels list --mine --csv | tee outputs/diagnostics/kernels-list.txt || true
+          echo "Consultar notebook esperado pelo nome informado:"
+          kaggle kernels status "$KAGGLE_OWNER/frutalandia-ep01" 2>&1 | tee outputs/diagnostics/kernel-status.txt || true
+          echo "Consultar logs (retorno truncado):"
+          kaggle kernels logs "$KAGGLE_OWNER/frutalandia-ep01" 2>&1 | tail -100 | tee outputs/diagnostics/kernel-logs.txt || true
+          echo "Diagnóstico completo."
       - name: Anexar diagnóstico
         if: always()
         uses: actions/upload-artifact@v4
