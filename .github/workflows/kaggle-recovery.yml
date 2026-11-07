@@ -71,14 +71,15 @@ jobs:
             echo "Arquivos locais recuperados de $slug:"
             find "$folder" -type f -printf '%P %s bytes\n' | head -100
           done
-      - name: Instalar ferramentas gratuitas de validação de mídia
+      - name: Instalar FFmpeg apenas se a API do Kaggle disponibilizar vídeos
+        if: ${{ hashFiles('outputs/recovery/**/*.mp4', 'outputs/recovery/**/*.mov', 'outputs/recovery/**/*.mkv', 'outputs/recovery/**/*.webm') != '' }}
         run: |
           sudo apt-get update -qq
           sudo apt-get install -y -qq ffmpeg
       - name: Inspecionar MP4 verdadeiro e tentar recuperação de contêiner
         shell: bash
         run: |
-          ffprobe -version | head -1
+          if command -v ffprobe >/dev/null; then ffprobe -version | head -1; else echo "Nenhuma mídia de vídeo foi disponibilizada, etapa de reparação dispensada"; fi
           python scripts/kaggle_recover.py --input-dir outputs/recovery \
              --output outputs/recovery/recovery-report.json
           echo "Relatório salvo; não atribuir sucesso falso quando não existem arquivos."
