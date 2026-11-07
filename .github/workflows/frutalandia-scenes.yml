@@ -1,0 +1,216 @@
+name: Frutalândia — Contador, seis cenas na GPU
+
+on:
+  pull_request:
+    paths:
+      - ".github/workflows/frutalandia-scenes.yml"
+      - "scripts/frutalandia_*.py"
+      - "stories/frutalandia/contador-do-butico-ep01.json"
+      - "tests/test_frutalandia_scenes.py"
+  push:
+    branches:
+      - feat/frutalandia-cenas-paralelas-contador
+    paths:
+      - triggers/produce-contador.txt
+  workflow_dispatch:
+    inputs:
+      scene:
+        description: "all = seis cenas; s01..s06 = reprocessar só uma cena"
+        type: choice
+        required: true
+        default: all
+        options:
+          - all
+          - s01
+          - s02
+          - s03
+          - s04
+          - s05
+          - s06
+      base_run_id:
+        description: "Para reprocessar uma cena e remontar: run_id anterior com seis artifacts"
+        type: string
+        required: false
+        default: ""
+
+permissions:
+  contents: read
+  actions: read
+
+concurrency:
+  group: frutalandia-contador-gpu-${{ github.ref }}
+  cancel-in-progress: false
+
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+      - name: Testar seleção de cenas, consistência, contadores e bundling
+        run: |
+          python -m unittest discover -s tests -v
+          python -m scripts.frutalandia_scenes validate --story stories/frutalandia/contador-do-butico-ep01.json
+          python -m compileall -q scripts/frutalandia_scenes.py scripts/frutalandia_blender.py scripts/frutalandia_episode_runner.py
+
+  scene:
+    needs: validate
+    if: ${{ github.event_name != 'pull_request' }}
+    strategy:
+      fail-fast: false
+      max-parallel: 1
+      matrix:
+        scene: [s01, s02, s03, s04, s05, s06]
+    runs-on: ubuntu-latest
+    timeout-minutes: 65
+    env:
+      KAGGLE_API_TOKEN: ${{ secrets.KAGGLE_API_TOKEN }}
+      STORY: stories/frutalandia/contador-do-butico-ep01.json
+      SCENE: ${{ matrix.scene }}
+      SELECTED: ${{ inputs.scene || 'all' }}
+    steps:
+      - uses: actions/checkout@v4
+      - id: choose
+        name: Selecionar apenas cenas solicitadas
+        shell: bash
+        run: |
+          if [[ "$SELECTED" == all || "$SELECTED" == "$SCENE" ]]; then
+            echo "render=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "render=false" >> "$GITHUB_OUTPUT"
+          fi
+      - uses: actions/setup-python@v5
+        if: steps.choose.outputs.render == 'true'
+        with:
+          python-version: "3.11"
+      - name: Preparar Kaggle CLI e autenticar sem expor Secret
+        if: steps.choose.outputs.render == 'true'
+        shell: bash
+        run: |
+          test -n "$KAGGLE_API_TOKEN" || { echo "::error::KAGGLE_API_TOKEN ausente"; exit 1; }
+          python -m pip install -q "kaggle>=2.2.4,<3" "kagglehub>=0.3,<1" "six>=1.16,<2"
+          python - <<'PY'
+          import os,re
+          from kagglehub.auth import whoami
+          owner=whoami(verbose=False)["username"].lower()
+          if not re.fullmatch(r"[a-z0-9][a-z0-9_-]{1,39}",owner):
+              raise ValueError("Usuário Kaggle inválido")
+          with open(os.environ["GITHUB_ENV"],"a") as out:
+              out.write("KAGGLE_OWNER="+owner+"\n")
+          print("Kaggle autenticado para renderização de uma cena")
+          PY
+      - name: Empacotar episódio e renderizar somente a cena selecionada
+        if: steps.choose.outputs.render == 'true'
+        shell: bash
+        run: |
+          python -m scripts.frutalandia_kaggle_bundle \
+            --story "$STORY" --username "$KAGGLE_OWNER" \
+            --scene-id "$SCENE" --slug "butico-ep01-$SCENE" \
+            --out ".kaggle-contador-$SCENE"
+          python -m py_compile ".kaggle-contador-$SCENE/run.py"
+          kaggle kernels push -p ".kaggle-contador-$SCENE" --accelerator NvidiaTeslaT4 --timeout 3000
+      - name: Monitorar kernel da cena (timeout estrito)
+        if: steps.choose.outputs.render == 'true'
+        shell: bash
+        run: |
+          kernel="$KAGGLE_OWNER/butico-ep01-$SCENE"
+          complete=0
+          for n in $(seq 1 150); do
+            status="$(kaggle kernels status "$kernel" 2>&1)" || { echo "$status"; exit 1; }
+            lowercase="$(printf '%s' "$status" | tr '[:upper:]' '[:lower:]')"
+            if [[ "$lowercase" == *error* || "$lowercase" == *failed* || "$lowercase" == *cancelled* ]]; then
+              echo "::error::Kaggle scene $SCENE failed: $status"
+              exit 1
+            fi
+            if [[ "$lowercase" == *complete* ]]; then
+              complete=1
+              break
+            fi
+            if (( n % 5 == 0 )); then
+              echo "$SCENE: $status"
+            fi
+            sleep 20
+          done
+          test "$complete" = 1 || { echo "::error::Kaggle excedeu timeout da cena $SCENE"; exit 1; }
+      - name: Recuperar e validar somente o MP4 real da cena
+        if: steps.choose.outputs.render == 'true'
+        shell: bash
+        run: |
+          mkdir -p "outputs/raw-$SCENE" outputs/scene
+          kaggle kernels output "$KAGGLE_OWNER/butico-ep01-$SCENE" -p "outputs/raw-$SCENE" -o
+          test -s "outputs/raw-$SCENE/scene-$SCENE.mp4" || { echo "::error::MP4 não encontrado"; exit 1; }
+          SCENE="$SCENE" python - <<'PY'
+          import json,os
+          from pathlib import Path
+          from scripts.frutalandia_scenes import probe_mp4
+          sid=os.environ["SCENE"]
+          root=Path("outputs")/("raw-"+sid)
+          meta=json.loads((root/"manifest.json").read_text(encoding="utf-8"))
+          assert meta["status"]=="rendered" and meta.get("scene_id")==sid
+          assert meta["auto_publish"] is False
+          qa=probe_mp4(root/("scene-"+sid+".mp4"),8)
+          print("Cena aprovada",sid,qa)
+          PY
+          cp "outputs/raw-$SCENE/scene-$SCENE.mp4" outputs/scene/
+          cp "outputs/raw-$SCENE/manifest.json" "outputs/scene/manifest-$SCENE.json"
+      - name: Guardar resultado da cena como artifact independente
+        if: steps.choose.outputs.render == 'true'
+        uses: actions/upload-artifact@v4
+        with:
+          name: fruit-scene-${{ matrix.scene }}
+          path: outputs/scene/
+          if-no-files-found: error
+          retention-days: 7
+
+  assemble:
+    needs: scene
+    if: ${{ github.event_name == 'push' || inputs.scene == 'all' || inputs.base_run_id != '' }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+    steps:
+      - uses: actions/checkout@v4
+      - name: Validar run base para reprocessamento parcial
+        if: ${{ github.event_name == 'workflow_dispatch' && inputs.base_run_id != '' }}
+        env:
+          RUN_ID: ${{ inputs.base_run_id }}
+        shell: bash
+        run: |
+          [[ "$RUN_ID" =~ ^[0-9]{6,15}$ ]] || { echo "::error::run_id inválido"; exit 1; }
+      - name: Carregar clips da execução anterior, caso reprocessamento parcial
+        if: ${{ github.event_name == 'workflow_dispatch' && inputs.base_run_id != '' }}
+        uses: actions/download-artifact@v4
+        with:
+          run-id: ${{ inputs.base_run_id }}
+          github-token: ${{ github.token }}
+          pattern: fruit-scene-*
+          merge-multiple: true
+          path: outputs/frutalandia-clips/
+      - name: Priorizar cenas geradas na execução atual
+        uses: actions/download-artifact@v4
+        with:
+          pattern: fruit-scene-*
+          merge-multiple: true
+          path: outputs/frutalandia-clips/
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+      - name: Instalar FFmpeg gratuito
+        run: |
+          sudo apt-get update -qq
+          sudo apt-get install -y -qq ffmpeg
+      - name: Montar e validar episódio completo (48 segundos, áudio, H264)
+        run: |
+          python -m scripts.frutalandia_scenes assemble \
+            --story stories/frutalandia/contador-do-butico-ep01.json \
+            --input-dir outputs/frutalandia-clips \
+            --output-dir outputs/frutalandia-final
+      - name: Artefato final sem publicação automática
+        uses: actions/upload-artifact@v4
+        with:
+          name: frutalandia-contador-ep01-${{ github.run_id }}
+          path: outputs/frutalandia-final/
+          retention-days: 7
+          if-no-files-found: error
