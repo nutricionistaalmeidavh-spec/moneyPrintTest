@@ -260,7 +260,12 @@ def main():
         silent_candidates=list(output.glob("silent*.mp4"))
         if not silent_candidates:
             print("FRUTALANDIA_STAGE=blender_render_start",flush=True)
-            run([engine,"-b","-t","4","--python",str(Path(__file__).with_name("blender_frutas.py")),
+            renderer=Path(__file__).with_name("blender_frutas.py")
+            if not renderer.is_file():
+                renderer=Path(__file__).with_name("frutalandia_blender.py")
+            if not renderer.is_file():
+                raise RuntimeError("Script Blender da Frutalândia não encontrado")
+            run([engine,"-b","-t","4","--python",str(renderer),
                  "--",str(args.story.resolve()),str(output)])
             silent_candidates=list(output.glob("silent*.mp4"))
         if not silent_candidates:
