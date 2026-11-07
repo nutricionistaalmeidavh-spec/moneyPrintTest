@@ -50,7 +50,7 @@ def make_kernel(story_file: Path, blender_file: Path, renderer_file: Path,
     (target / "run.py").write_text(script, encoding="utf-8")
     metadata = {
         "id": f"{username}/{slug}",
-        "title": "Frutalandia EP01",
+        "title": slug.replace("-", " ").title(),
         "code_file": "run.py",
         "language": "python", "kernel_type": "script",
         "is_private": True, "enable_gpu": True,
