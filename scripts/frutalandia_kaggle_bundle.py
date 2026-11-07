@@ -28,7 +28,7 @@ def make_kernel(story_file: Path, blender_file: Path, renderer_file: Path,
     target.mkdir(parents=True, exist_ok=True)
     payload = json.dumps({name: base64.b64encode(data).decode("ascii") for name, data in pieces.items()})
     script = (
-        "import base64, json, os, pathlib, subprocess, sys\n"
+        "import base64, json, os, pathlib, subprocess, sys, shutil\n"
         "from pathlib import Path\n"
         "work = Path('/kaggle/working')\n"
         "work.mkdir(exist_ok=True)\n"
@@ -36,6 +36,17 @@ def make_kernel(story_file: Path, blender_file: Path, renderer_file: Path,
         "for name, data in files.items():\n"
         "    (work / name).write_bytes(base64.b64decode(data))\n"
         "os.chdir(work)\n"
+        "print('FRUTALANDIA_PREFLIGHT=begin', flush=True)\n"
+        "if shutil.which('blender') is None:\n"
+        "    raise RuntimeError('Blender ausente no Kaggle; não usar apt-get: DNS indisponível. Use GitHub Actions CPU.')\n"
+        "if shutil.which('ffmpeg') is None or shutil.which('ffprobe') is None:\n"
+        "    raise RuntimeError('FFmpeg ou FFprobe ausente no Kaggle; execução abortada sem instalar pacotes')\n"
+        "if shutil.which('nvidia-smi') is None:\n"
+        "    raise RuntimeError('GPU NVIDIA não alocada (Accelerator None). Verifique quota Kaggle.')\n"
+        "gpu = subprocess.run(['nvidia-smi','-L'], capture_output=True, text=True, timeout=10)\n"
+        "if gpu.returncode != 0 or 'GPU' not in gpu.stdout:\n"
+        "    raise RuntimeError('GPU Kaggle indisponível: não iniciar render sem aceleração confirmada')\n"
+        "print('FRUTALANDIA_PREFLIGHT=ok', gpu.stdout[:200], flush=True)\n"
         "rc = subprocess.call([sys.executable, 'render_episode.py', '--story', 'story.json', "
         "'--output', str(work)])\n"
         "if rc != 0:\n"
