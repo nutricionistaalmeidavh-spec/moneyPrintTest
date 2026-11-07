@@ -338,7 +338,10 @@ try:
 except Exception as exc:
     print("GPU Cycles indisponível, fallback CPU:",exc)
 if chosen=="CPU":
-    sc.cycles.samples=2
+    # No runner público gratuito, um sample de Cycles reduz o tempo do preview.
+    # Pode aumentar para 2/4 via variável quando a infraestrutura permitir.
+    sc.cycles.samples=max(1,min(16,int(os.environ.get("FRUTALANDIA_CPU_SAMPLES","1"))))
+print("FRUTALANDIA_PROGRESS_TOTAL_FRAMES="+str(sc.frame_end-sc.frame_start+1),flush=True)
 sc.render.image_settings.file_format="FFMPEG"
 sc.render.ffmpeg.format="MPEG4"
 sc.render.ffmpeg.codec="H264"
