@@ -1,4 +1,5 @@
 name: Frutalândia V2 — frame de aprovação visual
+# QA V2.1: escala facial corrigida + câmera centrada na Mãe Pera
 
 on:
   push:
