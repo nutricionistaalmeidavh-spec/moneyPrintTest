@@ -242,7 +242,9 @@ def build_character(char_id, x, stage_i):
 
 def room(stage, i):
     X=i*21.0
-    cube("piso_cenario", (X,0,-.25), (8,8,.23), FLOOR)
+    piso=FLOOR if story.get("id")!="contador-do-butico-ep01" else mat(
+        "paralelepipedo feira",(.58,.45,.32),rough=.8)
+    cube("piso_cenario", (X,0,-.25), (8,8,.23), piso)
     cube("parede_atras", (X,4,3.65), (8,.25,3.7), WALL)
     cube("rodape", (X,3.65,.24), (7,.12,.14), WOOD)
     cube("tapete_sala", (X,-.2,.017),(2.7,2,.018),SHADOW)
@@ -379,7 +381,16 @@ sc.render.resolution_x=RES_X
 sc.render.resolution_y=RES_Y
 sc.render.resolution_percentage=50 if os.environ.get("FRUTALANDIA_SMOKE")=="1" else 100
 sc.render.fps=FPS
-sc.world.color=(.15,.11,.16)
+sc.world.color=(.34,.52,.66) if story.get("id")=="contador-do-butico-ep01" else (.15,.11,.16)
+sc.world.use_nodes=True
+background=sc.world.node_tree.nodes.get("Background")
+if background:
+    if story.get("id")=="contador-do-butico-ep01":
+        background.inputs["Color"].default_value=(.48,.67,.84,1)
+        background.inputs["Strength"].default_value=.7
+    else:
+        background.inputs["Color"].default_value=(.22,.16,.23,1)
+        background.inputs["Strength"].default_value=.48
 requested_engine=os.environ.get("FRUTALANDIA_RENDER_ENGINE","CYCLES").upper()
 if requested_engine not in ("CYCLES","WORKBENCH","EEVEE"):
     raise RuntimeError("Motor 3D deve ser CYCLES, WORKBENCH ou EEVEE")
