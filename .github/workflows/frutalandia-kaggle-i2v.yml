@@ -34,7 +34,7 @@ jobs:
         shell: bash
         run: |
           test -n "$KAGGLE_API_TOKEN" || { echo "::error::KAGGLE_API_TOKEN ausente"; exit 1; }
-          python -m pip install -q --disable-pip-version-check "kaggle>=2.2.4,<3" "kagglehub>=0.3,<1" "pillow>=10,<13"
+          python -m pip install -q --disable-pip-version-check "kaggle>=2.2.4,<3" "kagglehub>=0.3,<1" "six>=1.16,<2" "pillow>=10,<13"
           python - <<'PY'
           import os,re
           from kagglehub.auth import whoami
@@ -82,7 +82,7 @@ jobs:
       - name: Autenticar CLI de leitura
         shell: bash
         run: |
-          python -m pip install -q "kaggle>=2.2.4,<3" "kagglehub>=0.3,<1"
+          python -m pip install -q "kaggle>=2.2.4,<3" "kagglehub>=0.3,<1" "six>=1.16,<2"
           python - <<'PY'
           import os,re
           from kagglehub.auth import whoami
