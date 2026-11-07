@@ -68,6 +68,24 @@ class ReferenceI2VTests(unittest.TestCase):
             with self.assertRaises(Exception):
                 validate_preview(file,expected_seconds=2.0)
 
+    def test_colab_notebook_uses_exact_repository_reference(self):
+        notebook=json.loads((ROOT/"notebooks/frutalandia-i2v-referencia.ipynb").read_text(encoding="utf-8"))
+        source="\n".join("".join(cell["source"]) for cell in notebook["cells"]
+                         if cell["cell_type"]=="code")
+        self.assertIn("assets/frutalandia/elenco-master.webp",source)
+        self.assertIn("LTX", (ROOT/"scripts/frutalandia_i2v.py").read_text(encoding="utf-8"))
+        self.assertIn("check_available_gpu",source)
+        self.assertIn("BAIXAR_VIDEO",source)
+        self.assertNotIn("OPENAI_API_KEY",source)
+        for index,cell in enumerate(notebook["cells"]):
+            if cell["cell_type"]=="code":
+                compile("".join(cell["source"]),f"cell-{index}","exec")
+
+    def test_reference_crops_exclude_poster_title(self):
+        manifest=json.loads((ROOT/"assets/frutalandia/reference-manifest.json").read_text(encoding="utf-8"))
+        self.assertGreaterEqual(manifest["character_crops"]["uva"][1],125)
+        self.assertGreaterEqual(manifest["character_crops"]["mae-pera"][1],120)
+
     def test_actions_only_prepares_on_hosted_runner(self):
         text=(ROOT/".github/workflows/frutalandia-i2v.yml").read_text()
         self.assertIn("actions/upload-artifact@v4",text)
