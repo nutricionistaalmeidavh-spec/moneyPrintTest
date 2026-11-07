@@ -1,0 +1,118 @@
+name: Kaggle — testar hardware real T4 vs L4 (sem modelo)
+on:
+  push:
+    branches: [feat/frutalandia-i2v-referencia-fixa]
+    paths:
+      - ".github/workflows/kaggle-gpu-probe.yml"
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  probe:
+    strategy:
+      fail-fast: false
+      max-parallel: 1
+      matrix:
+        accelerator: [NvidiaTeslaT4, NvidiaL4]
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    env:
+      KAGGLE_API_TOKEN: ${{ secrets.KAGGLE_API_TOKEN }}
+      ACCELERATOR: ${{ matrix.accelerator }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+      - name: Preparar cliente do Kaggle autenticado
+        shell: bash
+        run: |
+          python -m pip install -q "kaggle>=2.2.4,<3" "kagglehub>=0.3,<1" "six>=1.16,<2"
+          python - <<'PY'
+          import os,re
+          from kagglehub.auth import whoami
+          who=whoami(verbose=False)["username"].lower()
+          assert re.fullmatch(r"[a-z0-9][a-z0-9_-]{1,39}",who)
+          with open(os.environ["GITHUB_ENV"],"a") as f:
+              f.write("KAGGLE_OWNER="+who+"\n")
+          PY
+      - name: Criar probe GPU sem pesos nem dependências extras
+        shell: bash
+        run: |
+          mkdir -p .kaggle-gpu-probe
+          cat > .kaggle-gpu-probe/run.py <<'PY'
+          import json,os,shutil,subprocess
+          from pathlib import Path
+          response={'torch_cuda':False,'nvidia_smi':False,'gpu_name':None}
+          try:
+              import torch
+              response['torch_cuda']=bool(torch.cuda.is_available())
+              response['gpu_count']=torch.cuda.device_count()
+              response['gpu_name']=torch.cuda.get_device_name(0) if response['torch_cuda'] else None
+          except Exception as exc:
+              response['torch_error']=type(exc).__name__
+          if shutil.which('nvidia-smi'):
+              p=subprocess.run(['nvidia-smi','-L'],capture_output=True,text=True,timeout=12)
+              response['nvidia_smi']=p.returncode==0 and 'GPU' in p.stdout
+          print('FRUTALANDIA_HARDWARE_PROBE',json.dumps(response),flush=True)
+          Path('/kaggle/working/gpu-probe-result.json').write_text(json.dumps(response,indent=2))
+          PY
+          python - <<'PY'
+          import os,json
+          accelerator=os.environ['ACCELERATOR']
+          name='frutalandia-gpu-probe-'+('t4' if accelerator=='NvidiaTeslaT4' else 'l4')
+          d={'id':os.environ['KAGGLE_OWNER']+'/'+name,
+             'title':name.replace('-',' ').title(),
+             'code_file':'run.py','language':'python','kernel_type':'script',
+             'is_private':True,'enable_gpu':True,'enable_internet':True,
+             'machine_shape':accelerator,
+             'dataset_sources':[],'competition_sources':[],
+             'kernel_sources':[],'model_sources':[]}
+          with open('.kaggle-gpu-probe/kernel-metadata.json','w') as f:
+              json.dump(d,f,indent=2)
+          PY
+      - name: Solicitar acelerador gratuito especificado
+        shell: bash
+        run: kaggle kernels push -p .kaggle-gpu-probe --accelerator "$ACCELERATOR" --timeout 480
+      - name: Recuperar prova de CUDA disponível ou ausente
+        shell: bash
+        run: |
+          set -euo pipefail
+          slug="frutalandia-gpu-probe-$( [[ "$ACCELERATOR" == "NvidiaTeslaT4" ]] && echo t4 || echo l4 )"
+          kernel="$KAGGLE_OWNER/$slug"
+          mkdir -p outputs/gpu-probe
+          status="unknown"
+          for n in $(seq 1 40); do
+            status="$(timeout 18s kaggle kernels status "$kernel" 2>&1 || true)"
+            echo "$ACCELERATOR: $status"
+            low="$(echo "$status" | tr '[:upper:]' '[:lower:]')"
+            if [[ "$low" == *complete* || "$low" == *error* || "$low" == *failed* ]]; then
+              break
+            fi
+            sleep 10
+          done
+          timeout 50s kaggle kernels output "$kernel" -p outputs/gpu-probe -o || true
+          if [[ -f outputs/gpu-probe/gpu-probe-result.json ]]; then
+            cat outputs/gpu-probe/gpu-probe-result.json
+          else
+            echo "::warning::Kaggle não exportou resultado do probe $ACCELERATOR"
+          fi
+          timeout 25s kaggle kernels pull "$kernel" -p outputs/gpu-probe/metadata -m || true
+          python - <<'PY'
+          import json
+          from pathlib import Path
+          files=list(Path('outputs/gpu-probe/metadata').glob('kernel-metadata.json'))
+          if files:
+              x=json.loads(files[0].read_text())
+              print('REMOTE_ACCELERATOR_SETTING',x.get('machine_shape'),x.get('enable_gpu'))
+          PY
+      - name: Guardar evidências de hardware
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: kaggle-hardware-${{ matrix.accelerator }}-${{ github.run_id }}
+          path: |
+            outputs/gpu-probe/gpu-probe-result.json
+            outputs/gpu-probe/metadata/kernel-metadata.json
+          if-no-files-found: warn
+          retention-days: 7
