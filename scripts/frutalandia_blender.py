@@ -353,28 +353,43 @@ sc.render.resolution_y=RES_Y
 sc.render.resolution_percentage=50 if os.environ.get("FRUTALANDIA_SMOKE")=="1" else 100
 sc.render.fps=FPS
 sc.world.color=(.15,.11,.16)
-sc.render.engine="CYCLES"
-sc.cycles.samples=1 if os.environ.get("FRUTALANDIA_SMOKE")=="1" else 4
-sc.cycles.use_denoising=False
-try:
-    bpy.context.view_layer.cycles.use_denoising=False
-except AttributeError:
-    pass
+requested_engine=os.environ.get("FRUTALANDIA_RENDER_ENGINE","CYCLES").upper()
+if requested_engine not in ("CYCLES","WORKBENCH"):
+    raise RuntimeError("Motor 3D deve ser CYCLES ou WORKBENCH")
 chosen="CPU"
-try:
-    pref=bpy.context.preferences.addons["cycles"].preferences
-    pref.compute_device_type="CUDA"
-    pref.get_devices()
-    cuda=[dev for dev in pref.devices if dev.type=="CUDA"]
-    if cuda:
-        for d in pref.devices:
-            d.use=(d.type=="CUDA")
-        sc.cycles.device="GPU"
-        chosen="CUDA "+", ".join(d.name for d in cuda)
-except Exception as exc:
-    print("GPU Cycles indisponível, fallback CPU:",exc)
-if chosen=="CPU":
-    sc.cycles.samples=2
+if requested_engine=="WORKBENCH":
+    # Open-source fast recovery when Cycles BVH crashes on free Linux runners.
+    # Real animated 3D meshes and cameras; shaded viewport output, not fake video.
+    sc.render.engine="BLENDER_WORKBENCH"
+    shading=sc.display.shading
+    shading.light="STUDIO"
+    shading.color_type="MATERIAL"
+    shading.show_shadows=True
+    shading.show_cavity=True
+    chosen="WORKBENCH (CPU/OpenGL)"
+else:
+    sc.render.engine="CYCLES"
+    sc.cycles.samples=1 if os.environ.get("FRUTALANDIA_SMOKE")=="1" else 4
+    sc.cycles.use_denoising=False
+    try:
+        bpy.context.view_layer.cycles.use_denoising=False
+    except AttributeError:
+        pass
+    try:
+        pref=bpy.context.preferences.addons["cycles"].preferences
+        pref.compute_device_type="CUDA"
+        pref.get_devices()
+        cuda=[dev for dev in pref.devices if dev.type=="CUDA"]
+        if cuda:
+            for d in pref.devices:
+                d.use=(d.type=="CUDA")
+            sc.cycles.device="GPU"
+            chosen="CUDA "+", ".join(d.name for d in cuda)
+    except Exception as exc:
+        print("GPU Cycles indisponível, fallback CPU:",exc)
+    if chosen=="CPU":
+        sc.cycles.samples=max(1,min(16,int(os.environ.get("FRUTALANDIA_CPU_SAMPLES","1"))))
+print("FRUTALANDIA_PROGRESS_TOTAL_FRAMES="+str(sc.frame_end-sc.frame_start+1),flush=True)
 sc.render.image_settings.file_format="FFMPEG"
 sc.render.ffmpeg.format="MPEG4"
 sc.render.ffmpeg.codec="H264"
@@ -383,7 +398,7 @@ sc.render.ffmpeg.ffmpeg_preset="GOOD"
 sc.render.filepath=str(outdir/"silent.mp4")
 print("FRUTALANDIA RENDER",sc.frame_end,"frames",chosen,flush=True)
 (outdir/"blender-render-config.json").write_text(json.dumps({
-    "engine":"Blender Cycles","device":chosen,"frames":sc.frame_end,"fps":FPS,
+    "engine":"Blender "+requested_engine,"device":chosen,"frames":sc.frame_end,"fps":FPS,
     "resolution":[RES_X,RES_Y], "scene_count":len(story["scenes"]),
     "selected_scene":selected_scene or "all"
 },indent=2))
