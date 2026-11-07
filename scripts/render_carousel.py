@@ -28,8 +28,8 @@ DEFAULT_TERMS = ["desk setup computer monitor laptop window",
                  "modern home office monitor plants",
                  "dual monitor workstation desk",
                  "bright minimalist desk setup"]
-VALID_STYLES = {"reference", "brush", "cinematic", "minimal", "contrast"}
-IMAGE_HEIGHT = {"4:5": 1350, "9:16": 1920}
+VALID_STYLES = {"reference", "brush", "editorial", "cinematic", "minimal", "contrast"}
+IMAGE_HEIGHT = {"4:5": 1350, "3:5": 1800, "9:16": 1920}
 
 
 class CarouselError(ValueError):
@@ -76,8 +76,8 @@ def validate_request(raw):
     style = raw.get("style", "reference")
     if style not in VALID_STYLES:
         raise CarouselError("style inválido")
-    aspect = raw.get("aspect", "4:5" if style in ("reference", "brush") else "9:16")
-    if aspect not in IMAGE_HEIGHT or (style not in ("reference", "brush") and aspect != "9:16"):
+    aspect = raw.get("aspect", "3:5" if style == "editorial" else "4:5" if style in ("reference", "brush") else "9:16")
+    if aspect not in IMAGE_HEIGHT or (style == "editorial" and aspect != "3:5") or (style not in ("reference", "brush", "editorial") and aspect != "9:16"):
         raise CarouselError("aspect não compatível com o estilo")
     brand = _one_line(raw.get("brand", "ArtiSys"), "brand", 32)
     cta = _one_line(raw.get("cta", "Salve este post para consultar depois."),
@@ -91,7 +91,7 @@ def validate_request(raw):
         raise CarouselError("slides deve conter exatamente slide_count páginas")
     normalized_slides = []
     for slide in slides:
-        if not isinstance(slide, dict) or set(slide) - {"title", "body", "highlight"}:
+        if not isinstance(slide, dict) or set(slide) - {"title", "body", "highlight", "detail", "url"}:
             raise CarouselError("Página inválida")
         normalized = {
             "title": _one_line(slide.get("title"), "title", 96),
@@ -101,6 +101,17 @@ def validate_request(raw):
         if "highlight" in slide:
             normalized["highlight"] = _one_line(
                 slide.get("highlight"), "highlight", 84, allow_empty=True)
+        if "detail" in slide:
+            normalized["detail"] = _one_line(
+                slide.get("detail", ""), "detail", 160, allow_empty=True)
+        if "url" in slide:
+            url = _one_line(slide.get("url", ""), "url", 220, allow_empty=True)
+            if url and not re.fullmatch(
+                r"(?:https://)?(?:[a-zA-Z0-9-]+\.)+[a-zA-Z]{2,}(?:/[-a-zA-Z0-9._~/]*)?",
+                url
+            ):
+                raise CarouselError("slide.url deve conter domínio público, sem parâmetros")
+            normalized["url"] = url
         normalized_slides.append(normalized)
     items = raw.get("items", [])
     if not isinstance(items, list) or len(items) > 8:
@@ -215,6 +226,20 @@ def _cover(photo, aspect="4:5"):
     with Image.open(photo) as input_image:
         original = ImageOps.exif_transpose(input_image)
         rgb = original.convert("RGB")
+    if aspect == "3:5":
+        # Keep the whole setup visible, including monitor, keyboard, laptop and desk.
+        from PIL import ImageFilter
+        canvas = ImageOps.fit(rgb, (WIDTH, IMAGE_HEIGHT[aspect]),
+                              method=Image.Resampling.BICUBIC).filter(
+                                  ImageFilter.GaussianBlur(28))
+        foreground = ImageOps.contain(rgb, (WIDTH, IMAGE_HEIGHT[aspect] - 100),
+                                       method=Image.Resampling.LANCZOS)
+        mask = Image.new("L", foreground.size, 255)
+        mask = mask.filter(ImageFilter.GaussianBlur(24))
+        canvas.paste(foreground, ((WIDTH - foreground.width) // 2,
+                                  (IMAGE_HEIGHT[aspect] - foreground.height) // 2),
+                     mask)
+        return canvas
     return ImageOps.fit(rgb, (WIDTH, IMAGE_HEIGHT[aspect]), method=Image.Resampling.LANCZOS,
                         centering=(0.5, 0.5))
 
@@ -383,7 +408,127 @@ def _make_brush_page(background, slide, req, index, total):
     return canvas
 
 
+def _make_editorial_page(background, slide, req, index, total):
+    """Single template for all slides: intact workstation, brush titles, cards, URL.
+
+    Deterministic Pillow render, no AI image generation, no platform UI overlays.
+    """
+    from PIL import Image, ImageDraw, ImageFont
+    image = background.copy().convert("RGBA")
+    w, h = image.size
+    if (w, h) != (1080, 1800):
+        raise CarouselError("Editorial precisa de imagem 1080x1800 (3:5)")
+    gradient = Image.new("RGBA", (w, h))
+    shade = ImageDraw.Draw(gradient)
+    for yy in range(h):
+        if yy < 200:
+            alpha = 5
+        elif yy < 580:
+            alpha = int(5 + (yy - 200) / 380 * 34)
+        elif yy < 1100:
+            alpha = int(39 + (yy - 580) / 520 * 120)
+        else:
+            alpha = int(159 + (yy - 1100) / 700 * 58)
+        shade.line((0, yy, w, yy), fill=(3, 8, 18, alpha))
+    image = Image.alpha_composite(image, gradient)
+    draw = ImageDraw.Draw(image)
+    def fit_font(text, max_width, start=86, minimum=35, heavy=True):
+        f, lines, size = _fit_lines(draw, text, max_width, 1, start, minimum,
+                                    bold=heavy)
+        return f
+    def centered(text, y, size=74, max_width=930, bold=True):
+        f = fit_font(text, max_width, size, 35, bold)
+        draw.text((w // 2 + 3, y + 4), text, anchor="mt", font=f,
+                  fill=(0, 0, 0))
+        draw.text((w // 2, y), text, anchor="mt", font=f, fill="white")
+    def brush(text, yy, size=90, height=136):
+        f = fit_font(text, 870, size, 41)
+        bb = draw.textbbox((0, 0), text, font=f)
+        half = min(480, (bb[2] - bb[0]) // 2 + 58)
+        left, right = w // 2 - half, w // 2 + half
+        pts = [(left + 18, yy + 2)]
+        for xx in range(left + 18, right, 23):
+            pts.append((xx, yy + (xx * 17 % 11) - 5))
+        pts.extend([(right + 12, yy + 14), (right - 7, yy + height - 10)])
+        for xx in range(right - 5, left, -23):
+            pts.append((xx, yy + height + (xx * 7 % 13) - 6))
+        pts.extend([(left - 13, yy + height - 20), (left - 6, yy + 15)])
+        draw.polygon([(xx + 3, zz + 5) for xx, zz in pts], fill=(0, 0, 0, 110))
+        draw.polygon(pts, fill="white")
+        draw.text((w // 2, yy + 12), text, anchor="mt", font=f,
+                  fill=(4, 8, 15))
+    def caption_lines(text, yy, size=58, max_lines=3):
+        f, lines, _ = _fit_lines(draw, text, 905, max_lines, size, 32,
+                                 bold=False)
+        for line in lines:
+            centered(line, yy, f.size, 905, False)
+            yy += int(f.size * 1.27)
+        return yy
+    def link_pill(url, yy):
+        text = url.removeprefix("https://")
+        f = fit_font(text, 770, 56, 34)
+        bb = draw.textbbox((0, 0), text, font=f)
+        pill_width = max(500, min(900, bb[2] - bb[0] + 125))
+        x = (w - pill_width) // 2
+        draw.rounded_rectangle((x + 3, yy + 6, x + pill_width + 3, yy + 108),
+                               radius=49, fill=(0, 0, 0, 100))
+        draw.rounded_rectangle((x, yy, x + pill_width, yy + 102),
+                               radius=49, fill="white")
+        draw.text((w // 2, yy + 24), text, anchor="mt", font=f,
+                  fill=(6, 10, 17))
+    if index == 1:
+        centered(slide["title"], 445, 79, 950)
+        brush(slide.get("highlight", "") or "EMPRESA", 620, 88)
+        caption_lines(slide.get("body", ""), 830, 67, 2)
+        centered("››››››››››", 1200, 102, 650)
+    elif index == total:
+        brush(slide["title"], 265, 99, 140)
+        brush(slide.get("highlight", "") or "PRA TESTAR DEPOIS",
+              470, 82, 136)
+        caption_lines(slide.get("body", ""), 750, 70, 3)
+        draw.rounded_rectangle((80, 1050, 1000, 1230), radius=60,
+                               fill=(9, 17, 29, 233),
+                               outline=(38, 164, 245, 255), width=5)
+        centered("QUAL VOCÊ TESTARIA PRIMEIRO?", 1112, 55, 845)
+        link_pill("artisys", 1480)
+    else:
+        name = slide["title"]
+        brush(name, 220, 95, 140)
+        bodyname = name.split(".", 1)[1].strip() if "." in name else name
+        left, top, right, bottom = 145, 452, 935, 610
+        draw.rounded_rectangle((left + 4, top + 6, right + 4, bottom + 6),
+                               radius=66, fill=(0, 0, 0, 120))
+        draw.rounded_rectangle((left, top, right, bottom), radius=66,
+                               fill=(14, 25, 43, 246),
+                               outline=(247, 250, 255), width=4)
+        draw.ellipse((195, 485, 275, 565), fill=(32, 156, 239))
+        draw.ellipse((217, 507, 253, 543), fill="white")
+        centered(bodyname, 494, 80, 545)
+        tag = slide.get("highlight", "")
+        if tag:
+            bar_y = 790
+            draw.rounded_rectangle((90, bar_y, 104, bar_y + 89),
+                                   radius=6, fill=(36, 161, 245))
+            tagfont = fit_font(tag, 930, 82, 41)
+            draw.text((120, bar_y - 4), tag, font=tagfont, fill="white")
+        caption_lines(slide.get("body", ""), 936, 58, 3)
+        details = slide.get("detail", "")
+        if details:
+            draw.rounded_rectangle((115, 1175, 126, 1320),
+                                   radius=5, fill=(30, 160, 243))
+            f, lines, _ = _fit_lines(draw, details, 775, 3, 44, 29,
+                                     bold=False)
+            for j, ln in enumerate(lines):
+                draw.text((158, 1182 + j * int(f.size * 1.26)), ln, font=f,
+                          fill=(239, 247, 252))
+        if slide.get("url"):
+            link_pill(slide["url"], 1490)
+    return image.convert("RGB")
+
+
 def _make_page(background, slide, req, index, total):
+    if req["style"] == "editorial":
+        return _make_editorial_page(background, slide, req, index, total)
     if req["style"] == "reference":
         return _make_reference_page(background, slide, req, index, total)
     if req["style"] == "brush":
