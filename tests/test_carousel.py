@@ -71,6 +71,44 @@ class CarouselTests(unittest.TestCase):
             with self.subTest(value=value), self.assertRaises(CarouselError):
                 validate_request(value)
 
+    def test_editorial_style_accepts_new_sites_and_full_setup_layout(self):
+        from PIL import Image
+        from scripts.render_carousel import _cover, _make_page
+        pages = [
+            {"title": "4 sites pra melhorar sua empresa", "highlight": "EMPRESA",
+             "body": "(e ninguém te conta)"},
+            *[{"title": f"{i}. TOOL-{i}", "highlight": "INDICADORES",
+               "body": "Crie painéis e controles com dados.",
+               "detail": "Ferramenta open source para sua operação.",
+               "url": f"tool{i}.org"} for i in range(1,5)],
+            {"title": "SALVA ESSE POST!", "highlight": "PRA TESTAR DEPOIS",
+             "body": "Segue a ArtiSys."},
+        ]
+        request = validate_request({"topic": "4 sites para empresas", "style": "editorial",
+                                    "aspect": "3:5", "slides": pages})
+        self.assertEqual(request["slides"][1]["url"], "tool1.org")
+        with tempfile.TemporaryDirectory() as tmp:
+            photo = Path(tmp) / "setup.jpg"
+            Image.new("RGB", (1200, 1000), "#456082").save(photo)
+            bg = _cover(photo, "3:5")
+            self.assertEqual(bg.size, (1080, 1800))
+            for number in (1,2,6):
+                rendered = _make_page(bg, request["slides"][number - 1],
+                                      request, number, 6)
+                self.assertEqual(rendered.size, (1080, 1800))
+            paths = compose_carousel(request, photo, Path(tmp) / "out",
+                                     parse_candidates(sample_candidate())[0])
+            self.assertEqual(len(paths), 6)
+
+    def test_editorial_rejects_bad_optional_site_link(self):
+        for invalid in ("file:///etc/passwd", "https://bad domain.com", "a"*301):
+            with self.subTest(invalid=invalid), self.assertRaises(CarouselError):
+                validate_request({"topic": "sites", "style": "editorial",
+                                  "slides": [
+                                      {"title": f"Item {i}", "body": "",
+                                       "url": invalid} for i in range(6)
+                                  ]})
+
     def test_explicit_six_slides_do_not_need_llm(self):
         req = validate_request({"topic": "4 sites gratuitos", "slides": sample_slides()})
         self.assertEqual(req["slides"], sample_slides())
