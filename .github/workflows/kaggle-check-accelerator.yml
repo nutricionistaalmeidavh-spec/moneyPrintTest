@@ -1,0 +1,56 @@
+name: Kaggle I2V — verificar acelerador realmente salvo
+on:
+  push:
+    branches: [feat/frutalandia-i2v-referencia-fixa]
+    paths:
+      - ".github/workflows/kaggle-check-accelerator.yml"
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  inspect:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    env:
+      KAGGLE_API_TOKEN: ${{ secrets.KAGGLE_API_TOKEN }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+      - name: Ler configuração canônica no Kaggle, sem executar notebook
+        shell: bash
+        run: |
+          set -euo pipefail
+          python -m pip install -q "kaggle>=2.2.4,<3" "kagglehub>=0.3,<1" "six>=1.16,<2"
+          mkdir -p outputs/kaggle-gpu-check
+          python - <<'PY'
+          import os,re
+          from kagglehub.auth import whoami
+          username=whoami(verbose=False)["username"].lower()
+          assert re.fullmatch(r"[a-z0-9][a-z0-9_-]{1,39}",username)
+          with open(os.environ["GITHUB_ENV"],"a") as f:
+              f.write("KAGGLE_OWNER="+username+"\n")
+          print("Kaggle conectado; consultar metadata.")
+          PY
+          timeout 80s kaggle kernels pull "$KAGGLE_OWNER/frutalandia-i2v-ref-s01" \
+            -p outputs/kaggle-gpu-check -m
+          python - <<'PY'
+          import json
+          from pathlib import Path
+          root=Path("outputs/kaggle-gpu-check")
+          metadata=list(root.rglob("kernel-metadata.json"))
+          if not metadata: raise RuntimeError("API não retornou metadata")
+          d=json.loads(metadata[0].read_text())
+          visible={k:d.get(k) for k in ("id","machine_shape","enable_gpu","enable_internet","is_private","docker_image","docker_image_pinning_type")}
+          print("KAGGLE_SAVED_GPU_CONFIGURATION",json.dumps(visible,indent=2))
+          (root/"gpu-diagnostic.json").write_text(json.dumps(visible,indent=2))
+          PY
+      - name: Guardar diagnóstico sem código nem credenciais
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: kaggle-gpu-check-${{ github.run_id }}
+          path: outputs/kaggle-gpu-check/gpu-diagnostic.json
+          if-no-files-found: warn
+          retention-days: 7
