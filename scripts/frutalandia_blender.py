@@ -477,6 +477,17 @@ if preview_frames:
     sc.render.ffmpeg.format="MPEG4"
     sc.render.ffmpeg.codec="H264"
     sc.render.filepath=str(outdir/"frutalandia-preview.mp4")
+if os.environ.get("FRUTALANDIA_PREVIEW_STILL_ONLY")=="1":
+    # Fast visual gate: inspect one real Eevee frame before expensive clip.
+    still_path=outdir/"preview.png"
+    sc.render.image_settings.file_format="PNG"
+    sc.render.filepath=str(still_path)
+    sc.frame_set(sc.frame_start)
+    bpy.ops.render.render(write_still=True)
+    if not still_path.is_file() or still_path.stat().st_size<5000:
+        raise RuntimeError("Imagem de prévia PBR ausente")
+    print("FRUTALANDIA_PREVIEW_STILL_OK",still_path,flush=True)
+    raise SystemExit(0)
 bpy.ops.render.render(animation=True)
 files=list(outdir.glob("frutalandia-preview*.mp4" if preview_frames else "silent*.mp4"))
 if not files or max(p.stat().st_size for p in files) < (1000 if os.environ.get("FRUTALANDIA_SMOKE")=="1" else 100000):
