@@ -158,6 +158,18 @@ def detail_character(char_id, root, head, stage_i, sphere, cube, torus):
     elif char_id=="mae-pera":
         sphere("v2_rabo_cabelo_pera",(0,.38,.75),(.32,.25,.26),
                _shader("coque_pera",(.24,.105,.045),.34),head,20,12)
+        # Floral dress, never a flat blue jumpsuit: tiny sculpted petals
+        # repeat consistently on front of garment in every scene.
+        petal=_shader("vestido_floral_rosa",(.96,.39,.40),.44)
+        center=_shader("vestido_floral_miolo",(.99,.79,.26),.40)
+        for fx,fz in ((-.23,1.65),(.20,1.43),(-.10,1.18),(.26,1.08)):
+            for petal_i in range(5):
+                angle=2*math.pi*petal_i/5
+                sphere("v2_flor_vestido_petala",
+                       (fx+.085*math.cos(angle),-.31,fz+.085*math.sin(angle)),
+                       (.051,.029,.051),petal,root,10,8)
+            sphere("v2_flor_vestido_miolo",(fx,-.353,fz),
+                   (.039,.030,.039),center,root,12,8)
         # Collar pearls for a more mature recognizable character.
         for k in range(7):
             angle=math.pi*(k+1)/8
@@ -194,6 +206,11 @@ def detail_character(char_id, root, head, stage_i, sphere, cube, torus):
         led.rotation_euler=(math.pi/2,0,0)
 
 
+def mouth_open_scale(is_speaking, phase):
+    """Local-space Z scale for a cartoon mouth, never face-sized geometry."""
+    return .115 if is_speaking and phase else .038
+
+
 def animate_details(root, head, first, last, speaking, char_id):
     """Emphasis / blink keyed per shot; result reproducible across rerenders."""
     for side in (-1,1):
@@ -211,7 +228,7 @@ def animate_details(root, head, first, last, speaking, char_id):
     if inside:
         for frame in range(first,last+1,3):
             speaking_now=(char_id==speaking)
-            inside.scale.z=1.8 if speaking_now and (frame-first)//3%2 else .52
+            inside.scale.z=mouth_open_scale(speaking_now,(frame-first)//3%2)
             inside.keyframe_insert(data_path="scale",frame=frame)
     for frame in sorted({first,first+max(1,(last-first)//2),last}):
         # Layered eye / head acting, on top of the existing broad torso motion.
