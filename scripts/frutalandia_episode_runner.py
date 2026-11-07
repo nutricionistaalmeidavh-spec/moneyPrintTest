@@ -262,12 +262,19 @@ def main():
         print("FRUTALANDIA_STAGE=render_ready",flush=True)
         silent_candidates=list(output.glob("silent*.mp4"))
         if not silent_candidates:
-            run([engine,"-b","-t","4","--python",str(Path(__file__).with_name("blender_frutas.py")),
+            renderer=Path(__file__).with_name("blender_frutas.py")
+            if not renderer.is_file():
+                renderer=Path(__file__).with_name("frutalandia_blender.py")
+            if not renderer.is_file():
+                raise RuntimeError("Script Blender da Frutalândia ausente")
+            print("FRUTALANDIA_STAGE=blender_render_start",args.scene_id or "all",flush=True)
+            run([engine,"-b","-t","4","--python",str(renderer),
                  "--",str(args.story.resolve()),str(output)])
             silent_candidates=list(output.glob("silent*.mp4"))
         if not silent_candidates:
             raise RuntimeError("Blender não gerou clipe 3D")
         silent=max(silent_candidates,key=lambda x:x.stat().st_size)
+        print("FRUTALANDIA_STAGE=blender_render_done",args.scene_id or "all",flush=True)
         studio=os.environ.get("VOICE_STUDIO_URL","").strip()
         if studio:
             voice_engine=voice_studio_optional(render_story,output,studio)
