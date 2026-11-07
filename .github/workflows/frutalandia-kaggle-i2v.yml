@@ -1,0 +1,138 @@
+name: Frutalândia — executar vídeo I2V no Kaggle conectado
+on:
+  push:
+    branches: [feat/frutalandia-i2v-referencia-fixa]
+    paths:
+      - ".github/workflows/frutalandia-kaggle-i2v.yml"
+      - "triggers/frutalandia-kaggle-i2v.txt"
+  workflow_dispatch:
+    inputs:
+      scene:
+        type: choice
+        description: "Preview real de 2 segundos"
+        options: [s01, s02, s03, s04, s05, s06]
+        default: s01
+        required: true
+permissions:
+  contents: read
+concurrency:
+  group: frutalandia-kaggle-i2v-${{ github.ref }}
+  cancel-in-progress: false
+jobs:
+  submit:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    env:
+      KAGGLE_API_TOKEN: ${{ secrets.KAGGLE_API_TOKEN }}
+      SELECTED_SCENE: ${{ github.event_name == 'workflow_dispatch' && inputs.scene || 's01' }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+      - name: Confirmar token Kaggle conectado
+        shell: bash
+        run: |
+          test -n "$KAGGLE_API_TOKEN" || { echo "::error::KAGGLE_API_TOKEN ausente"; exit 1; }
+          python -m pip install -q --disable-pip-version-check "kaggle>=2.2.4,<3" "kagglehub>=0.3,<1" "six>=1.16,<2" "pillow>=10,<13"
+          python - <<'PY'
+          import os,re
+          from kagglehub.auth import whoami
+          username=whoami(verbose=False)["username"].lower()
+          assert re.fullmatch(r"[a-z0-9][a-z0-9_-]{1,39}",username)
+          with open(os.environ["GITHUB_ENV"],"a") as out:
+              out.write("KAGGLE_OWNER="+username+"\n")
+          print("Kaggle conectado; Secret preservado.")
+          PY
+      - name: Empacotar imagem real e testar kernel
+        shell: bash
+        run: |
+          python -m unittest discover -s tests -p 'test_frutalandia_i2v_kaggle.py' -v
+          python -m scripts.frutalandia_i2v_kaggle_bundle \
+            --username "$KAGGLE_OWNER" --scene-id "$SELECTED_SCENE" \
+            --slug "frutalandia-i2v-ref-$SELECTED_SCENE" \
+            --out ".kaggle-frutalandia-i2v"
+          python -m py_compile .kaggle-frutalandia-i2v/run.py
+      - name: Iniciar modelo I2V no Kaggle NVIDIA T4
+        shell: bash
+        run: |
+          set -euo pipefail
+          kaggle kernels push -p .kaggle-frutalandia-i2v --accelerator NvidiaTeslaT4 --timeout 3000
+          echo "FRUTALANDIA_KAGGLE_SUBMITTED $KAGGLE_OWNER/frutalandia-i2v-ref-$SELECTED_SCENE"
+      - name: Guardar metadata sem token
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: kaggle-i2v-submit-${{ github.run_id }}
+          path: .kaggle-frutalandia-i2v/kernel-metadata.json
+          retention-days: 7
+          if-no-files-found: warn
+  monitor:
+    needs: submit
+    runs-on: ubuntu-latest
+    timeout-minutes: 65
+    env:
+      KAGGLE_API_TOKEN: ${{ secrets.KAGGLE_API_TOKEN }}
+      SELECTED_SCENE: ${{ github.event_name == 'workflow_dispatch' && inputs.scene || 's01' }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+      - name: Autenticar CLI de leitura
+        shell: bash
+        run: |
+          python -m pip install -q "kaggle>=2.2.4,<3" "kagglehub>=0.3,<1" "six>=1.16,<2"
+          python - <<'PY'
+          import os,re
+          from kagglehub.auth import whoami
+          username=whoami(verbose=False)["username"].lower()
+          assert re.fullmatch(r"[a-z0-9][a-z0-9_-]{1,39}",username)
+          with open(os.environ["GITHUB_ENV"],"a") as f:
+              f.write("KAGGLE_OWNER="+username+"\n")
+          PY
+      - name: Consultar status e recuperar logs se falhar
+        shell: bash
+        run: |
+          set -euo pipefail
+          kernel="$KAGGLE_OWNER/frutalandia-i2v-ref-$SELECTED_SCENE"
+          mkdir -p outputs/kaggle-i2v
+          completed=0
+          for attempt in $(seq 1 175); do
+            status="$(timeout 22s kaggle kernels status "$kernel" 2>&1 || true)"
+            printf '[check=%s] %s\n' "$attempt" "$status" | tee -a outputs/kaggle-i2v/status.txt
+            normalized="$(printf '%s' "$status" | tr '[:upper:]' '[:lower:]')"
+            if [[ "$normalized" == *error* || "$normalized" == *failed* || "$normalized" == *cancelled* ]]; then
+              echo "::error::Kaggle falhou; tentando logs do kernel"
+              timeout 40s kaggle kernels logs "$kernel" 2>&1 | tail -120 || true
+              exit 1
+            fi
+            if [[ "$normalized" == *complete* ]]; then
+              completed=1
+              break
+            fi
+            sleep 20
+          done
+          [[ "$completed" == 1 ]] || { echo "::error::Kaggle excedeu tempo de monitoramento"; exit 1; }
+      - name: Baixar e validar MP4 REAL pelo ffprobe
+        shell: bash
+        run: |
+          set -euo pipefail
+          kernel="$KAGGLE_OWNER/frutalandia-i2v-ref-$SELECTED_SCENE"
+          timeout 150s kaggle kernels output "$kernel" -p outputs/kaggle-i2v -o
+          test -s "outputs/kaggle-i2v/preview-$SELECTED_SCENE.mp4" || { echo "::error::Sem MP4 real"; exit 1; }
+          python - <<'PY'
+          import os
+          from pathlib import Path
+          from scripts.frutalandia_i2v import validate_preview
+          path=Path("outputs/kaggle-i2v")/("preview-"+os.environ["SELECTED_SCENE"]+".mp4")
+          print("KAGGLE_REAL_VIDEO_QA",validate_preview(path,2.0))
+          PY
+      - name: Disponibilizar vídeo ou diagnóstico
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: frutalandia-kaggle-i2v-${{ github.run_id }}
+          path: outputs/kaggle-i2v/
+          if-no-files-found: warn
+          retention-days: 14

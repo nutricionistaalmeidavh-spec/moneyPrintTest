@@ -1,0 +1,130 @@
+name: Frutalândia — I2V com imagem de referência (R$ 0)
+
+on:
+  push:
+    branches:
+      - feat/frutalandia-i2v-referencia-fixa
+    paths:
+      - ".github/workflows/frutalandia-i2v.yml"
+      - "assets/frutalandia/**"
+      - "scripts/frutalandia_i2v.py"
+      - "tests/test_frutalandia_i2v.py"
+  pull_request:
+    paths:
+      - ".github/workflows/frutalandia-i2v.yml"
+      - "assets/frutalandia/**"
+      - "scripts/frutalandia_i2v.py"
+      - "tests/test_frutalandia_i2v.py"
+  workflow_dispatch:
+    inputs:
+      mode:
+        description: "prepare = pacote grátis CPU | preview = modelo I2V GPU próprio | scene = 8s após QA"
+        type: choice
+        required: true
+        default: prepare
+        options:
+          - prepare
+          - preview
+          - scene
+      scene:
+        type: choice
+        description: "Cena individual a ser gerada"
+        required: true
+        default: s01
+        options: [s01, s02, s03, s04, s05, s06]
+      approve_full:
+        type: boolean
+        required: false
+        default: false
+        description: "Exige aprovação explícita para gerar 8 segundos"
+
+permissions:
+  contents: read
+
+concurrency:
+  group: frutalandia-i2v-${{ github.ref }}-${{ inputs.mode || 'prepare' }}
+  cancel-in-progress: false
+
+jobs:
+  prepare:
+    runs-on: ubuntu-latest
+    timeout-minutes: 12
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+      - name: Instalar apenas Pillow (CPU, nenhuma API paga)
+        run: python -m pip install -q "pillow>=10,<13"
+      - name: Verificar 6 cenas, imagem versionada e integridade do manifesto
+        run: |
+          python -m unittest discover -s tests -p test_frutalandia_i2v.py -v
+          python -m compileall -q scripts/frutalandia_i2v.py
+      - name: Gerar primeiros quadros com personagens consistentes
+        run: |
+          python -m scripts.frutalandia_i2v prepare --out outputs/frutalandia-i2v
+          test -s outputs/frutalandia-i2v/first-frames/reference-report.json
+          test "$(find outputs/frutalandia-i2v/first-frames -name 'first-frame-s*.png' | wc -l)" = 6
+      - name: Exportar imagem-mestre e seis primeiros quadros (NÃO é vídeo gerado)
+        uses: actions/upload-artifact@v4
+        with:
+          name: frutalandia-i2v-references-${{ github.run_id }}
+          path: |
+            assets/frutalandia/elenco-master.webp
+            assets/frutalandia/reference-manifest.json
+            outputs/frutalandia-i2v/first-frames/
+          if-no-files-found: error
+          retention-days: 14
+
+  gpu-preview:
+    needs: prepare
+    if: ${{ github.event_name == 'workflow_dispatch' && (inputs.mode == 'preview' || (inputs.mode == 'scene' && inputs.approve_full)) }}
+    # Deliberately no GPU on GitHub-hosted runner. User provides a free,
+    # self-hosted NVIDIA runner; Colab notebook is the alternative.
+    runs-on: [self-hosted, Linux, X64, frutalandia-gpu]
+    timeout-minutes: 300
+    env:
+      HF_HUB_DISABLE_TELEMETRY: "1"
+      DO_NOT_TRACK: "1"
+      TOKENIZERS_PARALLELISM: "false"
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+      - name: Validar GPU NVIDIA real antes de baixar modelos
+        run: |
+          nvidia-smi -L
+          python - <<'PY'
+          import torch
+          from scripts.frutalandia_i2v import check_available_gpu
+          check_available_gpu(torch)
+          PY
+      - name: Instalar inferência open weights e FFmpeg
+        run: |
+          python -m pip install -q "pillow>=10,<13" "diffusers>=0.35,<1" "transformers>=4.48,<5" "accelerate>=1,<2" "safetensors>=0.4" "imageio-ffmpeg>=0.5" "av>=14"
+          command -v ffprobe || { echo "::error::ffmpeg/ffprobe precisam estar instalados no runner GPU"; exit 1; }
+      - name: Produzir vídeo REAL da cena solicitada
+        env:
+          SELECTED_SCENE: ${{ inputs.scene }}
+          SELECTED_MODE: ${{ inputs.mode }}
+        shell: bash
+        run: |
+          if [[ "$SELECTED_MODE" == "preview" ]]; then
+            python -m scripts.frutalandia_i2v preview --scene "$SELECTED_SCENE" \
+              --out outputs/frutalandia-i2v
+          else
+            python -m scripts.frutalandia_i2v render-scene --scene "$SELECTED_SCENE" \
+              --out outputs/frutalandia-i2v --approve-full
+          fi
+      - name: Salvar somente mídia real validada por FFprobe
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: frutalandia-i2v-gpu-${{ inputs.scene }}-${{ github.run_id }}
+          path: |
+            outputs/frutalandia-i2v/preview-*.mp4
+            outputs/frutalandia-i2v/scene-*.mp4
+            outputs/frutalandia-i2v/first-frames/reference-report.json
+          if-no-files-found: warn
+          retention-days: 14

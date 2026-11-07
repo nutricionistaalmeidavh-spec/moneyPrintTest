@@ -1,0 +1,65 @@
+name: Frutalândia — preservar vídeo real Wan 2.2 (Hugging Face conectado)
+on:
+  push:
+    branches: [feat/frutalandia-i2v-referencia-fixa]
+    paths: [".github/workflows/frutalandia-wan-import.yml"]
+  workflow_dispatch:
+    inputs:
+      video_url:
+        description: "URL de MP4 realmente gerado no Space open-source"
+        required: false
+        type: string
+permissions:
+  contents: read
+jobs:
+  preserve-wan-video:
+    runs-on: ubuntu-latest
+    timeout-minutes: 12
+    env:
+      PREVIEW_URL: ${{ inputs.video_url || 'https://zerogpu-aoti-wan2-2-fp8da-aoti-faster.hf.space/--replicas/t4l88/gradio_api/file=/tmp/gradio/9704a1c1596e8fcc38c861005b0ef8ee0a1acef40bd8883e104b40cbf8576875/tmptr0tus8l.mp4' }}
+    steps:
+      - uses: actions/checkout@v4
+      - name: Preservar vídeo real, nunca arquivo placeholder
+        shell: bash
+        run: |
+          set -euo pipefail
+          mkdir -p outputs/wan2-preview
+          [[ "$PREVIEW_URL" == https://* ]] || exit 1
+          curl -fL --retry 2 --retry-delay 2 --connect-timeout 12 --max-time 160 \
+            "$PREVIEW_URL" -o outputs/wan2-preview/uva-s01-wan22.mp4
+          test "$(stat -c %s outputs/wan2-preview/uva-s01-wan22.mp4)" -gt 50000 || {
+            echo "::error::Vídeo ausente/corrompido, não entregar"; exit 1;
+          }
+          command -v ffprobe >/dev/null || {
+            sudo apt-get update -qq && sudo apt-get install -y -qq ffmpeg
+          }
+          python - <<'PY'
+          from pathlib import Path
+          import json, subprocess
+          video=Path('outputs/wan2-preview/uva-s01-wan22.mp4')
+          result=subprocess.run(['ffprobe','-v','error','-show_format','-show_streams',
+                                 '-of','json',str(video)],
+                                 text=True,capture_output=True,check=True,timeout=30)
+          data=json.loads(result.stdout)
+          v=next((s for s in data.get('streams',[]) if s.get('codec_type')=='video'),None)
+          if not v or int(v.get('width',0))<200 or int(v.get('height',0))<200:
+              raise RuntimeError('MP4 sem frames reais ou resolução inválida')
+          seconds=float(data.get('format',{}).get('duration',0))
+          if not 1.5<=seconds<=8: raise RuntimeError('Duração inválida: '+str(seconds))
+          report={'status':'REAL_VIDEO_VERIFIED','source':'Wan2.2 on Hugging Face ZeroGPU',
+                  'model':'Wan 2.2 14B Lightning I2V','scene':'s01',
+                  'width':v['width'],'height':v['height'],'duration':seconds,
+                  'bytes':video.stat().st_size,
+                  'original_reference':'assets/frutalandia/first-frame-s01.png',
+                  'paid_required':False,'auto_publish':False}
+          Path('outputs/wan2-preview/manifest.json').write_text(json.dumps(report,ensure_ascii=False,indent=2))
+          print('WAN_REAL_VIDEO_VALIDATED',json.dumps(report,ensure_ascii=False))
+          PY
+      - name: Guardar MP4 REAL como artifact (14 dias)
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: frutalandia-wan22-uva-s01-${{ github.run_id }}
+          path: outputs/wan2-preview/
+          retention-days: 14
+          if-no-files-found: warn
