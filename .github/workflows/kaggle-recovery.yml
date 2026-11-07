@@ -1,0 +1,90 @@
+name: Kaggle — recuperar vídeos e diagnosticar GPU sem reiniciar render
+
+on:
+  push:
+    branches:
+      - feat/novelinha-frutas-openmontage-voicestudio
+    paths:
+      - ".github/workflows/kaggle-recovery.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  recover:
+    runs-on: ubuntu-latest
+    timeout-minutes: 14
+    env:
+      KAGGLE_API_TOKEN: ${{ secrets.KAGGLE_API_TOKEN }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+      - name: Testar recuperação segura
+        run: python -m unittest discover -s tests -p 'test_kaggle_recover.py' -v
+      - name: Instalar CLI e identificar usuário da credencial existente
+        shell: bash
+        run: |
+          test -n "$KAGGLE_API_TOKEN" || { echo "::error::KAGGLE_API_TOKEN ausente"; exit 1; }
+          python -m pip install -q "kaggle>=2.2.4,<3" "kagglehub>=0.3,<1" "six>=1.16,<2"
+          python - <<'PY'
+          import os,re
+          from kagglehub.auth import whoami
+          username=whoami(verbose=False)["username"].lower()
+          assert re.fullmatch(r"[a-z0-9][a-z0-9_-]{1,39}",username)
+          with open(os.environ["GITHUB_ENV"],"a") as f:
+              f.write("KAGGLE_OWNER="+username+"\n")
+          print("Kaggle conectado; o Secret não foi exibido.")
+          PY
+      - name: Consultar status, listagem de arquivos e logs do Kaggle
+        shell: bash
+        run: |
+          mkdir -p outputs/recovery/diagnostics
+          for slug in frutalandia-ep01 butico-ep01-s01; do
+            kernel="$KAGGLE_OWNER/$slug"
+            echo "--- KERNEL $slug ---"
+            timeout 25s kaggle kernels status "$kernel" 2>&1 | tee "outputs/recovery/diagnostics/$slug-status.txt" || true
+            timeout 25s kaggle kernels files "$kernel" -v --page-size 100 2>&1 | tee "outputs/recovery/diagnostics/$slug-files.csv" || true
+            timeout 25s kaggle kernels logs "$kernel" 2>&1 | tail -120 | tee "outputs/recovery/diagnostics/$slug-logs.txt" || true
+          done
+      - name: Tentar recuperar mídia realmente disponível (sem interromper GPU)
+        shell: bash
+        run: |
+          for slug in frutalandia-ep01 butico-ep01-s01; do
+            kernel="$KAGGLE_OWNER/$slug"
+            folder="outputs/recovery/$slug"
+            mkdir -p "$folder"
+            echo "Tentando baixar resultados publicados: $slug"
+            if timeout 100s kaggle kernels output "$kernel" -p "$folder" -o \
+               --file-pattern '.*\.(mp4|mov|mkv|webm|png|jpg|jpeg|wav|json|srt)$'; then
+              echo "Kaggle output retornou para $slug"
+            else
+              echo "::warning::Sem output baixável do notebook $slug na versão atual (pode estar RUNNING)"
+            fi
+            if ! find "$folder" -type f -size +0c | grep -q .; then
+              echo "Tentando recuperar versão publicada 1: $slug"
+              timeout 70s kaggle kernels output "$kernel/1" -p "$folder" -o \
+                --file-pattern '.*\.(mp4|mov|mkv|webm|png|jpg|jpeg|wav|json|srt)$' || true
+            fi
+            echo "Arquivos locais recuperados de $slug:"
+            find "$folder" -type f -printf '%P %s bytes\n' | head -100
+          done
+      - name: Inspecionar MP4 verdadeiro e tentar recuperação de contêiner
+        shell: bash
+        run: |
+          ffprobe -version | head -1
+          python scripts/kaggle_recover.py --input-dir outputs/recovery \
+             --output outputs/recovery/recovery-report.json
+          echo "Relatório salvo; não atribuir sucesso falso quando não existem arquivos."
+          cat outputs/recovery/recovery-report.json | head -120
+      - name: Preservar todos os outputs recuperados no GitHub Artifacts
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: kaggle-videos-recuperados-${{ github.run_id }}
+          path: outputs/recovery/
+          retention-days: 14
+          compression-level: 0
+          if-no-files-found: warn
