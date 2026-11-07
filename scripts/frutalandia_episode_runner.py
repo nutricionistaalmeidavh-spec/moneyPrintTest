@@ -236,6 +236,7 @@ def main():
     p=argparse.ArgumentParser()
     p.add_argument("--story",type=Path,required=True)
     p.add_argument("--output",type=Path,required=True)
+    p.add_argument("--scene-id",default="")
     args=p.parse_args()
     output=args.output.resolve()
     output.mkdir(parents=True,exist_ok=True)
@@ -244,6 +245,16 @@ def main():
     try:
         if not story.get("scenes") or sum(s["seconds"] for s in story["scenes"])!=story["format"]["target_seconds"]:
             raise RuntimeError("Storyboard inválido")
+        render_story=story
+        if args.scene_id:
+            matching=[s for s in story["scenes"] if s.get("id")==args.scene_id]
+            if len(matching)!=1 or not args.scene_id.startswith("s"):
+                raise RuntimeError("ID de cena inválido: "+args.scene_id)
+            render_story=dict(story)
+            render_story["format"]=dict(story["format"])
+            render_story["scenes"]=matching
+            render_story["format"]["target_seconds"]=matching[0]["seconds"]
+            os.environ["FRUTALANDIA_SCENE_ID"]=args.scene_id
         engine=ensure_blender()
         silent_candidates=list(output.glob("silent*.mp4"))
         if not silent_candidates:
@@ -255,10 +266,20 @@ def main():
         silent=max(silent_candidates,key=lambda x:x.stat().st_size)
         studio=os.environ.get("VOICE_STUDIO_URL","").strip()
         if studio:
-            voice_engine=voice_studio_optional(story,output,studio)
+            voice_engine=voice_studio_optional(render_story,output,studio)
         else:
-            voice_engine=voices_piper(story,output)
-        assemble(story,output,silent,voice_engine)
+            voice_engine=voices_piper(render_story,output)
+        assemble(render_story,output,silent,voice_engine)
+        if args.scene_id:
+            rendered=output/"frutalandia-ep01.mp4"
+            target=output/("scene-"+args.scene_id+".mp4")
+            rendered.replace(target)
+            manifest_path=output/"manifest.json"
+            manifest=json.loads(manifest_path.read_text(encoding="utf-8"))
+            manifest["video_path"]=target.name
+            manifest["scene_id"]=args.scene_id
+            manifest["story_id"]=story.get("id")
+            manifest_path.write_text(json.dumps(manifest,ensure_ascii=False,indent=2))
         status.write_text(json.dumps({"status":"success"}))
     except Exception as exc:
         status.write_text(json.dumps({"status":"failed","error":type(exc).__name__+": "+str(exc)},
