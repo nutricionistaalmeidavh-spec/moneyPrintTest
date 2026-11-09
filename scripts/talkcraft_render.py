@@ -104,6 +104,32 @@ def capture_stills(project: dict, output: Path) -> dict[str,Path]:
     return found
 
 
+def write_document_assets(folder: Path) -> None:
+    """Original, self-contained SVG document drawings for native Talkcraft cards.
+
+    No third-party stock image, API, or paid asset dependency.
+    """
+    folder.mkdir(parents=True, exist_ok=True)
+    labels=("CONTRATO", "NOTA FISCAL", "PROPOSTA", "RECIBO", "RELATÓRIO")
+    colors=("#6c57d5", "#3d93c7", "#2da49a", "#cc8c55", "#9c72b7")
+    from html import escape
+    for i,(label,color) in enumerate(zip(labels,colors),1):
+        bars="\n".join(
+            f'<rect x="50" y="{112+j*28}" width="{300-(j%3)*65}" height="10" rx="5" fill="#b9c5d9" opacity=".72"/>'
+            for j in range(5))
+        svg=(f'<svg xmlns="http://www.w3.org/2000/svg" width="420" height="300" viewBox="0 0 420 300">'
+             f'<rect width="420" height="300" fill="#eef1f8"/>'
+             f'<rect x="22" y="15" width="376" height="274" rx="8" fill="white" stroke="#d9e0ed" stroke-width="2"/>'
+             f'<rect x="22" y="15" width="376" height="16" fill="{color}"/>'
+             f'<text x="50" y="79" font-family="Arial, sans-serif" font-size="26" font-weight="bold" fill="#223250">{escape(label)}</text>'
+             f'<rect x="50" y="91" width="118" height="4" fill="{color}"/>'
+             f'{bars}'
+             f'<circle cx="347" cy="244" r="25" fill="none" stroke="{color}" stroke-width="5" opacity=".65"/>'
+             f'<path d="M333 244 l11 9 l19 -23" fill="none" stroke="{color}" stroke-width="5" stroke-linecap="round"/>'
+             '</svg>')
+        (folder/f"paper_{i}.svg").write_text(svg,encoding="utf-8")
+
+
 def write_remotion(project: dict, upstream: Path, out: Path, words: list[dict],
                    narration: Path, screenshots: dict[str,Path]|None=None)->Path:
     assert_original(upstream)
@@ -112,6 +138,7 @@ def write_remotion(project: dict, upstream: Path, out: Path, words: list[dict],
     public=wb/"public"/"moneyprint"
     src.mkdir(parents=True,exist_ok=True)
     public.mkdir(parents=True,exist_ok=True)
+    write_document_assets(public)
     images={}
     for scene_id,path in (screenshots or {}).items():
         if not re.fullmatch(r"scene-[0-9]{3}",scene_id):
