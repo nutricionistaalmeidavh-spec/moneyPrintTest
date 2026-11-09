@@ -1,0 +1,52 @@
+name: Consultar render MoneyPrint V2
+on:
+  pull_request:
+    paths:
+      - ".github/workflows/inspect-render-v2.yml"
+
+permissions:
+  contents: read
+  actions: read
+
+jobs:
+  inspect:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - name: Consultar execuções recentes do render e seus artefatos
+        env:
+          GH_TOKEN: ${{ github.token }}
+          REPO: ${{ github.repository }}
+        run: |
+          python3 - <<'PY'
+          import json, os, urllib.request
+          root=f"https://api.github.com/repos/{os.environ['REPO']}"
+          def fetch(route):
+              req=urllib.request.Request(root+route,headers={
+                  "Authorization":"Bearer "+os.environ["GH_TOKEN"],
+                  "Accept":"application/vnd.github+json",
+                  "X-GitHub-Api-Version":"2022-11-28",
+                  "User-Agent":"MoneyPrint-V2-Status"})
+              with urllib.request.urlopen(req,timeout=20) as r:
+                  return json.load(r)
+          data=fetch("/actions/workflows/render.yml/runs?per_page=12")
+          for run in data.get("workflow_runs",[]):
+              print("RUN",json.dumps({
+                "id":run["id"],"status":run["status"],
+                "conclusion":run["conclusion"],"created":run.get("created_at"),
+                "head_branch":run["head_branch"],"head_sha":run["head_sha"],
+                "url":run["html_url"]},ensure_ascii=False))
+              if run.get("head_branch")=="main":
+                  arts=fetch(f"/actions/runs/{run['id']}/artifacts?per_page=100")
+                  print("ARTIFACTS",json.dumps([{
+                    "id":a["id"],"name":a["name"],
+                    "size":a["size_in_bytes"],"expired":a["expired"]}
+                    for a in arts.get("artifacts",[])],ensure_ascii=False))
+                  jobs=fetch(f"/actions/runs/{run['id']}/jobs?per_page=100")
+                  print("JOBS",json.dumps([{
+                      "name":j["name"],"status":j["status"],
+                      "conclusion":j["conclusion"],
+                      "failed_steps":[s["name"] for s in j.get("steps",[])
+                                      if s.get("conclusion")=="failure"]}
+                      for j in jobs.get("jobs",[])],ensure_ascii=False))
+          PY
