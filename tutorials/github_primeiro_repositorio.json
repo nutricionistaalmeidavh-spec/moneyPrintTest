@@ -1,0 +1,85 @@
+{
+  "title": "Como criar um repositório no GitHub",
+  "format": "9:16",
+  "source_resolution": [
+    512,
+    1108
+  ],
+  "hook": [
+    "VOCÊ SABE CRIAR",
+    "UM REPOSITÓRIO",
+    "NO GITHUB?"
+  ],
+  "outro": [
+    "PRONTO!",
+    "SEU REPOSITÓRIO ESTÁ CRIADO",
+    "Salve este tutorial"
+  ],
+  "privacy_masks": [
+    {
+      "start": 4,
+      "end": 58.5,
+      "x": 161,
+      "y": 200,
+      "width": 332,
+      "height": 61,
+      "reason": "identificador da conta/owner"
+    }
+  ],
+  "clips": [
+    {
+      "start": 7,
+      "end": 10.6,
+      "speed": 1.45,
+      "caption": "CRIE UM REPOSITÓRIO"
+    },
+    {
+      "start": 47,
+      "end": 50.5,
+      "speed": 1.5,
+      "caption": "DIGITE UM NOME"
+    },
+    {
+      "start": 59,
+      "end": 62.4,
+      "speed": 1.4,
+      "caption": "ESCOLHA A VISIBILIDADE"
+    },
+    {
+      "start": 73,
+      "end": 76.5,
+      "speed": 1.5,
+      "caption": "ATIVE O README"
+    },
+    {
+      "start": 78,
+      "end": 82.3,
+      "speed": 1.55,
+      "caption": "TOQUE EM CRIAR"
+    },
+    {
+      "start": 95,
+      "end": 98.3,
+      "speed": 1.4,
+      "caption": "EDITE O README"
+    },
+    {
+      "start": 108,
+      "end": 111.8,
+      "speed": 1.5,
+      "caption": "DESCREVA SEU PROJETO"
+    },
+    {
+      "start": 145,
+      "end": 148.4,
+      "speed": 1.5,
+      "caption": "FAÇA O PRIMEIRO COMMIT"
+    },
+    {
+      "start": 166,
+      "end": 170,
+      "speed": 1.55,
+      "caption": "REPOSITÓRIO PRONTO"
+    }
+  ]
+}
