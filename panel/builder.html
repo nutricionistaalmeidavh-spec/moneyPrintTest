@@ -27,21 +27,28 @@
  <div class="actions"><button id="saveFlow" class="btn subtle">Salvar fluxo</button><button id="exportFlow" class="btn">Exportar JSON</button><button id="importFlow" class="btn">Importar</button><input type="file" id="importInput" accept=".json,application/json" class="hidden"></div></div>
  <div class="toolbar panel"><strong>Modelos de produção</strong><div id="templates" class="templates" role="group" aria-label="Templates"></div></div>
  <div class="workspace">
- <aside class="aside palette panel" id="palette"><header><h2>Ferramentas disponíveis</h2><p class="small muted" style="margin:0">Adicione ao fluxo. Sem APIs pagas.</p></header>
-  <div class="contents"><input id="searchTools" class="search" type="search" placeholder="Buscar ferramenta..." aria-label="Buscar ferramenta"><div id="toolList"></div></div>
+ <aside class="aside palette panel" id="palette" aria-label="Biblioteca de ferramentas e skills"><header class="sheet-header"><div><h2>Ferramentas e Skills</h2><p class="small muted" style="margin:0">Adicione etapas ao seu vídeo. R$ 0 / open source.</p></div><button class="sheet-close btn iconbtn" id="closePalette" type="button" aria-label="Fechar biblioteca">✕</button></header>
+  <div class="contents"><input id="searchTools" class="search" type="search" placeholder="Buscar ferramentas ou skills..." aria-label="Buscar ferramentas e skills"><h3 class="catalog-heading">Ferramentas disponíveis</h3><div id="toolList"></div><h3 class="catalog-heading">Skills prontas</h3><p class="small muted">Pacotes que combinam módulos já implementados.</p><div id="skillsList"></div><div class="import-hint"><button type="button" id="importSkillPalette" class="btn">+ Importar skill .json</button><p class="small muted">Skills personalizadas mapeiam ferramentas existentes, sem executar código externo.</p></div></div>
  </aside>
  <section class="canvas-wrap panel" aria-label="Construtor visual do workflow">
-  <div class="canvasbar"><div><strong>Construtor de automação</strong><p id="canvasSubtitle">Clique nos blocos para editar. Arraste para mover.</p></div>
-   <div class="floating-actions"><span id="flowValidity" class="pill">Verificando</span><button class="btn iconbtn" id="zoomOut" aria-label="Diminuir zoom">−</button><span id="zoomLabel" class="small">80%</span><button class="btn iconbtn" id="zoomIn" aria-label="Aumentar zoom">+</button><button class="btn iconbtn" id="resetZoom" aria-label="Enquadrar fluxo">⤢</button></div></div>
+  <div class="canvasbar"><div><strong>Construtor de automação</strong><p id="canvasSubtitle">Edite o pipeline visualmente. Toque numa etapa para configurar.</p></div><button class="btn primary tool-open" type="button" id="openToolLibrary">＋ Ferramentas e Skills</button>
+   <div class="floating-actions"><span id="flowValidity" class="pill">Verificando</span><button class="btn iconbtn" id="zoomOut" aria-label="Diminuir zoom">−</button><span id="zoomLabel" class="small">80%</span><button class="btn iconbtn" id="zoomIn" aria-label="Aumentar zoom">+</button><button class="btn iconbtn" id="resetZoom" aria-label="Enquadrar fluxo">⤢</button><button class="btn iconbtn" id="autoLayout" aria-label="Organizar blocos automaticamente" title="Organizar blocos">▦</button></div></div>
   <div id="canvasbody" class="canvasbody" tabindex="0" aria-label="Canvas de blocos com conexões"><div id="scene" class="scene">
     <svg id="wires" class="links" width="1750" height="760" aria-hidden="true"><defs><marker id="arrow" markerWidth="5" markerHeight="5" refX="4" refY="2.5" orient="auto"><path d="M0 0 L5 2.5 L0 5" fill="#8eb8d7"></path></marker></defs><g id="paths"></g></svg>
     <div id="canvasNodes"></div>
    </div></div>
-  <div id="mobileFlow" class="mobile-flow"></div>
+  <div id="mobileQuickTools" class="mobile-quick-tools"><div><strong>Adicione ao fluxo</strong><span class="small muted">Ferramentas e Skills</span></div><div id="quickToolButtons" class="quick-tool-buttons"></div><button type="button" id="mobileAllTools" class="btn quick-all">Ver todas as ferramentas →</button></div><div id="mobileFlow" class="mobile-flow"></div>
   <div class="hintstrip"><span>Entrada → etapas → renderização → saída</span><span id="nodeCount">0 blocos</span></div>
  </section>
- <aside class="aside inspector panel" id="inspector"><header><h2 id="inspectorTitle">Configurações do fluxo</h2><p class="small muted" id="inspectorSub" style="margin:0">Clique em uma etapa para ver suas opções</p></header><div id="inspectorBody" class="contents"></div></aside>
+ <aside class="aside inspector panel" id="inspector" aria-label="Editor da etapa"><header class="sheet-header"><div><h2 id="inspectorTitle">Configurações do fluxo</h2><p class="small muted" id="inspectorSub" style="margin:0">Toque em um bloco para editar suas opções</p></div><button type="button" class="sheet-close btn iconbtn" id="closeInspector" aria-label="Concluir edição">✓</button></header><div id="inspectorBody" class="contents"></div><div class="sheet-footer"><button type="button" id="doneInspector" class="btn primary">Concluir edição</button></div></aside>
  </div>
+ <section class="tools-showcase panel" id="toolsShowcase" aria-labelledby="showcaseTitle">
+  <div class="showcase-title"><div><h2 id="showcaseTitle">Ferramentas disponíveis</h2><p>Adicione recursos e Skills ao seu workflow sem ficar preso a um único estilo de vídeo.</p></div><div class="showcase-search"><input type="search" id="showcaseSearch" class="search" placeholder="Buscar ferramenta..." aria-label="Buscar recursos"></div></div>
+  <div class="showcase-tabs" role="tablist" aria-label="Biblioteca de recursos"><button type="button" class="active" data-catalog-tab="tools" role="tab" aria-selected="true">Ferramentas</button><button type="button" data-catalog-tab="skills" role="tab" aria-selected="false">Skills prontas</button></div>
+  <div id="showcaseCatalog" class="showcase-cards"></div>
+  <div id="skillImportBox" class="skill-import hidden"><div><strong>Suas próprias Skills</strong><p>Importe um pacote JSON que reúne ferramentas suportadas. Sem comandos arbitrários nem APIs pagas.</p></div><button class="btn" type="button" id="importSkill">+ Importar Skill</button></div>
+  <input id="skillFileInput" class="hidden" type="file" accept=".json,application/json" aria-label="Arquivo JSON de Skill">
+ </section>
  <div class="summary panel">
   <div class="metrics"><span id="summaryNodes">0 ferramentas</span><span id="summaryVideo">40s • 9:16</span><span id="summaryMode">Motor automático</span><span id="summaryValidation" class="good">Pronto</span></div>
   <div class="actions"><button class="btn" id="previewRequest">Revisar pedido</button><button class="btn primary" id="executeFlow">▶ Executar automação</button></div>
