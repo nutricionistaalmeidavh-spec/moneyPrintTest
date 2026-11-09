@@ -87,7 +87,7 @@ def audit_illustrations(project: dict, cues: list[dict]) -> dict:
     plan = build_plan(project)
     required = []
     for scene in plan["scenes"]:
-        tokens = {normal(token) for token in re.findall(r"[\\wÀ-ÿ]+", scene["text"])}
+        tokens = {normal(token) for token in re.findall(r"[\wÀ-ÿ]+", scene["text"])}
         for phrases, effect, _card in TRIGGERS:
             if any(phrase in tokens for phrase in phrases):
                 name = ("paper_overload" if effect == "document_flow"
