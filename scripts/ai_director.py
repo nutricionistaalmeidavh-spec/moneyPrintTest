@@ -276,3 +276,41 @@ def suggest_broll_query(section: dict) -> tuple[str, str]:
     except (OSError, ValueError, KeyError, TypeError):
         pass
     return default or "computer software developer", "fallback"
+
+
+def official_repo_image(repo: str, output: Path) -> str | None:
+    """Download a real project screenshot linked in its GitHub README."""
+    owner, name = repo.rstrip("/").split("/")[-2:]
+    api = f"https://api.github.com/repos/{owner}/{name}/readme"
+    try:
+        with urllib.request.urlopen(urllib.request.Request(
+                api, headers={"User-Agent": "MoneyPrintTest/0.3",
+                              "Accept": "application/vnd.github+json"}), timeout=14) as reply:
+            payload = json.load(reply)
+        markdown = base64.b64decode(payload["content"]).decode("utf-8", "replace")
+        pattern = r'https://(?:raw\.githubusercontent\.com|user-images\.githubusercontent\.com)/[^\s"()]+?\.(?:png|jpg|jpeg|webp)'
+        urls = re.findall(pattern, markdown, re.I)
+        for url in urls[:4]:
+            if (not _safe_web_url(url) or
+                urllib.parse.urlsplit(url).hostname not in MEDIA_HOSTS):
+                continue
+            target = output / "project_screenshot.png"
+            output.mkdir(parents=True, exist_ok=True)
+            with urllib.request.urlopen(urllib.request.Request(
+                    url, headers={"User-Agent": "MoneyPrintTest/0.3"}), timeout=22) as reply:
+                if urllib.parse.urlsplit(reply.geturl()).hostname not in MEDIA_HOSTS:
+                    continue
+                data = reply.read(8_000_001)
+            if len(data) > 8_000_000:
+                continue
+            # Pillow verifies image bytes and converts disparate formats to PNG.
+            from PIL import Image, UnidentifiedImageError
+            from io import BytesIO
+            with Image.open(BytesIO(data)) as image:
+                if image.width < 240 or image.height < 140:
+                    continue
+                image.convert("RGB").save(target)
+            return str(target.resolve())
+    except (OSError, KeyError, TypeError, ValueError, UnboundLocalError):
+        pass
+    return None
