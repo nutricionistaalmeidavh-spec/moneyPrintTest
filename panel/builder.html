@@ -1,0 +1,154 @@
+<!doctype html>
+<html lang="pt-BR"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="theme-color" content="#0c1524"><title>ArtiSys MoneyPrint — Estúdio Visual</title>
+<link rel="stylesheet" href="/ui/builder.css"></head><body>
+<header class="topbar">
+ <div class="brand"><div class="logo" aria-hidden="true">▶</div><span>ArtiSys <span>MoneyPrint</span></span></div>
+ <nav class="topnav" aria-label="Navegação principal">
+  <button data-view="studio" aria-current="page">Estúdio</button>
+  <button data-view="videos">Cenas</button>
+  <button data-view="history">Execuções</button>
+  <button data-view="workflows">Workflows</button>
+  <button data-view="connections">Conexões</button>
+ </nav>
+ <div class="statusbar"><span id="statusDot" class="dot"></span><span id="sessionStatus">Acesso protegido</span></div>
+ <button id="logout" class="ghost hidden" aria-label="Sair do painel">Sair</button>
+</header>
+<main class="shell">
+<section id="auth" class="auth panel">
+ <h1>Acessar MoneyPrint</h1><p class="muted">Entre para controlar sua produção de vídeos e os workflows.</p>
+ <form id="loginForm"><div class="field"><label for="password">Senha de administrador</label><input id="password" name="password" type="password" autocomplete="current-password" required minlength="12"></div><button type="submit" class="btn primary" style="width:100%">Entrar no estúdio</button></form>
+ <p class="small muted" style="margin-top:16px">Sua sessão é protegida. Tokens do GitHub ficam apenas no servidor.</p>
+</section>
+<div id="application" class="hidden">
+<section id="view-studio" class="view">
+ <div class="intro"><div><h1>Estúdio de automações</h1><p>Monte sua produção arrastando ferramentas ou editando cada etapa.</p></div>
+ <div class="actions"><button id="saveFlow" class="btn subtle">Salvar fluxo</button><button id="exportFlow" class="btn">Exportar JSON</button><button id="importFlow" class="btn">Importar</button><input type="file" id="importInput" accept=".json,application/json" class="hidden"></div></div>
+ <div class="toolbar panel"><strong>Modelos de produção</strong><div id="templates" class="templates" role="group" aria-label="Templates"></div></div>
+ <div class="workspace">
+ <aside class="aside palette panel" id="palette"><header><h2>Ferramentas disponíveis</h2><p class="small muted" style="margin:0">Adicione ao fluxo. Sem APIs pagas.</p></header>
+  <div class="contents"><input id="searchTools" class="search" type="search" placeholder="Buscar ferramenta..." aria-label="Buscar ferramenta"><div id="toolList"></div></div>
+ </aside>
+ <section class="canvas-wrap panel" aria-label="Construtor visual do workflow">
+  <div class="canvasbar"><div><strong>Construtor de automação</strong><p id="canvasSubtitle">Clique nos blocos para editar. Arraste para mover.</p></div>
+   <div class="floating-actions"><span id="flowValidity" class="pill">Verificando</span><button class="btn iconbtn" id="zoomOut" aria-label="Diminuir zoom">−</button><span id="zoomLabel" class="small">80%</span><button class="btn iconbtn" id="zoomIn" aria-label="Aumentar zoom">+</button><button class="btn iconbtn" id="resetZoom" aria-label="Enquadrar fluxo">⤢</button></div></div>
+  <div id="canvasbody" class="canvasbody" tabindex="0" aria-label="Canvas de blocos com conexões"><div id="scene" class="scene">
+    <svg id="wires" class="links" width="1750" height="760" aria-hidden="true"><defs><marker id="arrow" markerWidth="5" markerHeight="5" refX="4" refY="2.5" orient="auto"><path d="M0 0 L5 2.5 L0 5" fill="#8eb8d7"></path></marker></defs><g id="paths"></g></svg>
+    <div id="canvasNodes"></div>
+   </div></div>
+  <div id="mobileFlow" class="mobile-flow"></div>
+  <div class="hintstrip"><span>Entrada → etapas → renderização → saída</span><span id="nodeCount">0 blocos</span></div>
+ </section>
+ <aside class="aside inspector panel" id="inspector"><header><h2 id="inspectorTitle">Configurações do fluxo</h2><p class="small muted" id="inspectorSub" style="margin:0">Clique em uma etapa para ver suas opções</p></header><div id="inspectorBody" class="contents"></div></aside>
+ </div>
+ <div class="summary panel">
+  <div class="metrics"><span id="summaryNodes">0 ferramentas</span><span id="summaryVideo">40s • 9:16</span><span id="summaryMode">Motor automático</span><span id="summaryValidation" class="good">Pronto</span></div>
+  <div class="actions"><button class="btn" id="previewRequest">Revisar pedido</button><button class="btn primary" id="executeFlow">▶ Executar automação</button></div>
+ </div>
+</section>
+<section id="view-videos" class="view hidden viewbox">
+  <div class="panel viewcard">
+    <div class="studio-head"><div><h2>MoneyPrint Studio V3</h2><p class="muted">Storyboard e timeline editáveis. A prévia é visual e não substitui o MP4 renderizado.</p></div><span class="pill">P0–P2 · R$ 0</span></div>
+    <div class="studio-grid">
+      <div><label for="studioProjectSelect">Projetos salvos</label><select id="studioProjectSelect"><option value="">Selecione um projeto</option></select></div>
+      <div class="studio-actions" style="align-items:end"><button id="studioOpen" class="btn" type="button">Abrir projeto</button><button id="studioReload" class="btn" type="button">Atualizar lista</button></div>
+    </div>
+    <div class="divider"></div>
+    <form id="studioCreateForm">
+      <h3>Novo storyboard</h3>
+      <label for="studioTopic">Título</label><input id="studioTopic" required minlength="3" maxlength="150" placeholder="Ex.: Como criar um repositório GitHub">
+      <label for="studioScript">Roteiro (frases separam as cenas)</label><textarea id="studioScript" required maxlength="4500" rows="5" placeholder="Primeiro, vamos criar o repositório. Depois, configuramos o README. Por fim, publicamos."></textarea>
+      <div class="studio-grid">
+        <div><label for="studioDuration">Duração planejada em segundos</label><input id="studioDuration" type="number" min="15" max="600" value="60" required></div>
+        <div><label for="studioAspect">Proporção</label><select id="studioAspect"><option value="9:16">Shorts 9:16</option><option value="16:9">Horizontal 16:9</option><option value="1:1">Quadrado 1:1</option></select></div>
+      </div>
+      <div class="gap"></div><button class="btn primary" type="submit" id="studioCreateButton">Criar storyboard editável</button>
+    </form>
+  </div>
+  <div class="gap"></div>
+  <div id="studioEditor" class="hidden">
+    <div class="panel viewcard">
+      <div class="studio-head"><div><h2 id="studioName">Projeto</h2><p id="studioSummary" class="studio-muted"></p></div>
+        <div class="studio-actions"><button id="studioUndo" type="button" class="btn">Desfazer</button><button id="studioRedo" type="button" class="btn">Refazer</button></div></div>
+      <div class="studio-layout">
+        <div>
+          <div id="studioStage" class="studio-stage" role="img" aria-label="Prévia gráfica da cena">
+            <span id="studioStageLabel" class="pill">STORYBOARD</span>
+            <strong id="studioStageTitle"></strong><small id="studioStageBody"></small>
+          </div>
+          <div class="studio-controls">
+            <button id="studioPrevious" class="btn" type="button">Anterior</button>
+            <button id="studioPlay" class="btn" type="button">Reproduzir prévia</button>
+            <button id="studioNext" class="btn" type="button">Próxima</button>
+          </div>
+          <p id="studioTime" class="studio-muted" style="text-align:center;margin-top:10px"></p>
+        </div>
+        <div class="studio-sub">
+          <h3>Editar cena</h3>
+          <label for="studioSceneTitle">Título</label><input id="studioSceneTitle" maxlength="120">
+          <label for="studioSceneText">Texto / narração planejada</label><textarea id="studioSceneText" rows="3" maxlength="1200"></textarea>
+          <div class="studio-grid">
+            <div><label for="studioSceneSeconds">Duração (s)</label><input id="studioSceneSeconds" type="number" min="0.04" max="3600" step="0.1"></div>
+            <div><label for="studioSceneAnimation">Entrada</label><select id="studioSceneAnimation"><option value="cut">Corte seco</option><option value="fade">Fade</option><option value="slide">Slide</option></select></div>
+          </div>
+          <label for="studioSceneAsset">Mídia aprovada</label><select id="studioSceneAsset"></select>
+          <div class="studio-actions" style="margin-top:12px"><button id="studioMoveLeft" type="button" class="btn">Mover ←</button><button id="studioMoveRight" type="button" class="btn">Mover →</button></div>
+        </div>
+      </div>
+      <div class="divider"></div>
+      <div class="studio-head"><h3>Trilha de cenas</h3><span class="studio-muted">Toque numa cena para editar · deslize horizontalmente</span></div>
+      <div id="studioTimeline" class="studio-timeline" role="list" aria-label="Cenas editáveis"></div>
+      <div class="divider"></div>
+      <div class="studio-sub">
+        <h3>Biblioteca de mídia com licença</h3>
+        <p class="studio-muted">Informe somente arquivos já disponíveis em assets/ e confirme a origem. Nenhum arquivo é enviado automaticamente.</p>
+        <div class="studio-grid">
+          <div><label for="studioAssetTitle">Nome da mídia</label><input id="studioAssetTitle" placeholder="Atendimento no restaurante"></div>
+          <div><label for="studioAssetPath">Caminho no projeto</label><input id="studioAssetPath" placeholder="assets/atendimento.mp4"></div>
+          <div><label for="studioAssetLicense">Licença</label><input id="studioAssetLicense" placeholder="CC BY 4.0 / CC0"></div>
+          <div><label for="studioAssetAuthor">Crédito / origem</label><input id="studioAssetAuthor" placeholder="Autor e URL de origem"></div>
+        </div>
+        <div class="studio-actions" style="margin-top:10px"><button class="btn" id="studioAddAsset" type="button">Adicionar ao catálogo</button><span id="studioAssetCount" class="studio-muted"></span></div>
+      </div>
+      <div class="gap"></div>
+      <div class="studio-footer">
+        <span id="studioState" class="studio-muted" role="status">Nenhuma edição pendente.</span>
+        <div class="studio-actions"><button id="studioExport" class="btn" type="button">Exportar JSON V3</button><button id="studioSave" class="btn primary" type="button">Salvar revisão</button></div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section id="view-history" class="view hidden viewbox">
+ <div class="intro"><div><h1>Execuções e resultados</h1><p>Histórico do painel e execuções reais do GitHub Actions.</p></div><button class="btn" id="refreshRuns">Atualizar</button></div>
+ <article class="panel viewcard"><h2>Pedidos gerados pelo painel</h2><div id="jobsList" class="muted">Carregando...</div></article>
+ <article class="panel viewcard"><h2>Execuções no GitHub Actions</h2><div id="runsList" class="muted">Carregando...</div></article>
+</section>
+<section id="view-workflows" class="view hidden viewbox">
+ <div class="intro"><div><h1>Workflows disponíveis</h1><p>Dispare um QA ou renderize um pedido existente; não altera workflows originais.</p></div></div>
+ <article class="panel viewcard"><div id="workflowList"></div></article>
+ <article class="panel viewcard"><h2>Activepieces</h2><p>9 fluxos identificados. O acionamento manual dos gatilhos agendados não está integrado; não são simuladas execuções.</p><div id="activepiecesList"></div></article>
+</section>
+<section id="view-connections" class="view hidden viewbox">
+ <div class="intro"><h1>Conexões seguras</h1></div>
+ <article class="panel viewcard"><h2>GitHub — MoneyPrint</h2><p>Token fine-grained exclusivo de <strong>nutricionistaalmeidavh-spec/moneyPrintTest</strong> com Contents e Actions (Read/Write). Não coloque tokens no código.</p>
+  <form id="connectForm"><div class="field"><label for="githubToken">Token de acesso</label><input id="githubToken" type="password" autocomplete="new-password" placeholder="github_pat_..." required minlength="30"></div><button type="submit" class="btn primary" id="connectSubmit">Validar e conectar</button></form><p id="connectionStatus" class="small muted" style="margin-top:15px"></p>
+ </article>
+ <article class="panel viewcard"><h2>Infraestrutura</h2><p>Worker Cloudflare + D1, ou Node.js self-hosted com SQLite. Sem serviço comercial obrigatório. O GitHub Actions ou um runner próprio executa a renderização.</p></article>
+</section>
+</div></main>
+<div id="scrim" class="backdrop"></div>
+<nav id="mobileBar" class="mobilebar hidden" aria-label="Ações para celular">
+ <button data-mobile="flow"><b>▤</b>Fluxo</button>
+ <button data-mobile="tools"><b>⊞</b>Ferramentas</button>
+ <button data-mobile="settings"><b>⚙</b>Editar</button>
+ <button data-mobile="videos"><b>▣</b>Cenas</button>
+ <button data-mobile="runs"><b>◷</b>Execuções</button>
+</nav>
+<div id="toast" role="status" aria-live="polite" class="snackbar hidden"></div>
+<dialog id="requestDialog" style="max-width:min(760px,94vw);background:#12243a;color:#efffff;border:1px solid #54718f;border-radius:16px;box-shadow:0 25px 80px #000b">
+ <h2>Pedido pronto para execução</h2><p class="small muted">O fluxo foi convertido para o formato aceito pelo motor atual.</p><pre id="requestJson" class="jsonpreview"></pre><div class="actions"><button id="closeRequest" class="btn">Fechar</button><button id="copyRequest" class="btn primary">Copiar JSON</button></div>
+</dialog>
+<script type="module" src="/ui/builder.js"></script>
+</body></html>

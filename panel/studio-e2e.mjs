@@ -17,6 +17,7 @@ test("mobile Studio creates, edits, previews and saves scenes",async()=>{
       const path=url.pathname;
       function ok(data,status=200){return route.fulfill({status,contentType:"application/json",body:JSON.stringify(data)})}
       if(path==="/"&&request.method()==="GET")return route.fulfill({status:200,contentType:"text/html",body:html});
+      if(path.startsWith("/ui/")){const file=await panel.fetch(new Request("https://studio.test"+path),{});return route.fulfill({status:file.status,contentType:file.headers.get("content-type")||"text/javascript",body:await file.text()})}
       if(path==="/api/login"&&request.method()==="POST"){logged=true;return ok({ok:true})}
       if(path==="/api/me")return logged?ok({csrf:"csrf-test",github_connected:false}):ok({error:"not logged"},401);
       if(path==="/api/studio/projects"&&request.method()==="GET"){
@@ -51,8 +52,8 @@ test("mobile Studio creates, edits, previews and saves scenes",async()=>{
     });
     await page.goto("https://studio.test/");
     await page.locator("#password").fill("SomeValidLoginPassword");
-    await page.locator("#login button[type=submit]").click();
-    await page.locator('[data-tab="studio"]').click();
+    await page.locator("#loginForm button[type=submit]").click();
+    await page.locator('[data-mobile="videos"]').click();
     await page.locator("#studioTopic").fill("Como criar repositórios");
     await page.locator("#studioScript").fill("Crie sua conta no GitHub. Escolha o nome do repositório. Publique os arquivos.");
     await page.locator("#studioDuration").fill("30");
