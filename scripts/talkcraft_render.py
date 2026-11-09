@@ -188,6 +188,16 @@ def main():
         words=align_portuguese(audio,args.whisper_model)
     screenshots=capture_stills(project,output/"capture") if args.capture_github else {}
     write_remotion(project,upstream,output,words,audio,screenshots)
+    if args.smoke:
+        # Fixture only; never presented as measured timing or used in production.
+        internal=upstream/"workbench"/"src"/"remotion"/"MoneyPrintData.json"
+        report=output/"talkcraft_manifest.json"
+        payload=json.loads(internal.read_text(encoding="utf-8"))
+        payload["cues"]=[{"id":"qa-scribble","scene_id":plan["scenes"][0]["id"],
+           "word":"caos","effect":"scribble_chaos","recipe":"pencil-draw",
+           "at":.55,"duration":2.0,"method":"qa_fixture_not_asr"}]
+        for filename in (internal,report):
+            filename.write_text(json.dumps(payload,ensure_ascii=False,indent=2)+"\n",encoding="utf-8")
     mp4=output/"talkcraft_final.mp4"
     remotion_render(upstream,mp4,frames=("0-"+str(min(89,plan["total_frames"]-1))) if args.smoke else None)
     expected=min(90,plan["total_frames"]) if args.smoke else plan["total_frames"]
