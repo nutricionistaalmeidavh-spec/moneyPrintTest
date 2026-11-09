@@ -220,14 +220,23 @@ def main():
         internal=upstream/"workbench"/"src"/"remotion"/"MoneyPrintData.json"
         report=output/"talkcraft_manifest.json"
         payload=json.loads(internal.read_text(encoding="utf-8"))
-        payload["cues"]=[{"id":"qa-scribble","scene_id":plan["scenes"][0]["id"],
+        # QA fixture explicitly marked; never silently used for real narration.
+        payload["cues"]=[
+          {"id":"qa-scribble","scene_id":plan["scenes"][0]["id"],
            "word":"caos","effect":"scribble_chaos","recipe":"pencil-draw",
-           "at":.55,"duration":2.0,"method":"qa_fixture_not_asr"}]
+           "at":.55,"duration":2.0,"method":"qa_fixture_not_asr"},
+          {"id":"qa-crm","scene_id":plan["scenes"][1]["id"],
+           "word":"crm","effect":"crm_orbit","recipe":"orbit-drift",
+           "at":3.5,"duration":2.0,"method":"qa_fixture_not_asr"},
+          {"id":"qa-paper","scene_id":plan["scenes"][2]["id"],
+           "word":"contratos","effect":"paper_overload","recipe":"stack-fan-out",
+           "at":6.5,"duration":2.0,"method":"qa_fixture_not_asr"}
+        ]
         for filename in (internal,report):
             filename.write_text(json.dumps(payload,ensure_ascii=False,indent=2)+"\n",encoding="utf-8")
     mp4=output/"talkcraft_final.mp4"
-    remotion_render(upstream,mp4,frames=("0-"+str(min(89,plan["total_frames"]-1))) if args.smoke else None)
-    expected=min(90,plan["total_frames"]) if args.smoke else plan["total_frames"]
+    remotion_render(upstream,mp4,frames=("0-"+str(min(269,plan["total_frames"]-1))) if args.smoke else None)
+    expected=min(270,plan["total_frames"]) if args.smoke else plan["total_frames"]
     report=qa(mp4,expected)
     report.update({"engine":"original_video_talkcraft","upstream_sha":UPSTREAM_SHA,
                    "license":"PolyForm Noncommercial 1.0.0","educational_only":True,
