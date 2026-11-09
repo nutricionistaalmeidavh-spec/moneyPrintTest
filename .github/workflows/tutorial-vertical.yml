@@ -32,7 +32,7 @@ jobs:
           python-version: '3.11'
       - name: Instalar ferramentas gratuitas
         run: |
-          python -m pip install "Pillow==11.3.0" "piper-tts==1.8.0"
+          python -m pip install "Pillow==11.3.0" "mpt==1.3.9"
           sudo apt-get update -qq
           sudo apt-get install -y fonts-inter fonts-dejavu-core
           if ! command -v ffmpeg >/dev/null || ! command -v ffprobe >/dev/null; then
@@ -82,25 +82,42 @@ jobs:
             --universe-gif /tmp/moneyprint-media/universe.mp4 \
             --recipe "tutorials/$RECIPE" \
             --output outputs/tutorial_vertical.mp4
-      - name: Narrar com Piper pt-BR local (voz ágil e enérgica)
+      - name: Iniciar Kokoro local CPU (open source, nenhuma API paga)
         run: |
-          mkdir -p outputs /tmp/moneyprint-media/piper
-          python - <<'PY'
-          from pathlib import Path
-          from scripts.render_request import download_piper
-          model = download_piper(Path("/tmp/moneyprint-media/piper"))
-          if not model.is_file():
-              raise RuntimeError("Modelo Piper não disponível")
-          print("Modelo local Piper carregado e SHA256 verificado.")
-          PY
-          piper --model /tmp/moneyprint-media/piper/pt_BR-faber-medium.onnx \
-            --output_file outputs/narracao_piper.wav \
-            < tutorials/narracao_github_energica.txt
-          test -s outputs/narracao_piper.wav
+          docker run --rm -d --name moneyprint-kokoro \
+            -p 127.0.0.1:8880:8880 \
+            ghcr.io/remsky/kokoro-fastapi-cpu:v0.8.0
+          ready=false
+          for attempt in $(seq 1 100); do
+            if curl --noproxy '*' -fsS --max-time 3 http://127.0.0.1:8880/health >/dev/null; then
+              ready=true
+              break
+            fi
+            sleep 5
+          done
+          if [ "$ready" != true ]; then
+            docker logs --tail 30 moneyprint-kokoro || true
+            echo "Kokoro não inicializou. Não há fallback para serviço de voz pago."
+            exit 1
+          fi
+      - name: Gerar locução usando TTS nativo MoneyPrinterTurbo
+        env:
+          MPT_HOME: /tmp/moneyprint-native-runtime
+        run: |
+          mkdir -p outputs "$MPT_HOME"
+          python scripts/tutorial_mpt_voice.py \
+            --script tutorials/narracao_github_energica.txt \
+            --voice kokoro:pm_alex \
+            --rate 1.08 \
+            --output outputs/narracao_mpt_kokoro.mp3
+          test -s outputs/narracao_mpt_kokoro.mp3
           python scripts/tutorial_voice.py \
             --video outputs/tutorial_vertical.mp4 \
-            --voice outputs/narracao_piper.wav \
+            --voice outputs/narracao_mpt_kokoro.mp3 \
             --output outputs/tutorial_narrado.mp4
+      - name: Encerrar Kokoro local
+        if: always()
+        run: docker rm -f moneyprint-kokoro 2>/dev/null || true
       - name: Disponibilizar MP4 somente para revisão
         uses: actions/upload-artifact@v4
         with:
@@ -108,6 +125,6 @@ jobs:
           path: |
             outputs/tutorial_vertical.mp4
             outputs/tutorial_narrado.mp4
-            outputs/narracao_piper.wav
+            outputs/narracao_mpt_kokoro.mp3
           if-no-files-found: error
           retention-days: 7
