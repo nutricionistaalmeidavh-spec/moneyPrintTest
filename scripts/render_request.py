@@ -66,7 +66,7 @@ def validate_request(raw: dict) -> dict:
     if not isinstance(raw, dict):
         raise RequestError("O pedido deve ser JSON objeto")
     extra = set(raw) - {"topic", "script", "terms", "duration_seconds",
-                        "aspect", "visual_mode", "repo_urls"}
+                        "aspect", "visual_mode", "repo_urls", "cinematic"}
     if extra:
         raise RequestError(f"Campos proibidos: {sorted(extra)}")
     topic = raw.get("topic")
@@ -87,6 +87,9 @@ def validate_request(raw: dict) -> dict:
     aspect = raw.get("aspect", "9:16")
     if aspect not in ("9:16", "16:9", "1:1"):
         raise RequestError("aspect inválido")
+    cinematic = raw.get("cinematic", False)
+    if type(cinematic) is not bool or (cinematic and mode != "github"):
+        raise RequestError("cinematic é booleano e exige visual_mode github")
     repo_urls = []
     if mode == "github":
         if __package__:
@@ -101,7 +104,8 @@ def validate_request(raw: dict) -> dict:
         raise RequestError("repo_urls só pode ser usado no visual_mode github")
     return {"topic": topic.strip(), "script": script.strip(), "terms": terms,
             "duration_seconds": duration, "aspect": aspect,
-            "visual_mode": mode, "repo_urls": repo_urls}
+            "visual_mode": mode, "repo_urls": repo_urls,
+            "cinematic": cinematic}
 
 
 def select_visual_mode(mode: str, env: dict) -> str:
@@ -428,6 +432,33 @@ def render_one(path: Path, output: Path, runtime: Path, env: dict):
             if not video_file.is_file() or video_file.suffix.lower() != ".mp4":
                 raise RuntimeError("MP4 esperado não encontrado")
             shutil.copy2(video_file, dest / f"video_{i}.mp4")
+        if data.get("cinematic"):
+            if __package__:
+                from .cinematic_post import render_cinematic, metadata_for_repo, BROLL_TERMS
+                from .commons_media import find_free_videos, source_credits
+            else:
+                from cinematic_post import render_cinematic, metadata_for_repo, BROLL_TERMS
+                from commons_media import find_free_videos, source_credits
+            brolls = {}
+            credits = []
+            # All contextual material is free CC0 / CC BY Wikimedia Commons.
+            # Failure to find legal footage leaves the real GitHub video intact.
+            for idx, repo_url in enumerate(data["repo_urls"], 1):
+                tag = metadata_for_repo(repo_url)["category"]
+                terms = BROLL_TERMS.get(tag, BROLL_TERMS["general"])
+                clips, records = find_free_videos(
+                    terms, dest / "stock" / f"repo_{idx:02d}", max_results=1)
+                if clips:
+                    brolls[idx] = Path(clips[0])
+                    credits.extend(records)
+            if credits:
+                (dest / "creditos_broll.txt").write_text(
+                    source_credits(credits), encoding="utf-8")
+            for i in range(1, min(4, len(videos)) + 1):
+                original = dest / f"video_{i}.mp4"
+                render_cinematic(
+                    original, dest / f"video_{i}_cinematic.mp4",
+                    data["repo_urls"], broll_paths=brolls)
         (dest / "resultado.json").write_text(
             json.dumps({"status": "success", "topic": data["topic"], "visual_source": material_source,
                         "upstream": "harry0703/MoneyPrinterTurbo mpt==1.3.9"},
