@@ -115,10 +115,6 @@ def lower_third(target: Path, title: str, index: int, total: int) -> None:
     draw = ImageDraw.Draw(overlay)
     draw.rounded_rectangle((88, 892, 95, 975), radius=3, fill=(169, 148, 228, 222))
     draw.text((120, 903), title, font=font("semibold", 54), fill=(245, 245, 251, 250))
-    draw.text((124, 975), f"REPOSITÓRIO  {index:02d} / {total:02d}",
-              font=font("regular", 26), fill=(196, 197, 216, 238))
-    draw.text((1713, 981), "ARTISYS", font=font("medium", 25),
-              fill=(192, 185, 226, 215))
     target.parent.mkdir(parents=True, exist_ok=True)
     overlay.save(target)
 
@@ -186,7 +182,8 @@ def render_section(section: dict, shots: list[tuple[Path, float]], overlay: Path
     inputs += ["-loop", "1", "-i", str(overlay), "-i", str(narration)]
     joined = "".join(f"[v{i}]" for i in range(len(shots)))
     filters.append(f"{joined}concat=n={len(shots)}:v=1:a=0[scenes]")
-    filters.append(f"[scenes][{oidx}:v]overlay=0:0:format=auto,"
+    filters.append(f"[scenes][{oidx}:v]overlay=0:0:format=auto:enable=\'between(t,0.25,3.4)\',"
+
                    "format=yuv420p[finished]")
     run_ffmpeg([
         *inputs, "-filter_complex", ";".join(filters),
@@ -238,7 +235,9 @@ def render_cinematic(request: dict, dest: Path, runtime: Path, env: dict) -> dic
     repos = request["repo_urls"]
     plan_seconds = request["duration_seconds"]
     cover = dest / "opening.png"
-    make_cover(cover, request["topic"])
+    use_old_cover = not request.get("motion", {}).get("universe_seconds", 0)
+    if use_old_cover:
+        make_cover(cover, request["topic"])
 
     # Capture websites afresh; files are captured by Chromium on runner, not user phone.
     browser = capture_repositories(repos, plan_seconds, dest / "browser", focus_readme=True)
@@ -277,7 +276,7 @@ def render_cinematic(request: dict, dest: Path, runtime: Path, env: dict) -> dic
             assets = [{"id": f"repo_{n}", "kind": "github", "path": browser[idx]}]
             credit_lines.append(f"{n:02d}. Captura oficial: {section['repo_url']}")
 
-            if idx == 0:
+            if idx == 0 and use_old_cover:
                 assets.append({"id": "opening", "kind": "motion_title",
                                "path": str(cover.resolve())})
 
@@ -332,7 +331,8 @@ def render_cinematic(request: dict, dest: Path, runtime: Path, env: dict) -> dic
                                       "kind": "broll", "source": item})
                 credit_lines.append(source_credits([item]))
 
-            news = fetch_news_headline(section["repo_url"])
+            news = (fetch_news_headline(section["repo_url"])
+                    if request.get("include_verified_news", False) else None)
             if news:
                 card = folder / "news_verified.png"
                 make_news_card(card, news)
@@ -351,7 +351,7 @@ def render_cinematic(request: dict, dest: Path, runtime: Path, env: dict) -> dic
                                            [a["id"] for a in assets[1:]])
                 director_source = "fallback:no_ollama"
 
-            if idx == 0:
+            if idx == 0 and use_old_cover:
                 # Intro takes 3 seconds, without reusing a frame from the reference.
                 plan = [{"asset_id": "opening", "seconds": 3}] + plan
             overlay = folder / "lower_third.png"
