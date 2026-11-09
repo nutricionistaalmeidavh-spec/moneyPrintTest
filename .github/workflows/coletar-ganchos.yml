@@ -2,30 +2,36 @@ name: Coletar 10 ganchos de corte seco
 on:
   push:
     branches: [assets/ganchos-virais-10]
-    paths:
-      - ".github/workflows/coletar-ganchos.yml"
+    paths: [".github/workflows/coletar-ganchos.yml"]
   workflow_dispatch:
 permissions:
   contents: read
 jobs:
   coletar:
     runs-on: ubuntu-latest
-    timeout-minutes: 15
+    timeout-minutes: 20
     steps:
-      - name: Baixar e validar os 10 MP4s
+      - name: Instalar FFmpeg para verificar e cortar clipes
+        run: |
+          if ! command -v ffprobe >/dev/null || ! command -v ffmpeg >/dev/null; then
+            sudo apt-get update -qq
+            sudo apt-get install -y -qq ffmpeg
+          fi
+          ffprobe -version | head -n 1
+      - name: Baixar dez videos reais do ViralHook
         shell: bash
         run: |
           set -euo pipefail
           mkdir -p ganchos
-          HOOKS=(flip-on-head bike-crash slip-run sack-whack lil-whip watermelon-split lil-zipline powder-boom trail-flipper look-at-you)
+          HOOKS=(motorcycle-crash bike-crash-in-hole extreme-bike-crash head-on-crash pool-jump-fail wall-climber face-plant skate-slip truck-flip bad-drop-in)
           [ "${#HOOKS[@]}" -eq 10 ]
           : > ganchos/RELATORIO.txt
           successes=0
           for slug in "${HOOKS[@]}"; do
-            url="https://viralhooks.org/hooks/${slug}.mp4"
+            url="https://viralhookup.com/api/download/${slug}"
             dst="ganchos/${slug}.mp4"
             echo "Baixando ${url}"
-            if curl --fail --location --silent --show-error --retry 2 --retry-delay 1 --connect-timeout 12 --max-time 80 -A "Mozilla/5.0" -o "$dst" "$url" && ffprobe -v error -select_streams v:0 -show_entries stream=codec_name,width,height -of default=noprint_wrappers=1 "$dst" >/tmp/probe.txt 2>/dev/null; then
+            if curl --fail --location --silent --show-error --retry 2 --retry-delay 1 --connect-timeout 12 --max-time 80 -A "Mozilla/5.0" -o "$dst" "$url" && ffprobe -v error -select_streams v:0 -show_entries stream=codec_name,width,height -of default=noprint_wrappers=1 "$dst" >/dev/null 2>&1; then
               duration=$(ffprobe -v error -show_entries format=duration -of default=nk=1:nw=1 "$dst")
               bytes=$(stat -c%s "$dst")
               echo "OK ${slug} | ${duration}s | ${bytes} bytes | ${url}" >> ganchos/RELATORIO.txt
@@ -33,22 +39,23 @@ jobs:
             else
               echo "FALHOU ${slug} | ${url}" >> ganchos/RELATORIO.txt
               if [ -f "$dst" ]; then
-                echo "Resposta invalida: $(file -b "$dst") tamanho=$(stat -c%s "$dst")"; ffprobe -v warning -show_format -show_streams "$dst" 2>&1 | tail -n 18 || true; head -c 100 "$dst" | od -An -tx1 | head -n 3
+                file "$dst"
+                ffprobe -v error "$dst" 2>&1 | head -n 6 || true
               fi
-              cp "$dst" "ganchos/debug_${slug}.bin"; rm -f "$dst"
+              rm -f "$dst"
             fi
           done
           echo "MP4s validos: $successes/10"
-          if [ -s ganchos/bike-crash.mp4 ]; then
-            ffmpeg -nostdin -hide_banner -loglevel error -y -i ganchos/bike-crash.mp4 -t 2.7 -an -vf "fps=30,scale=1080:1920:force_original_aspect_ratio=increase,crop=1080:1920,format=yuv420p" -c:v libx264 -crf 20 -preset veryfast -movflags +faststart ganchos/ESCOLHIDO_queda_bicicleta_corte_seco_2s7.mp4
-            echo "ESCOLHIDO: bike-crash, 2.7 s, sem transicao/legenda" >> ganchos/RELATORIO.txt
+          if [ -s ganchos/motorcycle-crash.mp4 ]; then
+            ffmpeg -nostdin -hide_banner -loglevel error -y -i ganchos/motorcycle-crash.mp4 -t 2.7 -an -vf "fps=30,scale=1080:1920:force_original_aspect_ratio=increase,crop=1080:1920,format=yuv420p" -c:v libx264 -crf 20 -preset veryfast -movflags +faststart ganchos/ESCOLHIDO_motociclista_corte_seco_2s7.mp4
+            echo "ESCOLHIDO: motorcycle-crash, 2.7 segundos, corte seco sem transicao/legenda" >> ganchos/RELATORIO.txt
           else
-            echo "ESCOLHIDO: nao baixado; selecao pendente de validacao visual" >> ganchos/RELATORIO.txt
+            echo "ESCOLHIDO: motorcycle-crash indisponivel; nao foi simulada escolha." >> ganchos/RELATORIO.txt
           fi
-          echo "Fonte: https://viralhooks.org/; verificar direitos comerciais antes de publicar." >> ganchos/RELATORIO.txt
+          echo "Origem: https://viralhookup.com/ ; confirmar direitos de reutilizacao comercial." >> ganchos/RELATORIO.txt
           cat ganchos/RELATORIO.txt
           test "$successes" -eq 10
-      - name: Disponibilizar MP4s no artefato ZIP
+      - name: Publicar MP4s como ZIP temporario
         if: always()
         uses: actions/upload-artifact@v4
         with:
