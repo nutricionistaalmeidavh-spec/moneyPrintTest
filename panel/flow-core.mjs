@@ -24,7 +24,7 @@ const ORDER={goal:0,script:1,ollama:2,github:3,stock:3,slides:4,news:5,hook:6,mo
 const presets={
   automatic:["goal","script","ollama","stock","piper","render","final"],
   cinematic:["goal","script","github","slides","piper","render","final"],
-  github:["goal","script","github","piper","render","final"],
+  github:["goal","script","ollama","github","piper","render","final"],
   shorts:["goal","script","ollama","stock","captions","piper","render","final"],
   offline:["goal","script","ollama","piper","render","final"],
   stock:["goal","script","ollama","stock","piper","render","final"]
