@@ -57,7 +57,7 @@ class PipelineTests(unittest.TestCase):
         with tempfile.TemporaryDirectory() as tmp:
             dest = Path(tmp)
             original = {"status": "success", "output": str(dest / "video_1.mp4")}
-            with patch("scripts.cinematic_render.render_cinematic", return_value=original):
+            with patch("scripts.motion_pipeline._render_motion_base", return_value=original):
                 result = render_motion_first(
                     {"topic": "Tutorial", "motion": {}}, dest, dest / "runtime", {})
             self.assertEqual(result["status"], "success")
