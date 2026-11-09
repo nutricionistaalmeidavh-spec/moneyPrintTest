@@ -30,56 +30,64 @@
     {
       "start": 7,
       "end": 10.6,
-      "speed": 1.45,
-      "caption": "CRIE UM REPOSITÓRIO"
+      "speed": 1.45
     },
     {
       "start": 47,
       "end": 50.5,
-      "speed": 1.5,
-      "caption": "DIGITE UM NOME"
+      "speed": 1.5
     },
     {
       "start": 59,
       "end": 62.4,
-      "speed": 1.4,
-      "caption": "ESCOLHA A VISIBILIDADE"
+      "speed": 1.4
     },
     {
-      "start": 73,
-      "end": 76.5,
-      "speed": 1.5,
-      "caption": "ATIVE O README"
+      "start": 66.9,
+      "end": 69.3,
+      "speed": 1.2
     },
     {
       "start": 78,
       "end": 82.3,
-      "speed": 1.55,
-      "caption": "TOQUE EM CRIAR"
+      "speed": 1.55
     },
     {
       "start": 95,
       "end": 98.3,
-      "speed": 1.4,
-      "caption": "EDITE O README"
+      "speed": 1.4
     },
     {
       "start": 108,
       "end": 111.8,
-      "speed": 1.5,
-      "caption": "DESCREVA SEU PROJETO"
+      "speed": 1.5
     },
     {
       "start": 145,
       "end": 148.4,
-      "speed": 1.5,
-      "caption": "FAÇA O PRIMEIRO COMMIT"
+      "speed": 1.5
     },
     {
       "start": 166,
       "end": 170,
-      "speed": 1.55,
-      "caption": "REPOSITÓRIO PRONTO"
+      "speed": 1.55
     }
-  ]
+  ],
+  "show_step_labels": false,
+  "hook_duration_seconds": 3,
+  "opening_style": "universe",
+  "hook_source_resolution": [
+    512,
+    1108
+  ],
+  "hook_crop": [
+    16,
+    130,
+    405,
+    720
+  ],
+  "hook_source_start": 0.03,
+  "hook_source_end": 0.83,
+  "universe_seconds": 2.2,
+  "hook_source_rights": "reference_only_verify_before_publication"
 }
