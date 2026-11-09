@@ -90,7 +90,7 @@ def render_threejs_universe(target: Path, *, title: str, seconds: float,
     """Render local Three.js frames from a loopback-only web server."""
     project = Path(__file__).resolve().parent.parent / "motion" / "three-universe"
     if not (project / "node_modules" / "three" / "build" / "three.module.js").is_file():
-        raise RuntimeError("P2: instale a dependência livre: npm ci --prefix motion/three-universe")
+        raise RuntimeError("P2: instale a dependência livre: npm install --prefix motion/three-universe --ignore-scripts")
     try:
         from playwright.sync_api import sync_playwright
     except ImportError as exc:
