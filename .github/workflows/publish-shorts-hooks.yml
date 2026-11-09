@@ -2,7 +2,7 @@ name: MoneyPrint — armazenar 110 ganchos para Shorts
 on:
   push:
     branches: [feat/shorts-hooks-library]
-    paths: [".github/workflows/publish-shorts-hooks.yml"]
+    paths: [".github/workflows/publish-shorts-hooks.yml", "scripts/shorts_hooks.py", "scripts/publish_shorts_hooks.py", "tests/test_shorts_hooks.py"]
   workflow_dispatch:
 
 permissions:
