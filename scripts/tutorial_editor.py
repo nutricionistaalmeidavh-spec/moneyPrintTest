@@ -59,8 +59,8 @@ def validate_recipe(recipe, *, duration, resolution):
         if not 0 <= c["start"] < c["end"] <= duration or not 1 <= c["speed"] <= 3.5 or c["start"] < prior:
             raise RecipeError("Cortes sobrepostos ou fora de intervalo")
         prior = c["end"]
-        if recipe.get("show_step_labels", False):
-            clean_text(c.get("caption"), 48)
+        if "caption" in c:
+            clean_text(c["caption"], 48)  # validate, never render text
         for m in masks:
             if c["start"] < m["end"] and c["end"] > m["start"]:
                 if not (m["start"] <= c["start"] and m["end"] >= c["end"]):
