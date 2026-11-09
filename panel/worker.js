@@ -149,7 +149,7 @@ async function studioRoute(req,env,path){
       const ids=new Set(current.scenes.map(s=>s.id));
       if(input.scenes.some(s=>!s||!ids.has(s.id))||new Set(input.scenes.map(s=>s.id)).size!==ids.size)
         studioError("IDs de cenas incompatíveis");
-      edited={...current,scenes:input.scenes.map(s=>({
+      edited={...current,assets:input.assets??current.assets,scenes:input.scenes.map(s=>({
         id:s.id,track_id:"video",title:s.title,text:s.text,kind:s.asset_id?"media":"text",
         asset_id:s.asset_id??null,start_frame:0,duration_frames:s.duration_frames,
         animation:["cut","fade","slide"].includes(s.animation)?s.animation:"cut",
