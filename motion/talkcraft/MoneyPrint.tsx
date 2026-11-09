@@ -90,7 +90,7 @@ const ChaosLines: React.FC = () => {
     'M 90 335 C 350 85 530 480 790 235 C 640 90 195 520 110 220',
     'M 230 95 Q 615 500 775 145 T 230 450',
   ];
-  return <AbsoluteFill style={{justifyContent:'center',alignItems:'center'}}>
+  return <AbsoluteFill style={{justifyContent:'center',alignItems:'center',transform:'translateY(165px) scale(.86)'}}>
     {strokes.map((d,i)=><PencilDraw key={i} d={d} at={i*10}
        dur={54} stroke={i===1?'#b44b77':'#272947'} width={5.5}
        viewBox="0 0 960 540" pencilScale={.58} tilt={-35}
@@ -174,7 +174,7 @@ const SceneView:React.FC<{scene:Scene}> = ({scene})=>{
         const from=Math.max(0,Math.min(scene.durationFrames-1,rawFrom));
         const duration=Math.max(1,Math.min(scene.durationFrames-from,Math.round(c.duration*fps)));
         return <Sequence key={c.id} from={from} durationInFrames={duration}>
-          <AbsoluteFill style={{background:'rgba(248,250,255,.96)'}}>
+          <AbsoluteFill style={{background:(c.effect==='scribble_chaos'||c.effect==='document_flow')?'transparent':'rgba(248,250,255,.94)'}}>
             <Recipe cue={c} scene={scene}/>
           </AbsoluteFill>
         </Sequence>
