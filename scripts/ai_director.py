@@ -18,7 +18,10 @@ import xml.etree.ElementTree as ET
 from datetime import datetime, timezone, timedelta
 from pathlib import Path
 
-from scripts.browser_capture import validate_repo_urls
+try:
+    from .browser_capture import validate_repo_urls
+except ImportError:
+    from browser_capture import validate_repo_urls
 
 AGENT_MODEL = "qwen2.5:1.5b"
 NEWS_RSS = "https://news.google.com/rss/search?"
