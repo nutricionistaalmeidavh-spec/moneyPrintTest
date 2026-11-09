@@ -22,7 +22,8 @@ TRIGGERS = (
     (("atendimento", "chatwoot", "mensagens"), "support_chat", "chat-message-flow"),
     (("vendas", "venda", "comercial"), "sales_flow", "numbered-step-stack"),
     (("estoque", "financeiro", "gestao", "processos"), "business_flow", "numbered-step-stack"),
-    (("contrato", "documentos", "paperless", "pdf"), "document_flow", "pencil-draw"),
+    (("contrato", "contratos", "nota", "notas", "anexos", "papeis", "papel"), "paper_overload", "stack-fan-out"),
+    (("documento", "documentos", "paperless", "pdf"), "document_flow", "numbered-step-stack"),
 )
 
 def normal(text: str) -> str:
@@ -63,6 +64,8 @@ def clip_aligned_cues(project: dict, measured_words: list[dict]) -> list[dict]:
                 if s["start_frame"]/fps <= at < s["end_frame"]/fps), None)
             if scene is None:
                 break
+            if effect == "document_flow" and "espalhad" in normal(scene["text"]):
+                effect, card = "paper_overload", "stack-fan-out"
             key = (scene["id"], effect)
             if key in used:
                 break
@@ -74,6 +77,30 @@ def clip_aligned_cues(project: dict, measured_words: list[dict]) -> list[dict]:
             used.add(key)
             break
     return cues
+
+def audit_illustrations(project: dict, cues: list[dict]) -> dict:
+    """Observable QA only. Never block rendering because a word is missing.
+
+    Reports the effects the SCRIPT requires and which were actually aligned to
+    measured voice. The renderer must not quietly claim a missing effect exists.
+    """
+    plan = build_plan(project)
+    required = []
+    for scene in plan["scenes"]:
+        tokens = {normal(token) for token in re.findall(r"[\\wÀ-ÿ]+", scene["text"])}
+        for phrases, effect, _card in TRIGGERS:
+            if any(phrase in tokens for phrase in phrases):
+                name = ("paper_overload" if effect == "document_flow"
+                        and "espalhad" in normal(scene["text"]) else effect)
+                if name not in required:
+                    required.append(name)
+    present = list(dict.fromkeys(cue["effect"] for cue in cues))
+    return {"required": required,
+            "present": present,
+            "missing": [effect for effect in required if effect not in present],
+            "cue_count": len(cues),
+            "timing_source": "measured_whisper_pt" if cues else "no_measured_cues"}
+
 
 def prepare_talkcraft_data(project: dict, aligned_words: list[dict],
                            destination: Path, shots: dict | None = None) -> dict:
@@ -94,12 +121,13 @@ def prepare_talkcraft_data(project: dict, aligned_words: list[dict],
             "startFrame":scene["start_frame"], "durationFrames":scene["duration_frames"],
             "repoUrl":scene.get("repo_url") or "", "image":img or "",
         })
+    cues=clip_aligned_cues(project, aligned_words)
     result = {
       "schema":"moneyprint-talkcraft-v1", "upstream":UPSTREAM,
       "upstreamSha":UPSTREAM_SHA, "license_notice":LICENSE_NOTICE,
       "style":"pastel-light","fps":fps, "aspect":plan["aspect"],
       "totalFrames":plan["total_frames"], "scenes":scenes,
-      "cues":clip_aligned_cues(project, aligned_words),
+      "cues":cues,"illustration_audit":audit_illustrations(project,cues),
       "alignment":"measured_whisper_pt" if aligned_words else "none",
       "autopublish":False, "commercial_use":False,
     }
