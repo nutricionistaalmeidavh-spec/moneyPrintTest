@@ -13,7 +13,7 @@ async function mac(env,s){let key=await crypto.subtle.importKey("raw",from64(env
 function cookie(req){const c=req.headers.get("cookie")||"";return c.split(";").map(v=>v.trim()).find(v=>v.startsWith("__Host-artisys_flow="))?.split("=")[1]||""}
 async function verify(env,req){let value=cookie(req),parts=value.split(".");if(parts.length!==2||!equal(await mac(env,parts[0]),parts[1]))return null;try{const p=JSON.parse(new TextDecoder().decode(from64(parts[0])));if(p.exp<Date.now()||p.sub!=="admin")return null;return {value,csrf:await mac(env,"csrf:"+value)}}catch{return null}}
 function secureHeaders(res){const h=new Headers(res.headers);h.set("x-content-type-options","nosniff");h.set("referrer-policy","no-referrer");h.set("x-frame-options","DENY");h.set("permissions-policy","camera=(), microphone=(), geolocation=()");h.set("content-security-policy","default-src 'none'; connect-src 'self'; style-src 'unsafe-inline'; script-src 'unsafe-inline'; form-action 'self'; base-uri 'none'; frame-ancestors 'none'");h.set("cache-control","no-store");return new Response(res.body,{status:res.status,headers:h})}
-async function parse(req){let text=await req.text();if(text.length>20000)throw Error("Corpo muito grande");let data=JSON.parse(text);if(!data||typeof data!=="object"||Array.isArray(data))throw Error("JSON inválido");return data}
+async function parse(req){let text=await req.text();if(text.length>65000)throw Error("Corpo muito grande");let data=JSON.parse(text);if(!data||typeof data!=="object"||Array.isArray(data))throw Error("JSON inválido");return data}
 async function cryptoKey(env){return crypto.subtle.importKey("raw",from64(env.ENCRYPTION_KEY),{name:"AES-GCM"},false,["encrypt","decrypt"])}
 async function encrypt(env,value){const iv=crypto.getRandomValues(new Uint8Array(12));const b=await crypto.subtle.encrypt({name:"AES-GCM",iv},await cryptoKey(env),u8(value));return b64(iv)+"."+b64(new Uint8Array(b))}
 async function decrypt(env,encoded){const [iv,data]=encoded.split(".");const b=await crypto.subtle.decrypt({name:"AES-GCM",iv:from64(iv)},await cryptoKey(env),from64(data));return new TextDecoder().decode(b)}
@@ -21,6 +21,156 @@ async function token(env){let row=await env.DB.prepare("SELECT encrypted_value F
 async function gh(path,method,credential,body){const res=await fetch("https://api.github.com/repos/"+REPO+path,{method:method||"GET",headers:{"authorization":"Bearer "+credential,"accept":"application/vnd.github+json","x-github-api-version":"2022-11-28","user-agent":"artisys-flow-panel"},body:body===undefined?undefined:JSON.stringify(body)});let data=await res.json().catch(()=>({}));if(!res.ok)throw Error("GitHub "+res.status+": "+String(data.message||"falha de autorização").slice(0,180));return data}
 const validFile=v=>typeof v==="string"&&/^[A-Za-z0-9][A-Za-z0-9_.-]{0,90}\.(json|mp4)$/.test(v)&&!v.includes("..");
 async function audit(env,action,detail){await env.DB.prepare("INSERT INTO audit(id,action,detail,created_at) VALUES(?,?,?,?)").bind(crypto.randomUUID(),action,String(detail||"").slice(0,200),new Date().toISOString()).run()}
+
+/* MoneyPrint Studio V3 - isolated additive model; no GitHub token or paid API. */
+const STUDIO_ID=/^[0-9a-f-]{36}$/;
+const STUDIO_ASPECTS=new Set(["9:16","16:9","1:1"]);
+function studioError(reason){throw new Error("Studio: "+reason)}
+function studioMediaOk(a){
+  return a&&typeof a==="object"&&!Array.isArray(a)&&/^[A-Za-z0-9_-]{1,72}$/.test(a.id||"")&&
+    typeof a.path==="string"&&/^assets\/[A-Za-z0-9_.\/-]{1,200}$/.test(a.path)&&
+    !a.path.split("/").includes("..")&&
+    typeof a.title==="string"&&a.title.length<=160&&
+    (a.verified!==true||(typeof a.license==="string"&&a.license.length>0&&
+      typeof a.attribution==="string"&&a.attribution.length>0));
+}
+function studioTerms(s){
+  return new Set(String(s).normalize("NFD").replace(/[\u0300-\u036f]/g,"").toLowerCase().match(/[a-z0-9]{3,}/g)||[]);
+}
+function studioPick(text,assets){
+  const words=studioTerms(text);
+  const best=assets.filter(a=>a.verified===true).map(a=>{
+    const tokens=studioTerms([a.title,a.description||"",...(Array.isArray(a.tags)?a.tags:[])].join(" "));
+    return {asset:a,score:[...words].filter(x=>tokens.has(x)).length};
+  }).filter(a=>a.score>0).sort((a,b)=>b.score-a.score||a.asset.id.localeCompare(b.asset.id))[0];
+  return best?.asset.id||null;
+}
+function studioReflow(scenes){
+  let position=0;
+  for(const scene of scenes){
+    if(!Number.isInteger(scene.duration_frames)||scene.duration_frames<1||scene.duration_frames>108000)studioError("duração de cena inválida");
+    scene.start_frame=position;
+    position+=scene.duration_frames;
+  }
+  return position;
+}
+function studioValidate(project){
+  if(project.schema_version!==3||!STUDIO_ASPECTS.has(project.aspect)||project.fps!==30||
+     !Array.isArray(project.scenes)||project.scenes.length<1||project.scenes.length>60||
+     !Array.isArray(project.assets)||project.assets.length>40)studioError("contrato inválido");
+  const media=new Set();
+  for(const asset of project.assets){
+    if(!studioMediaOk(asset)||media.has(asset.id))studioError("catálogo de mídia inválido");
+    media.add(asset.id);
+  }
+  const ids=new Set();
+  let start=0;
+  for(const scene of project.scenes){
+    if(!scene||!/^scene-[0-9]{3}$/.test(scene.id||"")||ids.has(scene.id)||
+       scene.track_id!=="video"||scene.start_frame!==start||
+       !Number.isInteger(scene.duration_frames)||scene.duration_frames<1||
+       typeof scene.text!=="string"||!scene.text.trim()||scene.text.length>1200||
+       typeof scene.title!=="string"||scene.title.length>120||
+       (scene.asset_id!==null&&!media.has(scene.asset_id)))studioError("cena inválida ou timeline com lacuna");
+    ids.add(scene.id);
+    start+=scene.duration_frames;
+  }
+  if(start!==project.total_frames||start>18000)studioError("total de frames inválido");
+  return project;
+}
+function studioCreate(body){
+  const topic=typeof body.topic==="string"?body.topic.trim():"";
+  const script=typeof body.script==="string"?body.script.trim():"";
+  const duration=body.duration_seconds;
+  if(topic.length<3||topic.length>150||!script||script.length>4500||
+     !Number.isInteger(duration)||duration<15||duration>600||!STUDIO_ASPECTS.has(body.aspect))
+    studioError("informe tema, roteiro, duração de 15 a 600 segundos e formato");
+  const assets=body.assets??[];
+  if(!Array.isArray(assets)||assets.length>40||assets.some(a=>!studioMediaOk(a)))
+    studioError("mídia sem licença, origem ou caminho seguro");
+  const chunks=script.split(/\n+|(?<=[.!?])\s+/).map(x=>x.trim()).filter(Boolean);
+  if(!chunks.length||chunks.length>60)studioError("roteiro deve ter de 1 a 60 cenas");
+  const frames=duration*30;
+  const weights=chunks.map(x=>Math.max(1,studioTerms(x).size));
+  const extra=frames-weights.length;
+  const totalWeight=weights.reduce((n,v)=>n+v,0);
+  const fractions=weights.map(x=>extra*x/totalWeight);
+  const sizes=fractions.map(x=>1+Math.floor(x));
+  const rest=frames-sizes.reduce((n,x)=>n+x,0);
+  const order=fractions.map((x,i)=>({i,f:x-Math.floor(x)})).sort((a,b)=>b.f-a.f||a.i-b.i);
+  for(let i=0;i<rest;i++)sizes[order[i].i]++;
+  const scenes=chunks.map((text,i)=>{
+    const asset_id=studioPick(text,assets);
+    return {id:"scene-"+String(i+1).padStart(3,"0"),track_id:"video",
+      title:text.slice(0,90),text,kind:asset_id?"media":"text",asset_id,
+      start_frame:0,duration_frames:sizes[i],animation:"cut",framing:"contain"};
+  });
+  const total_frames=studioReflow(scenes);
+  const project={schema_version:3,id:crypto.randomUUID(),revision:1,
+    topic,script,fps:30,aspect:body.aspect,total_frames,
+    tracks:[{id:"video",kind:"video"},{id:"voice",kind:"audio"},
+      {id:"effects",kind:"audio"},{id:"graphics",kind:"overlay"}],
+    assets,scenes};
+  return studioValidate(project);
+}
+async function studioTables(env){
+  await env.DB.prepare("CREATE TABLE IF NOT EXISTS studio_projects(id TEXT PRIMARY KEY,topic TEXT NOT NULL,revision INTEGER NOT NULL,body TEXT NOT NULL,created_at TEXT NOT NULL,updated_at TEXT NOT NULL)").run();
+  await env.DB.prepare("CREATE TABLE IF NOT EXISTS studio_revisions(project_id TEXT NOT NULL,revision INTEGER NOT NULL,body TEXT NOT NULL,created_at TEXT NOT NULL,PRIMARY KEY(project_id,revision))").run();
+}
+async function studioRoute(req,env,path){
+  if(!path.startsWith("/api/studio/projects"))return null;
+  await studioTables(env);
+  if(path==="/api/studio/projects"&&req.method==="GET"){
+    const rows=await env.DB.prepare("SELECT id,topic,revision,updated_at FROM studio_projects ORDER BY updated_at DESC LIMIT 40").all();
+    return j({projects:rows.results||[]});
+  }
+  if(path==="/api/studio/projects"&&req.method==="POST"){
+    let project;
+    try{project=studioCreate(await parse(req))}catch(e){return err(String(e.message).slice(0,200),400)}
+    const now=new Date().toISOString(),body=JSON.stringify(project);
+    await env.DB.prepare("INSERT INTO studio_projects(id,topic,revision,body,created_at,updated_at) VALUES(?,?,?,?,?,?)").bind(project.id,project.topic,1,body,now,now).run();
+    await env.DB.prepare("INSERT INTO studio_revisions(project_id,revision,body,created_at) VALUES(?,?,?,?)").bind(project.id,1,body,now).run();
+    await audit(env,"studio-create",project.id);
+    return j({project},201);
+  }
+  const match=path.match(/^\/api\/studio\/projects\/([0-9a-f-]{36})(\/save)?$/);
+  if(!match||!STUDIO_ID.test(match[1]))return err("Projeto Studio não encontrado",404);
+  const id=match[1];
+  const row=await env.DB.prepare("SELECT revision,body FROM studio_projects WHERE id=?").bind(id).first();
+  if(!row)return err("Projeto Studio não encontrado",404);
+  if(!match[2]&&req.method==="GET")return j({project:JSON.parse(row.body)});
+  if(match[2]&&req.method==="POST"){
+    let edited;
+    try{
+      const input=await parse(req);
+      if(!Number.isInteger(input.revision)||input.revision!==row.revision)return err("Projeto alterado em outra sessão: recarregue antes de salvar",409);
+      const current=JSON.parse(row.body);
+      if(!Array.isArray(input.scenes)||input.scenes.length!==current.scenes.length)studioError("cenas não correspondem ao projeto");
+      const ids=new Set(current.scenes.map(s=>s.id));
+      if(input.scenes.some(s=>!s||!ids.has(s.id))||new Set(input.scenes.map(s=>s.id)).size!==ids.size)
+        studioError("IDs de cenas incompatíveis");
+      edited={...current,scenes:input.scenes.map(s=>({
+        id:s.id,track_id:"video",title:s.title,text:s.text,kind:s.asset_id?"media":"text",
+        asset_id:s.asset_id??null,start_frame:0,duration_frames:s.duration_frames,
+        animation:["cut","fade","slide"].includes(s.animation)?s.animation:"cut",
+        framing:["contain","cover","center"].includes(s.framing)?s.framing:"contain"
+      })),revision:row.revision+1};
+      edited.total_frames=studioReflow(edited.scenes);
+      studioValidate(edited);
+    }catch(e){return err(String(e.message).slice(0,200),400)}
+    const now=new Date().toISOString(),body=JSON.stringify(edited);
+    const result=await env.DB.prepare("UPDATE studio_projects SET revision=?,body=?,updated_at=? WHERE id=? AND revision=?")
+      .bind(edited.revision,body,now,id,row.revision).run();
+    const changes=result.meta?.changes??result.changes;
+    if(changes===0)return err("Projeto alterado em outra sessão",409);
+    await env.DB.prepare("INSERT INTO studio_revisions(project_id,revision,body,created_at) VALUES(?,?,?,?)")
+      .bind(id,edited.revision,body,now).run();
+    await audit(env,"studio-save",id);
+    return j({project:edited});
+  }
+  return err("Método não permitido",405);
+}
+
 async function route(req,env){if(req.method==="GET"&&new URL(req.url).pathname==="/")return new Response(PAGE,{headers:{"content-type":"text/html; charset=utf-8"}});
 const path=new URL(req.url).pathname;
 if(path==="/health"&&req.method==="GET")return j({ok:true});
@@ -33,6 +183,7 @@ if(path==="/api/logout"&&req.method==="POST")return j({ok:true},200,{"set-cookie
 if(path==="/api/me"&&req.method==="GET"){const t=await env.DB.prepare("SELECT key FROM settings WHERE key='github'").first();return j({csrf:user.csrf,github_connected:!!t})}
 if(path==="/api/password"&&req.method==="POST"){const input=await parse(req);const latest=await env.DB.prepare("SELECT encrypted_value FROM settings WHERE key='admin_hash'").first();const currentHash=latest?.encrypted_value||env.ADMIN_PASS_HASH;if(typeof input.current_password!=="string"||!equal(await sha(input.current_password),currentHash))return err("Senha atual incorreta",401);if(typeof input.new_password!=="string"||input.new_password.length<16||input.new_password.length>128||input.new_password===input.current_password)return err("Nova senha precisa ter de 16 a 128 caracteres e ser diferente",400);const value=await sha(input.new_password);await env.DB.prepare("INSERT INTO settings(key,encrypted_value,updated_at) VALUES('admin_hash',?,?) ON CONFLICT(key) DO UPDATE SET encrypted_value=excluded.encrypted_value,updated_at=excluded.updated_at").bind(value,new Date().toISOString()).run();await audit(env,"password-rotated","admin");return j({ok:true})}
 if(path==="/api/connect"&&req.method==="POST"){const input=await parse(req);if(typeof input.token!=="string"||!/^((github_pat_|gh[opsu]_|ghr_)[A-Za-z0-9_]{20,})$/.test(input.token.trim()))return err("Formato de token GitHub inválido");await gh("","GET",input.token.trim());let encrypted=await encrypt(env,input.token.trim());await env.DB.prepare("INSERT INTO settings(key,encrypted_value,updated_at) VALUES('github',?,?) ON CONFLICT(key) DO UPDATE SET encrypted_value=excluded.encrypted_value,updated_at=excluded.updated_at").bind(encrypted,new Date().toISOString()).run();await audit(env,"github-connect","token renovado");return j({ok:true})}
+if(path.startsWith("/api/studio/"))return await studioRoute(req,env,path)||err("Rota Studio não encontrada",404);
 if(path==="/api/jobs"&&req.method==="GET"){const rows=await env.DB.prepare("SELECT id,kind,title,status,request_path,github_sha,workflow,created_at,updated_at FROM jobs ORDER BY created_at DESC LIMIT 40").all();return j({jobs:rows.results||[]})}
 if(path==="/api/runs"&&req.method==="GET"){const t=await token(env);if(!t)return err("GitHub não conectado",409);const data=await gh("/actions/runs?per_page=30","GET",t);const runs=(data.workflow_runs||[]).map(x=>({id:x.id,name:x.name,status:x.status,conclusion:x.conclusion,created_at:x.created_at,html_url:/^https:\/\/github\.com\//.test(x.html_url)?x.html_url:"https://github.com/"+REPO+"/actions",head_sha:x.head_sha,event:x.event}));return j({runs})}
 if(path==="/api/render"&&req.method==="POST"){const t=await token(env);if(!t)return err("Conecte o GitHub antes de criar vídeos",409);const body=await parse(req);const title=String(body.topic||"").trim();const duration=Number(body.duration_seconds);const aspect=body.aspect;const mode=body.visual_mode;const repos=Array.isArray(body.repo_urls)?body.repo_urls:[];const terms=Array.isArray(body.terms)?body.terms:[];const sections=Array.isArray(body.sections)?body.sections:[];const script=String(body.script||"").trim();if(title.length<3||title.length>150||!Number.isInteger(duration)||duration<15||duration>600||!["9:16","16:9","1:1"].includes(aspect)||!["auto","stock","local","github","github_cinematic"].includes(mode))return err("Preencha tema, duração, formato e modo visual corretamente");if(repos.length>12||repos.some(x=>typeof x!=="string"||!/^https:\/\/github\.com\/[A-Za-z0-9_.-]+\/[A-Za-z0-9_.-]+\/?$/.test(x)))return err("URLs GitHub inválidas (máximo 12)");if(["github","github_cinematic"].includes(mode)&&repos.length===0)return err("Informe ao menos um repositório GitHub para esse modo");if(script.length>12000||terms.length>12||terms.some(x=>typeof x!=="string"||x.length>80)||sections.length>12)return err("Roteiro, palavras-chave ou seções excederam o limite");const request={topic:title,duration_seconds:duration,aspect:aspect,visual_mode:mode,include_verified_news:body.include_verified_news===true};if(repos.length)request.repo_urls=repos;if(terms.length)request.terms=terms;if(script)request.script=script;if(sections.length)request.sections=sections;const file="requests/panel-"+new Date().toISOString().slice(0,10)+"-"+crypto.randomUUID().slice(0,12)+".json";const raw=JSON.stringify(request,null,2)+"\n";const created=await gh("/contents/"+file,"PUT",t,{message:"video: pedido via painel ArtiSys - "+title.slice(0,60),content:b64(u8(raw)),branch:"main"});const now=new Date().toISOString();await env.DB.prepare("INSERT INTO jobs(id,kind,title,status,request_path,github_sha,workflow,details,created_at,updated_at) VALUES(?,?,?,?,?,?,?,?,?,?)").bind(crypto.randomUUID(),"render",title,"solicitado",file,created.commit?.sha||null,"render.yml",JSON.stringify({duration,aspect,mode}),now,now).run();await audit(env,"render",file);return j({created:true,request_path:file,github_sha:created.commit?.sha||null},201)}
