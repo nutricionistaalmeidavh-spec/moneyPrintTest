@@ -1,97 +1,94 @@
-# MoneyPrint — vídeo P0–P2 (core R$ 0)
+# MoneyPrint P0–P2 — edição e motion graphics open source
 
-O modo legado de vídeo e os fluxos existentes continuam ativos. A nova montagem é **opt-in**:
-adicione um objeto \`motion\` aos pedidos com \`visual_mode: github_cinematic\`.
+O pipeline `github_cinematic` continua **slides animados primeiro**, com mockups, capturas reais, GIFs oficiais e B-roll contextual licenciado. Os modos de vídeo originais não mudam. Serviços pagos nunca são necessários: core R$ 0, self-hosted, open source.
 
-## Recursos
+## Implementado
 
-| Etapa | Implementação | Condição |
-| --- | --- | --- |
-| P0 | FFmpeg + FFprobe, cortes secos, normalização 1080p, preservação do áudio | Core |
-| P0 | 3 s (ou menos) de gancho em \`assets/\` | Ativar \`hook_asset\` |
-| P0 | PySceneDetect, JSON com tempos reais de cenas | \`scene_index: true\` |
-| P0 | Auto-Editor (silêncios), opt-in para não alterar narração | \`auto_cut: true\` |
-| P0 | Chromium/Playwright, capturas de GitHub; OpenScreen CLI como fonte alternativa | Chromium já existente; OpenScreen pré-instalado opcional |
-| P0 | HyperFrames (Apache-2.0), projeto HTML local -> MP4 | CLI instalado explicitamente, Node 22+ |
-| P1 | Motion Canvas — clipe MP4 exportado pelo projeto e versionado em assets | \`motion_canvas_clip\` |
-| P1 | FFmpeg xfade sem flashes brancos; corte seco é padrão | \`transition\` |
-| P1 | Skills de storyboard, motion e QA (repositório) | Instruções de agentes |
-| P2 | Galáxia local Pillow/FFmpeg a 30fps, sem GIF externo | \`universe_seconds\` |
-| P2 | Cena espacial real em Three.js/WebGL | \`threejs: true\` + dependências locais |
+| Etapa | Componente | Comportamento |
+|---|---|---|
+| P0 | FFmpeg / FFprobe | Normalização, MP4 H.264/AAC, cortes secos e áudio alinhado |
+| P0 | Ganchos locais | Vídeo real de `assets/`, velocidade original, duração controlada, áudio original preservado |
+| P0 | PySceneDetect | Lista de cortes reais `scenes` quando `scene_index=true` |
+| P0 | Auto-Editor | Remove silêncios somente se `auto_cut=true` |
+| P0 | OpenScreen | Exporta `.openscreen` local por CLI quando explicitamente solicitado |
+| P0 | HyperFrames | Renderiza projeto HTML local por CLI quando solicitado |
+| P0 | Playwright | Capturas de repositórios existentes e mockups no pipeline de slides |
+| P1 | Agent Skills | Diretor de vídeo e QA de motion em `.agents/skills/` |
+| P1 | Motion Canvas | Aceita clipe MP4 exportado pelo Motion Canvas como parte do storyboard |
+| P1 | Transições | `cut` (padrão) ou FFmpeg xfade `fade/wipeleft/slideleft/smoothleft/circleopen` |
+| P2 | Universo original | Estrelas e tipografia nítida em FFmpeg + Pillow, sem GIF travado |
+| P2 | Three.js | Motor WebGL local opt-in com movimento procedural de câmera, via Chromium |
 
-**Sem APIs pagas**, login externo, autoplay de mídias desconhecidas, publicação automática
-ou mudanças em OAuth/secrets. As mídias do usuário precisam estar em \`assets/\`.
-Notícias só aparecem quando \`include_verified_news: true\` e há fonte verificável.
+O P1 usa o `xfade` gratuito do FFmpeg (efeitos equivalentes) em vez de exigir a biblioteca externa GL Transitions. O Motion Canvas exporta MP4 para a montagem; não afirmamos que seu editor completo foi incorporado.
 
-## Exemplo em pedidos JSON
+## Exemplo de pedido
 
-Use \`docs/examples/artisys-oito-repositorios-motion-p0-p2.json\` como referência.
-A configuração pode conter:
+Adicione `motion` ao pedido já válido `visual_mode: github_cinematic`:
 
-\`\`\`json
+```json
 {
+  "topic": "Ferramentas gratuitas para desenvolvimento",
+  "visual_mode": "github_cinematic",
+  "aspect": "16:9",
+  "duration_seconds": 120,
+  "repo_urls": ["https://github.com/appwrite/appwrite"],
+  "sections": [{"repo_url":"https://github.com/appwrite/appwrite",
+                "title":"Appwrite",
+                "narration":"Aqui vai uma narração completa da seção com duração adequada."}],
   "motion": {
-    "hook_asset": "assets/approved/hook.mp4",
+    "hook_asset": "assets/hooks/gancho-aprovado.mp4",
     "hook_seconds": 1.8,
     "universe_seconds": 1.2,
-    "universe_title": "GITHUB EM 1 MINUTO",
+    "universe_title": "OPEN SOURCE",
     "transition": "cut",
-    "scene_index": true,
+    "scene_index": false,
     "auto_cut": false,
     "threejs": false
   }
 }
-\`\`\`
+```
 
-Este é **apenas o objeto motion**: coloque-o em um pedido \`github_cinematic\`
-com \`topic\`, \`repo_urls\`, \`sections\` e outras propriedades obrigatórias.
-Se \`hook_asset\` estiver presente e o arquivo não existir, o job falha claramente.
-
-O gancho entra na velocidade original e faz corte seco para a galáxia e para o
-corpo narrado. O áudio do corpo começa no ponto certo, sem reaproveitar a
-narração do vídeo original nem silenciar sem consentimento. A remoção automática
-de silêncios desincroniza SRT estimado e exige realinhamento antes de publicar.
+**Atenção:** o JSON acima é um exemplo de estrutura, não um pedido de produção aprovado: o `hook_asset` deve existir; o texto de narração deve ter a duração pretendida. Notícias só são usadas se realmente verificadas. Não invente ou baixe ganchos indiscriminadamente.
 
 ## Execução local
 
-\`\`\`bash
-python -m scripts.video_stack --input entrada.mp4 --output final.mp4 \
-  --universe-seconds 1.2 --aspect 16:9
+Pré-requisitos base: Python 3.11+, FFmpeg, FFprobe, Pillow e os requisitos que o controlador existente instala. No terminal da raiz do repositório:
+
+```bash
+python3 scripts/video_stack.py --input meu-video.mp4 \
+  --output resultado.mp4 --universe-seconds 1.2 \
+  --universe-title "OPEN SOURCE" --transition cut
+```
+
+Ganchos precisam estar dentro de `assets/`:
+
+```bash
+python3 scripts/video_stack.py --input meu-video.mp4 \
+  --hook assets/hooks/gancho-aprovado.mp4 --hook-seconds 1.8 \
+  --universe-seconds 1.2 --output resultado.mp4
+```
+
+Render pelo GitHub Actions: enviar pedido novo em `requests/` ou disparar `render.yml` manualmente com `request_path`. Os arquivos ficam em `outputs/<nome-do-pedido>/`. A edição original e a versão motion coexistem, sem publicação automática.
+
+## Adaptadores opcionais
+
+- **PySceneDetect**: `python -m pip install "scenedetect==0.7.3"`.
+- **Auto-Editor**: instalar `auto-editor` em PATH antes de ativar `auto_cut`; o áudio narrado precisa ser realinhado após cortes.
+- **OpenScreen**: instalar a CLI local do projeto `getopenscreen/openscreen`, fornecer `assets/.../*.openscreen` em `openscreen_project`. Não envia a gravação a serviços externos.
+- **HyperFrames**: Node 22+, `npm install -g hyperframes`, fornecer um projeto local HTML em `assets/` e configurar `hyperframes_project`. CLI executa localmente, sem serviço HeyGen pago.
+- **Motion Canvas**: exportar seu vídeo como MP4 para `assets/` e informar `motion_canvas_clip`.
+- **Three.js**: instalar dependência livre declarada em `motion/three-universe/package.json` com `npm install --prefix motion/three-universe --ignore-scripts`; instalar Playwright/Chromium, selecionar `threejs:true` junto de `universe_seconds>0`. Depende de WebGL (SwiftShader é permitido em runner). Se a GPU/WebGL não funcionar, use `threejs:false` para o universo FFmpeg.
+
+Instalar adaptadores só é necessário quando seu recurso for ativado. Não há dependência de API comercial, login em serviço de vídeo ou secret novo.
+
+## Garantia de qualidade
+
+```bash
+python -m unittest discover -s tests -v
 python -m scripts.qa_video_stack --output qa-video-stack --transition cut
 python -m scripts.qa_video_stack --output qa-video-stack --transition fade
-\`\`\`
+```
 
-Dependências core: Python 3.11+, FFmpeg, FFprobe, Pillow. A própria integração
-\`github_cinematic\` também exige Piper, Playwright e Chromium como antes.
+Os workflows `test.yml` e `qa-video-stack.yml` validam contratos, arquivos MP4 reais, áudio preservado, duração, composição espacial e transições, com frames e JSON de diagnóstico nos artifacts. Antes de publicar, revisar direitos dos clipes, texto, sincronismo de legendas (especialmente após `auto_cut`), e frames finais.
 
-## Adaptadores opcionais, todos locais
-
-- **HyperFrames:** instale Node.js 22+ e \`npm install -g hyperframes@0.9.23\`.
-  Configure \`hyperframes_project: "assets/meu-hyperframes"\`. Precisa de
-  \`assets/meu-hyperframes/index.html\` e não usa o Studio cloud.
-- **OpenScreen:** instale o CLI local e exporte projeto existente
-  \`openscreen export demo.openscreen -o demo.mp4 --json\`, ou passe
-  \`openscreen_project: "assets/projetos/demo.openscreen"\` para o renderizador.
-  O CLI não é instalado automaticamente nos runners padrões.
-- **Motion Canvas:** renderize seu projeto TypeScript com o exportador de sua
-  versão e armazene o MP4 em \`assets/\`; passe \`motion_canvas_clip\`. O editor
-  visual Motion Canvas não é um serviço remoto.
-- **Three.js:** \`npm install --prefix motion/three-universe --ignore-scripts --no-audit --no-fund\`;
-  com Playwright/Chromium instalado, \`threejs: true\` escolhe o renderizador WebGL
-  local. Sem Three.js, o modo Pillow/FFmpeg continua funcionando.
-- **PySceneDetect:** \`pip install scenedetect==0.7.3\`.
-- **Auto-Editor:** \`pip install auto-editor\` em ambiente compatível.
-
-Os adaptadores opcionais só são executados quando selecionados. Não é obrigatório
-instalar HyperFrames, OpenScreen, Motion Canvas ou Three.js para usar o core.
-
-## Testes e rollback
-
-- \`python -m unittest discover -s tests -v\`
-- \`python -m compileall -q scripts tests\`
-- GitHub Actions: \`QA P0-P2 — cortes, áudio e motion local\`, com MP4 de exemplo.
-- A PR P0–P2 pode ser revertida sem migração de banco ou alteração de secrets.
-- Os vídeos são arquivos de revisão no artifact, não são publicados automaticamente.
-
-Os jobs GitHub-hosted estão sujeitos às cotas do GitHub; self-hosted é suportado
-e não há gasto por serviço comercial obrigatório.
+**Não alterados:** secrets, OAuth, rotas, permissões, preços, workflows de publicação e modos legados.
