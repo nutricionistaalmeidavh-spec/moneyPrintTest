@@ -66,7 +66,7 @@ def validate_request(raw: dict) -> dict:
     if not isinstance(raw, dict):
         raise RequestError("O pedido deve ser JSON objeto")
     extra = set(raw) - {"topic", "script", "terms", "duration_seconds",
-                        "aspect", "visual_mode", "repo_urls", "cinematic", "sections", "media_clips", "include_verified_news", "motion"}
+                        "aspect", "visual_mode", "repo_urls", "cinematic", "sections", "media_clips", "include_verified_news", "motion", "visual_style"}
     if extra:
         raise RequestError(f"Campos proibidos: {sorted(extra)}")
     topic = raw.get("topic")
@@ -75,6 +75,11 @@ def validate_request(raw: dict) -> dict:
     mode = raw.get("visual_mode", "auto")
     if mode not in ("auto", "stock", "local", "pexels", "pixabay", "github", "github_cinematic"):
         raise RequestError("visual_mode inválido")
+    visual_style=raw.get("visual_style","classic")
+    if visual_style not in ("classic","light_motion"):
+        raise RequestError("Estilo visual não suportado")
+    if visual_style=="light_motion" and mode!="github_cinematic":
+        raise RequestError("Motion claro exige slides cinematográficos")
     script = raw.get("script", "")
     max_script_size = 9000 if mode in ("github", "github_cinematic") else 2400
     if not isinstance(script, str) or len(script) > max_script_size or "\x00" in script:
@@ -144,7 +149,7 @@ def validate_request(raw: dict) -> dict:
         verified_clips.append({"repo_index":i, "path":p})
     return {"topic": topic.strip(), "script": script.strip(), "terms": terms,
             "duration_seconds": duration, "aspect": aspect,
-            "visual_mode": mode, "repo_urls": repo_urls,
+            "visual_mode": mode, "visual_style": visual_style, "repo_urls": repo_urls,
             "cinematic": cinematic, "sections": sections,
             "media_clips": verified_clips, "include_verified_news": include_verified_news,
             "motion": motion}
@@ -397,6 +402,35 @@ def render_one(path: Path, output: Path, runtime: Path, env: dict):
     data = load_request(path)
     dest = output / path.stem
     dest.mkdir(parents=True, exist_ok=True)
+    if data["visual_mode"]=="github_cinematic" and data["visual_style"]=="light_motion":
+        from scripts.cinematic_studio_adapter import cinematic_request_to_studio_project
+        from scripts.studio_render import render_project
+        from scripts.video_stack import render_stack
+        project=cinematic_request_to_studio_project(data)
+        (dest/"studio_project_v3.json").write_text(
+            json.dumps(project,ensure_ascii=False,indent=2),encoding="utf-8")
+        voice_model=download_piper(runtime/"piper-model")
+        report=render_project(project,Path.cwd(),dest,voice="piper",
+                              voice_model=voice_model,capture_github=True)
+        report["visual_mode"]="github_cinematic"
+        report["source_workflow"]="visual_builder"
+        if data.get("include_verified_news"):
+            report.setdefault("warnings",[]).append({
+                "type":"verified_news_not_inserted",
+                "message":"Nenhuma notícia não verificada foi inserida"})
+        motion=data.get("motion",{})
+        active=(motion.get("hook_asset") or motion.get("universe_seconds",0)>0
+                or motion.get("scene_index") or motion.get("auto_cut")
+                or motion.get("motion_canvas_clip") or motion.get("threejs"))
+        if active:
+            updated=render_stack(Path(report["output"]),dest/"studio_motion.mp4",
+                                 options=motion,assets=Path.cwd()/"assets")
+            report["output"]=updated["output"]
+            report["duration_seconds"]=updated["duration_seconds"]
+            report["motion_post"]=updated
+        (dest/"resultado.json").write_text(
+            json.dumps(report,ensure_ascii=False,indent=2),encoding="utf-8")
+        return report
     if data["visual_mode"] == "github_cinematic":
         from scripts.motion_pipeline import render_motion_first
         return render_motion_first(data, dest, runtime, env)
