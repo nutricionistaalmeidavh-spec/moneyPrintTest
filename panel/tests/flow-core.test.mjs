@@ -94,3 +94,21 @@ test("motion cut parameters honor the editor 8-second limit",()=>{
  f.settings.universe_seconds=0;const hook=insertTool(f,"hook");hook.settings.hook_asset="assets/approved/clip.mp4";hook.settings.hook_seconds=9;
  assert.throws(()=>compileFlow(hook),/8 segundos/);
 });
+
+
+test("cinematic visual builder includes light animated Studio V3 engine in real render request",()=>{
+  const flow=makeTemplate("cinematic");
+  flow.settings.topic="Cinco sistemas empresariais";
+  flow.settings.duration_seconds=300;
+  flow.settings.repo_urls=["https://github.com/frappe/erpnext"];
+  flow.settings.sections=[{title:"ERPNext",repo_url:flow.settings.repo_urls[0],
+      narration:"O ERPNext ajuda a acompanhar dados e organizar processos em empresas."}];
+  let request=compileFlow(flow);
+  assert.equal(request.visual_style,"light_motion");
+  assert.equal(request.duration_seconds,300);
+  flow.settings.visual_style="classic";
+  request=compileFlow(flow);
+  assert.equal(request.visual_style,"classic");
+  flow.settings.visual_style="paid_renderer";
+  assert.throws(()=>compileFlow(flow),/Estética/);
+});
