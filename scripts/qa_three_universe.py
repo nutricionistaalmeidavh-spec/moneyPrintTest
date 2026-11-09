@@ -16,7 +16,7 @@ def main():
         raise AssertionError("Three.js animation has incorrect frame duration")
     if metadata["width"]!=320 or metadata["height"]!=180:
         raise AssertionError("Incorrect WebGL viewport")
-    subprocess.run(["ffmpeg","-loglevel","error","-y","-ss",".25","-i",str(video),
+    subprocess.run(["ffmpeg","-loglevel","error","-y","-ss","0.25","-i",str(video),
                     "-frames:v","1",str(dest/"three-universe-frame.png")],
                    check=True,timeout=60)
     (dest/"three-universe-qa.json").write_text(
