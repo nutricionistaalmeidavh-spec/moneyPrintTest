@@ -1,0 +1,60 @@
+name: QA real — captura desktop de repositorio GitHub
+
+on:
+  pull_request:
+    paths:
+      - "scripts/browser_capture.py"
+      - ".github/workflows/qa-browser.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  browser-capture:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+      - name: Instalar navegador open source
+        run: |
+          python -m pip install "playwright==1.56.0"
+          python -m playwright install --with-deps chromium
+      - name: Garantir FFmpeg no runner
+        run: |
+          sudo apt-get update -qq
+          sudo apt-get install -y ffmpeg
+      - name: Gravar GitHub real em desktop e conferir MP4 com ffprobe
+        run: |
+          python - <<'PY'
+          import json
+          import subprocess
+          from pathlib import Path
+          from scripts.browser_capture import capture_repositories
+
+          clips = capture_repositories(["https://github.com/appwrite/appwrite"],
+                                       15, Path("qa-artifacts"))
+          assert len(clips) == 1
+          video = Path(clips[0])
+          assert video.is_file() and video.stat().st_size > 10000
+          report = json.loads(subprocess.check_output([
+              "ffprobe", "-v", "error", "-show_entries",
+              "stream=codec_name,width,height:format=duration",
+              "-of", "json", str(video)
+          ], text=True))
+          assert any(s.get("width") == 1280 and s.get("height") == 720
+                     for s in report["streams"]), report
+          assert float(report["format"]["duration"]) >= 8, report
+          print(json.dumps({"file": str(video), "report": report}, indent=2))
+          PY
+      - name: Arquivar captura demonstrativa
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: qa-desktop-github
+          path: qa-artifacts/
+          retention-days: 3
+          if-no-files-found: warn

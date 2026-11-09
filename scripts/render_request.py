@@ -65,30 +65,48 @@ def normalize_generated_terms(raw, topic: str) -> list[str]:
 def validate_request(raw: dict) -> dict:
     if not isinstance(raw, dict):
         raise RequestError("O pedido deve ser JSON objeto")
-    extra = set(raw) - {"topic", "script", "terms", "duration_seconds", "aspect", "visual_mode"}
+    extra = set(raw) - {"topic", "script", "terms", "duration_seconds",
+                        "aspect", "visual_mode", "repo_urls"}
     if extra:
         raise RequestError(f"Campos proibidos: {sorted(extra)}")
     topic = raw.get("topic")
     if not isinstance(topic, str) or not 1 <= len(topic.strip()) <= 280 or "\x00" in topic:
         raise RequestError("topic deve ter de 1 a 280 caracteres")
+    mode = raw.get("visual_mode", "auto")
+    if mode not in ("auto", "stock", "local", "pexels", "pixabay", "github"):
+        raise RequestError("visual_mode inválido")
     script = raw.get("script", "")
-    if not isinstance(script, str) or len(script) > 2400 or "\x00" in script:
+    max_script_size = 9000 if mode == "github" else 2400
+    if not isinstance(script, str) or len(script) > max_script_size or "\x00" in script:
         raise RequestError("script inválido")
     terms = clean_terms(raw.get("terms", []))
     duration = raw.get("duration_seconds", 40)
-    if type(duration) is not int or not 15 <= duration <= 90:
-        raise RequestError("duration_seconds deve estar entre 15 e 90")
+    max_duration = 360 if mode == "github" else 90
+    if type(duration) is not int or not 15 <= duration <= max_duration:
+        raise RequestError(f"duration_seconds deve estar entre 15 e {max_duration}")
     aspect = raw.get("aspect", "9:16")
     if aspect not in ("9:16", "16:9", "1:1"):
         raise RequestError("aspect inválido")
-    mode = raw.get("visual_mode", "auto")
-    if mode not in ("auto", "stock", "local", "pexels", "pixabay"):
-        raise RequestError("visual_mode inválido")
+    repo_urls = []
+    if mode == "github":
+        if __package__:
+            from .browser_capture import CaptureError, validate_repo_urls
+        else:
+            from browser_capture import CaptureError, validate_repo_urls
+        try:
+            repo_urls = validate_repo_urls(raw.get("repo_urls", []))
+        except CaptureError as exc:
+            raise RequestError(str(exc)) from exc
+    elif "repo_urls" in raw:
+        raise RequestError("repo_urls só pode ser usado no visual_mode github")
     return {"topic": topic.strip(), "script": script.strip(), "terms": terms,
-            "duration_seconds": duration, "aspect": aspect, "visual_mode": mode}
+            "duration_seconds": duration, "aspect": aspect,
+            "visual_mode": mode, "repo_urls": repo_urls}
 
 
 def select_visual_mode(mode: str, env: dict) -> str:
+    if mode == "github":
+        return "github"
     if mode == "local":
         return "local"
     if mode in {"pexels", "pixabay"}:
@@ -222,7 +240,8 @@ def generate_text(topic: str, duration: int) -> dict:
         )
         data = json.dumps({
             "model": OLLAMA_MODEL, "prompt": prompt, "stream": False,
-            "format": "json", "options": {"temperature": 0.35, "num_predict": 1000}
+            "format": "json", "options": {"temperature": 0.35,
+                                           "num_predict": min(4200, max(1000, desired * 3))}
         }).encode()
         req = urllib.request.Request(
             "http://127.0.0.1:11434/api/generate", data=data,
@@ -314,6 +333,9 @@ def build_manifest(req, script, terms, source, audio_path, media):
         "bgm_type": "", "bgm_volume": 0, "subtitle_enabled": True,
         "video_concat_mode": "sequential", "n_threads": 2
     }
+    if req.get("visual_mode") == "github":
+        count = len(req["repo_urls"])
+        task["video_clip_duration"] = min(60, max(8, (req["duration_seconds"] + count - 1) // count))
     if source == "local":
         task["video_materials"] = [{"provider": "local", "url": p, "duration": 0} for p in media]
     return task
@@ -340,7 +362,8 @@ def render_one(path: Path, output: Path, runtime: Path, env: dict):
                 script = generated.get("script", "")
             if not terms:
                 terms = normalize_generated_terms(generated.get("terms"), data["topic"])
-        if not isinstance(script, str) or not script.strip() or len(script) > 2400 or not terms:
+        script_limit = 9000 if data["visual_mode"] == "github" else 2400
+        if not isinstance(script, str) or not script.strip() or len(script) > script_limit or not terms:
             raise RequestError("Roteiro ou termos não produzidos pelo modelo local")
         script = script.strip()
         (dest / "roteiro.txt").write_text(script, encoding="utf-8")
@@ -351,7 +374,16 @@ def render_one(path: Path, output: Path, runtime: Path, env: dict):
         if not audio.is_file() or audio.stat().st_size < 256:
             raise RuntimeError("Piper não produziu áudio")
         material_source = source
-        if source == "wikimedia":
+        if source == "github":
+            if __package__:
+                from .browser_capture import capture_repositories
+            else:
+                from browser_capture import capture_repositories
+            materials = capture_repositories(data["repo_urls"], data["duration_seconds"],
+                                             dest / "browser")
+            material_source = "github_desktop"
+            source = "local"
+        elif source == "wikimedia":
             if __package__:
                 from .commons_media import find_free_videos
             else:

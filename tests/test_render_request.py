@@ -26,6 +26,34 @@ class RenderTests(unittest.TestCase):
             with self.subTest(request=request), self.assertRaises(RequestError):
                 validate_request(request)
 
+    def test_github_desktop_mode_supports_five_minute_videos(self):
+        request = validate_request({
+            "topic": "Oito repositórios GitHub",
+            "duration_seconds": 300,
+            "visual_mode": "github",
+            "repo_urls": ["https://github.com/appwrite/appwrite",
+                          "https://github.com/payloadcms/payload"],
+            "script": "Demonstração " * 550,
+        })
+        self.assertEqual(request["duration_seconds"], 300)
+        self.assertEqual(len(request["repo_urls"]), 2)
+        self.assertEqual(select_visual_mode("github", {}), "github")
+        manifest = build_manifest(request, "Roteiro", ["software"],
+                                  "local", "/tmp/audio.wav", ["/tmp/repo.mp4"])
+        self.assertEqual(manifest["video_materials"][0]["url"], "/tmp/repo.mp4")
+        self.assertEqual(manifest["video_clip_duration"], 60)
+
+    def test_existing_modes_keep_the_ninety_second_limit(self):
+        with self.assertRaises(RequestError):
+            validate_request({"topic": "x", "duration_seconds": 300})
+        with self.assertRaises(RequestError):
+            validate_request({"topic": "x", "repo_urls": ["https://github.com/a/b"]})
+        with self.assertRaises(RequestError):
+            validate_request({"topic": "x", "visual_mode": "github"})
+        with self.assertRaises(RequestError):
+            validate_request({"topic": "x", "visual_mode": "github",
+                              "repo_urls": ["https://evil.example/a/b"]})
+
     def test_free_stock_and_offline_fallback(self):
         self.assertEqual(select_visual_mode("auto", {}), "wikimedia")
         self.assertEqual(select_visual_mode("stock", {}), "wikimedia")
