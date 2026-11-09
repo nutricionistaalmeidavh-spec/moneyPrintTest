@@ -72,7 +72,7 @@ class ReferenceAnalysisTests(unittest.TestCase):
     def test_rhythm_uses_observed_durations_not_invented_classification(self):
         info = describe_rhythm([1.0, 2.0, 3.0], duration=8.0)
         self.assertEqual(info["shot_count"], 4)
-        self.assertEqual(info["median_shot_seconds"], 1.5)
+        self.assertEqual(info["median_shot_seconds"], 1.0)
         self.assertEqual(info["cadence"], "rapido")
 
     def test_reference_report_labels_framing_as_heuristic(self):
