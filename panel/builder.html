@@ -1,0 +1,79 @@
+<!doctype html>
+<html lang="pt-BR"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="theme-color" content="#0c1524"><title>ArtiSys MoneyPrint — Estúdio Visual</title>
+<link rel="stylesheet" href="/ui/builder.css"></head><body>
+<header class="topbar">
+ <div class="brand"><div class="logo" aria-hidden="true">▶</div><span>ArtiSys <span>MoneyPrint</span></span></div>
+ <nav class="topnav" aria-label="Navegação principal">
+  <button data-view="studio" aria-current="page">Estúdio</button>
+  <button data-view="history">Execuções</button>
+  <button data-view="workflows">Workflows</button>
+  <button data-view="connections">Conexões</button>
+ </nav>
+ <div class="statusbar"><span id="statusDot" class="dot"></span><span id="sessionStatus">Acesso protegido</span></div>
+ <button id="logout" class="ghost hidden" aria-label="Sair do painel">Sair</button>
+</header>
+<main class="shell">
+<section id="auth" class="auth panel">
+ <h1>Acessar MoneyPrint</h1><p class="muted">Entre para controlar sua produção de vídeos e os workflows.</p>
+ <form id="loginForm"><div class="field"><label for="password">Senha de administrador</label><input id="password" name="password" type="password" autocomplete="current-password" required minlength="12"></div><button type="submit" class="btn primary" style="width:100%">Entrar no estúdio</button></form>
+ <p class="small muted" style="margin-top:16px">Sua sessão é protegida. Tokens do GitHub ficam apenas no servidor.</p>
+</section>
+<div id="application" class="hidden">
+<section id="view-studio" class="view">
+ <div class="intro"><div><h1>Estúdio de automações</h1><p>Monte sua produção arrastando ferramentas ou editando cada etapa.</p></div>
+ <div class="actions"><button id="saveFlow" class="btn subtle">Salvar fluxo</button><button id="exportFlow" class="btn">Exportar JSON</button><button id="importFlow" class="btn">Importar</button><input type="file" id="importInput" accept=".json,application/json" class="hidden"></div></div>
+ <div class="toolbar panel"><strong>Modelos de produção</strong><div id="templates" class="templates" role="group" aria-label="Templates"></div></div>
+ <div class="workspace">
+ <aside class="aside palette panel" id="palette"><header><h2>Ferramentas disponíveis</h2><p class="small muted" style="margin:0">Adicione ao fluxo. Sem APIs pagas.</p></header>
+  <div class="contents"><input id="searchTools" class="search" type="search" placeholder="Buscar ferramenta..." aria-label="Buscar ferramenta"><div id="toolList"></div></div>
+ </aside>
+ <section class="canvas-wrap panel" aria-label="Construtor visual do workflow">
+  <div class="canvasbar"><div><strong>Construtor de automação</strong><p id="canvasSubtitle">Clique nos blocos para editar. Arraste para mover.</p></div>
+   <div class="floating-actions"><span id="flowValidity" class="pill">Verificando</span><button class="btn iconbtn" id="zoomOut" aria-label="Diminuir zoom">−</button><span id="zoomLabel" class="small">80%</span><button class="btn iconbtn" id="zoomIn" aria-label="Aumentar zoom">+</button><button class="btn iconbtn" id="resetZoom" aria-label="Enquadrar fluxo">⤢</button></div></div>
+  <div id="canvasbody" class="canvasbody" tabindex="0" aria-label="Canvas de blocos com conexões"><div id="scene" class="scene">
+    <svg id="wires" class="links" width="1750" height="760" aria-hidden="true"><defs><marker id="arrow" markerWidth="5" markerHeight="5" refX="4" refY="2.5" orient="auto"><path d="M0 0 L5 2.5 L0 5" fill="#8eb8d7"></path></marker></defs><g id="paths"></g></svg>
+    <div id="canvasNodes"></div>
+   </div></div>
+  <div id="mobileFlow" class="mobile-flow"></div>
+  <div class="hintstrip"><span>Entrada → etapas → renderização → saída</span><span id="nodeCount">0 blocos</span></div>
+ </section>
+ <aside class="aside inspector panel" id="inspector"><header><h2 id="inspectorTitle">Configurações do fluxo</h2><p class="small muted" id="inspectorSub" style="margin:0">Clique em uma etapa para ver suas opções</p></header><div id="inspectorBody" class="contents"></div></aside>
+ </div>
+ <div class="summary panel">
+  <div class="metrics"><span id="summaryNodes">0 ferramentas</span><span id="summaryVideo">40s • 9:16</span><span id="summaryMode">Motor automático</span><span id="summaryValidation" class="good">Pronto</span></div>
+  <div class="actions"><button class="btn" id="previewRequest">Revisar pedido</button><button class="btn primary" id="executeFlow">▶ Executar automação</button></div>
+ </div>
+</section>
+<section id="view-history" class="view hidden viewbox">
+ <div class="intro"><div><h1>Execuções e resultados</h1><p>Histórico do painel e execuções reais do GitHub Actions.</p></div><button class="btn" id="refreshRuns">Atualizar</button></div>
+ <article class="panel viewcard"><h2>Pedidos gerados pelo painel</h2><div id="jobsList" class="muted">Carregando...</div></article>
+ <article class="panel viewcard"><h2>Execuções no GitHub Actions</h2><div id="runsList" class="muted">Carregando...</div></article>
+</section>
+<section id="view-workflows" class="view hidden viewbox">
+ <div class="intro"><div><h1>Workflows disponíveis</h1><p>Dispare um QA ou renderize um pedido existente; não altera workflows originais.</p></div></div>
+ <article class="panel viewcard"><div id="workflowList"></div></article>
+ <article class="panel viewcard"><h2>Activepieces</h2><p>9 fluxos identificados. O acionamento manual dos gatilhos agendados não está integrado; não são simuladas execuções.</p><div id="activepiecesList"></div></article>
+</section>
+<section id="view-connections" class="view hidden viewbox">
+ <div class="intro"><h1>Conexões seguras</h1></div>
+ <article class="panel viewcard"><h2>GitHub — MoneyPrint</h2><p>Token fine-grained exclusivo de <strong>nutricionistaalmeidavh-spec/moneyPrintTest</strong> com Contents e Actions (Read/Write). Não coloque tokens no código.</p>
+  <form id="connectForm"><div class="field"><label for="githubToken">Token de acesso</label><input id="githubToken" type="password" autocomplete="new-password" placeholder="github_pat_..." required minlength="30"></div><button type="submit" class="btn primary" id="connectSubmit">Validar e conectar</button></form><p id="connectionStatus" class="small muted" style="margin-top:15px"></p>
+ </article>
+ <article class="panel viewcard"><h2>Infraestrutura</h2><p>Worker Cloudflare + D1, ou Node.js self-hosted com SQLite. Sem serviço comercial obrigatório. O GitHub Actions ou um runner próprio executa a renderização.</p></article>
+</section>
+</div></main>
+<div id="scrim" class="backdrop"></div>
+<nav id="mobileBar" class="mobilebar hidden" aria-label="Ações para celular">
+ <button data-mobile="flow"><b>▤</b>Fluxo</button>
+ <button data-mobile="tools"><b>⊞</b>Ferramentas</button>
+ <button data-mobile="settings"><b>⚙</b>Editar</button>
+ <button data-mobile="runs"><b>◷</b>Execuções</button>
+</nav>
+<div id="toast" role="status" aria-live="polite" class="snackbar hidden"></div>
+<dialog id="requestDialog" style="max-width:min(760px,94vw);background:#12243a;color:#efffff;border:1px solid #54718f;border-radius:16px;box-shadow:0 25px 80px #000b">
+ <h2>Pedido pronto para execução</h2><p class="small muted">O fluxo foi convertido para o formato aceito pelo motor atual.</p><pre id="requestJson" class="jsonpreview"></pre><div class="actions"><button id="closeRequest" class="btn">Fechar</button><button id="copyRequest" class="btn primary">Copiar JSON</button></div>
+</dialog>
+<script type="module" src="/ui/builder.js"></script>
+</body></html>

@@ -1,0 +1,33 @@
+name: Painel visual MoneyPrint (sem API paga)
+on:
+  push:
+    branches: [main, 'feat/moneyprint-visual-flow-builder']
+    paths:
+      - 'panel/**'
+      - '.github/workflows/panel.yml'
+  pull_request:
+    paths:
+      - 'panel/**'
+      - '.github/workflows/panel.yml'
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Testes do modelo de grafos
+        run: node --test panel/tests/*.test.mjs
+      - name: Garantir sincronização dos assets do Worker
+        run: node panel/check-bundle.mjs
+      - name: Conferir sintaxe do UI e Worker
+        run: |
+          node --check panel/flow-core.mjs
+          node --check panel/builder.js
+          node --check panel/worker.js
+          node --check panel/local-server.mjs
