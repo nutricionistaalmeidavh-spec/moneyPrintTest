@@ -198,6 +198,9 @@ function renderInspector(){
        '<p class="notes">O motor captura apenas URLs GitHub públicas. Outras páginas não são executadas.</p>';
   }else if(t.id==="slides"){
     html='<p class="notes">Cada repositório necessita de uma narração própria. As cenas são montadas como slides animados, com screenshots, GIFs e vídeos quando disponíveis.</p>'+sectionControls()+
+       '<div class="field"><label for="field-visual_style">Estética do vídeo</label><select data-setting="visual_style" id="field-visual_style">'+
+         [["light_motion","Claro + movimento real (Studio V3)"],["classic","Clássico (legado)"]].map(([id,title])=>'<option value="'+id+'" '+((s.visual_style||"classic")===id?"selected":"")+'>'+title+'</option>').join("")+
+         '</select><p class="notes">A escolha altera o renderizador, não apenas as cores da prévia.</p></div>'+
        '<h3>Motion e transições</h3>'+
        inputField("field-universe_seconds","Abertura universo (segundos)",s.universe_seconds,"0 desativa a abertura","number",'min="0" max="8" step="0.5"')+
        inputField("field-universe_title","Texto da abertura",s.universe_title)+
