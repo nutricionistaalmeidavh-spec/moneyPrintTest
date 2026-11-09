@@ -64,7 +64,7 @@ def capture_plan(urls: list[str], duration_seconds: int) -> list[tuple[str, int]
     return [(url, seconds) for url in safe_urls]
 
 
-def capture_repositories(urls: list[str], duration_seconds: int, output: Path) -> list[str]:
+def capture_repositories(urls: list[str], duration_seconds: int, output: Path, *, focus_readme: bool = False) -> list[str]:
     """Record real GitHub browser visits, converting WebM to MP4 via FFmpeg."""
     try:
         from playwright.sync_api import sync_playwright
@@ -107,15 +107,46 @@ def capture_repositories(urls: list[str], duration_seconds: int, output: Path) -
                         raise CaptureError(f"Página GitHub indisponível: {url}")
                     page.wait_for_timeout(1600)
                     remaining = max(0, seconds * 1000 - 1600)
+                    if focus_readme and remaining >= 2800:
+                        # Show name, description and stars first, then move the
+                        # camera to actual README features instead of spending
+                        # the whole take scrolling hundreds of code files.
+                        page.wait_for_timeout(900)
+                        remaining -= 900
+                        try:
+                            page.evaluate("""() => {
+                              const readme = document.querySelector(
+                                'article.markdown-body, #readme');
+                              if (readme) {
+                                const y = window.scrollY +
+                                  readme.getBoundingClientRect().top - 80;
+                                window.scrollTo({top:Math.max(0,y),behavior:'smooth'});
+                              }
+                            }""")
+                            page.wait_for_timeout(1100)
+                            remaining -= 1100
+                        except Exception:
+                            pass
                     while remaining > 0:
-                        page.mouse.wheel(0, 360)
+                        page.mouse.wheel(0, 340 if focus_readme else 360)
                         delay = min(1250, remaining)
                         page.wait_for_timeout(delay)
                         remaining -= delay
                         bottom = page.evaluate(
                             "window.scrollY + innerHeight >= document.documentElement.scrollHeight - 15")
                         if bottom:
-                            page.evaluate("window.scrollTo({top:0,behavior:'instant'})")
+                            if focus_readme:
+                                page.evaluate("""() => {
+                                  const el=document.querySelector(
+                                    'article.markdown-body, #readme');
+                                  window.scrollTo({
+                                    top: el ? window.scrollY +
+                                      el.getBoundingClientRect().top - 80 : 0,
+                                    behavior:'instant'
+                                  });
+                                }""")
+                            else:
+                                page.evaluate("window.scrollTo({top:0,behavior:'instant'})")
                     page.close()
                     context.close()  # Flushes the recorded WebM.
                     page.video.save_as(webm)
