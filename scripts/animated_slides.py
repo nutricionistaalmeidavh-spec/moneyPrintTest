@@ -266,7 +266,7 @@ def _render_animated_video(
             # The browser/film mockup spans x=485..1810, y=288..934.
             # Place the moving image inside its viewport, never full-bleed.
             inset_w=int(width*(1325-48)/1920)
-            inset_h=int(width*(646-116)/1920)
+            inset_h=2*(int(width*(646-116)/1920)//2)  # chroma-safe even dimensions
             pos_x=int(width*(485+24)/1920)
             pos_y=int(width*(288+90)/1920)
             filters.append(
