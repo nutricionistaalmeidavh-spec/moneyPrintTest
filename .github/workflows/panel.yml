@@ -1,7 +1,7 @@
 name: Painel visual MoneyPrint (sem API paga)
 on:
   push:
-    branches: [main, 'feat/moneyprint-visual-flow-builder']
+    branches: [main, 'feat/moneyprint-visual-flow-builder', 'fix/moneyprint-mobile-ux-v3']
     paths:
       - 'panel/**'
       - '.github/workflows/panel.yml'
@@ -15,7 +15,7 @@ permissions:
 jobs:
   check:
     runs-on: ubuntu-latest
-    timeout-minutes: 5
+    timeout-minutes: 15
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
@@ -25,6 +25,20 @@ jobs:
         run: node --test panel/tests/*.test.mjs
       - name: Garantir sincronização dos assets do Worker
         run: node panel/check-bundle.mjs
+      - name: Instalar navegador para QA visual real
+        run: |
+          python -m pip install --disable-pip-version-check "playwright==1.56.0"
+          python -m playwright install --with-deps chromium
+      - name: QA desktop e celular
+        run: python panel/tests/ui_mobile_e2e.py
+      - name: Salvar prints do QA
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: moneyprint-studio-visual-qa
+          path: qa-panel/
+          if-no-files-found: warn
+          retention-days: 3
       - name: Conferir sintaxe do UI e Worker
         run: |
           node --check panel/flow-core.mjs
