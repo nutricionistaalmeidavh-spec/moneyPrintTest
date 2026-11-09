@@ -38,6 +38,21 @@ class LightMotionTests(unittest.TestCase):
             self.assertGreater(len({entry[3] for entry in layers}),3)
 
     @unittest.skipUnless(shutil.which("ffmpeg") and shutil.which("ffprobe"),"FFmpeg required")
+    def test_approved_video_moves_inside_light_browser_mockup(self):
+        from scripts.studio_light_motion import render_light_scene
+        with tempfile.TemporaryDirectory() as d:
+            root=Path(d)
+            video=root/"demo.mp4"
+            subprocess.run(["ffmpeg","-hide_banner","-loglevel","error","-y",
+                "-f","lavfi","-i","testsrc2=s=160x90:r=15","-t","2",
+                "-pix_fmt","yuv420p",str(video)],check=True)
+            scene={**fixture()["scenes"][0],"layout":"browser"}
+            result=render_light_scene(scene,root/"out.mp4",root,1,30,75,640,360,
+                                     moving_preview=video)
+            self.assertTrue(result["embedded_video"])
+            self.assertEqual(result["duration"],2.5)
+
+    @unittest.skipUnless(shutil.which("ffmpeg") and shutil.which("ffprobe"),"FFmpeg required")
     def test_real_mp4_contains_motion_between_frames_not_just_cuts(self):
         with tempfile.TemporaryDirectory() as d:
             from PIL import Image,ImageChops
