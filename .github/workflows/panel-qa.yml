@@ -22,6 +22,6 @@ jobs:
         with:
           node-version: "22"
       - name: Testar painel e SQLite sem serviços pagos
-        run: node --test panel/test.mjs
+        run: node --test panel/test.mjs panel/studio.test.mjs
       - name: Validar sintaxe do adaptador self-hosted
         run: node --check panel/local-server.mjs
