@@ -2,6 +2,20 @@
 
 Controlador de vídeos para **GitHub Actions**, sem seu PC ligado e sem APIs pagas obrigatórias. Usa o motor original [MoneyPrinterTurbo](https://github.com/harry0703/MoneyPrinterTurbo), versão `mpt==1.3.9`, e componentes locais.
 
+## Stack de vídeos P0–P2 — cortes, motion e animações 3D (opt-in)
+
+O modo `github_cinematic` mantém o editor de slides animados da `main` e aceita
+um objeto `motion` opcional: corte seco, gancho local sem câmera lenta,
+abertura espacial em 30 FPS (FFmpeg/Pillow ou Three.js), indexação com
+PySceneDetect, Auto-Editor, projetos HyperFrames/OpenScreen e clipes Motion Canvas.
+Nenhuma API ou serviço pago é necessário; adaptadores extras são instalados
+somente quando selecionados. O vídeo resultante e os relatórios ficam nos
+**Artifacts**, sem publicação automática.
+
+- [Manual P0–P2, requisitos e execução](docs/video-stack-p0-p2.md)
+- [Pedido de exemplo com roteiro completo](docs/examples/artisys-oito-repositorios-motion-p0-p2.json)
+- Workflow de QA: **QA P0-P2 — cortes, áudio e motion local**
+
 ## Como pedir um vídeo pelo ChatGPT + GitHub
 
 1. Crie **um novo** arquivo JSON em `requests/` na branch **main**. O ChatGPT com o GitHub conectado pode criar esse arquivo usando as ferramentas de escrita do repositório.

@@ -1,0 +1,9 @@
+{
+  "name": "moneyprint-three-universe",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Three.js local zero-API universe animation",
+  "dependencies": {
+    "three": "0.170.0"
+  }
+}

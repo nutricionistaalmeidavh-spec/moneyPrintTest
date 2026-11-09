@@ -4,6 +4,7 @@ Replaces the unsuccessful full-screen screen-recording aesthetic for the
 github_cinematic mode. Does not ingest or re-encode any frame of the old MOV.
 """
 from __future__ import annotations
+import re
 import json
 import subprocess
 from pathlib import Path
@@ -37,7 +38,7 @@ def duration_of(path:Path)->float:
         text=True,timeout=30).strip())
 
 
-def render_motion_first(request:dict,dest:Path,runtime:Path,env:dict)->dict:
+def _render_motion_base(request:dict,dest:Path,runtime:Path,env:dict)->dict:
     from scripts.render_request import download_piper
     from scripts.cinematic_render import estimate_subtitles,write_srt
 
@@ -162,3 +163,65 @@ def render_motion_first(request:dict,dest:Path,runtime:Path,env:dict)->dict:
     (dest/"resultado.json").write_text(
         json.dumps(result,ensure_ascii=False,indent=2),encoding="utf-8")
     return result
+
+
+
+def shift_srt_cues(content: str, seconds: float) -> str:
+    """Shift real SRT timestamps after intro, without changing spoken text."""
+    if not isinstance(seconds, (int, float)) or seconds < 0 or seconds != seconds:
+        raise ValueError("Deslocamento de legendas inválido")
+
+    def add_timestamp(value: str) -> str:
+        hours, minutes, rest = value.split(":")
+        secs, millis = rest.split(",")
+        total = ((int(hours) * 3600 + int(minutes) * 60 + int(secs)) * 1000
+                 + int(millis) + round(seconds * 1000))
+        h, remaining = divmod(total, 3600000)
+        minute, remaining = divmod(remaining, 60000)
+        sec, ms = divmod(remaining, 1000)
+        return f"{h:02d}:{minute:02d}:{sec:02d},{ms:03d}"
+
+    times = re.compile(r"(?m)^(\d{2}:\d{2}:\d{2},\d{3}) --> (\d{2}:\d{2}:\d{2},\d{3})([^\n]*)$")
+    return times.sub(lambda match: (
+        add_timestamp(match.group(1)) + " --> " +
+        add_timestamp(match.group(2)) + match.group(3)), content)
+
+
+def render_motion_first(request:dict,dest:Path,runtime:Path,env:dict)->dict:
+    """Preserve animated-slides v2 from main, then opt into P0-P2 post-production."""
+    from scripts.video_stack import normalize_motion_options, render_stack
+    opts = normalize_motion_options(request.get("motion", {}))
+    result = _render_motion_base(request, dest, runtime, env)
+    active = (opts["hook_asset"] is not None or opts["universe_seconds"]>0
+              or opts["auto_cut"] or opts["scene_index"]
+              or opts["hyperframes_project"] or opts["openscreen_project"]
+              or opts["motion_canvas_clip"])
+    if not active:
+        return result
+    original = Path(result["output"])
+    if not original.is_file():
+        raise RuntimeError("Pipeline animado não produziu MP4")
+    updated = render_stack(original, dest/"video_1_motion.mp4",
+                           options=opts, assets=Path.cwd()/"assets")
+    merged = dict(result)
+    merged["original_output"] = str(original)
+    merged["output"] = updated["output"]
+    merged["duration_seconds"] = updated["duration_seconds"]
+    merged["motion_stack"] = updated
+    # Keep original SRT with the original edit, and write a shifted copy for
+    # the extended video. Auto-Editor changes timing, so cannot be shifted safely.
+    if not opts["auto_cut"]:
+        subtitle = dest / "legendas_estimadas.srt"
+        if subtitle.is_file():
+            offset = updated.get("body_audio_offset_seconds", 0)
+            shifted = dest / "legendas_motion.srt"
+            shifted.write_text(
+                shift_srt_cues(subtitle.read_text(encoding="utf-8"), offset),
+                encoding="utf-8"
+            )
+            merged["subtitle_file"] = str(shifted)
+    if opts["auto_cut"]:
+        merged["subtitle_note"] = "Recrie o SRT após cortes automáticos; tempos antigos inválidos"
+    (dest/"resultado.json").write_text(
+        json.dumps(merged,ensure_ascii=False,indent=2),encoding="utf-8")
+    return merged

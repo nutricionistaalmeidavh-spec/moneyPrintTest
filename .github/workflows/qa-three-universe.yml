@@ -1,0 +1,42 @@
+name: QA P2 — Three.js universe local WebGL
+on:
+  pull_request:
+    paths:
+      - "scripts/motion_design.py"
+      - "scripts/qa_three_universe.py"
+      - "motion/three-universe/**"
+      - ".github/workflows/qa-three-universe.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  webgl:
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+      - name: Install free and local renderer dependencies
+        run: |
+          sudo apt-get update -qq
+          sudo apt-get install -y ffmpeg
+          python -m pip install "Pillow==11.3.0" "playwright==1.56.0"
+          python -m playwright install --with-deps chromium
+          npm install --prefix motion/three-universe --ignore-scripts --no-audit --no-fund
+      - name: Render actual Three.js frames to MP4
+        run: python -m scripts.qa_three_universe
+      - name: Save MP4, frame and codec QA report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: moneyprint-three-universe-qa
+          path: qa-three-universe/
+          retention-days: 7
+          if-no-files-found: warn

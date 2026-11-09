@@ -66,7 +66,7 @@ def validate_request(raw: dict) -> dict:
     if not isinstance(raw, dict):
         raise RequestError("O pedido deve ser JSON objeto")
     extra = set(raw) - {"topic", "script", "terms", "duration_seconds",
-                        "aspect", "visual_mode", "repo_urls", "cinematic", "sections", "media_clips", "include_verified_news"}
+                        "aspect", "visual_mode", "repo_urls", "cinematic", "sections", "media_clips", "include_verified_news", "motion"}
     if extra:
         raise RequestError(f"Campos proibidos: {sorted(extra)}")
     topic = raw.get("topic")
@@ -114,6 +114,13 @@ def validate_request(raw: dict) -> dict:
             raise RequestError(str(exc)) from exc
     elif "sections" in raw:
         raise RequestError("sections exige visual_mode github_cinematic")
+    from scripts.video_stack import VideoStackError, normalize_motion_options
+    if "motion" in raw and mode != "github_cinematic":
+        raise RequestError("motion exige visual_mode github_cinematic")
+    try:
+        motion = normalize_motion_options(raw.get("motion", {}))
+    except VideoStackError as exc:
+        raise RequestError(str(exc)) from exc
     include_verified_news = raw.get("include_verified_news", False)
     if type(include_verified_news) is not bool or (include_verified_news and not cinematic):
         raise RequestError("include_verified_news é booleano e exige cinematic")
@@ -137,7 +144,8 @@ def validate_request(raw: dict) -> dict:
             "duration_seconds": duration, "aspect": aspect,
             "visual_mode": mode, "repo_urls": repo_urls,
             "cinematic": cinematic, "sections": sections,
-            "media_clips": verified_clips, "include_verified_news": include_verified_news}
+            "media_clips": verified_clips, "include_verified_news": include_verified_news,
+            "motion": motion}
 
 
 def select_visual_mode(mode: str, env: dict) -> str:

@@ -1,0 +1,50 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<style>
+html,body{margin:0;width:100%;height:100%;overflow:hidden;background:#050916}
+#space{position:absolute;inset:0;display:block;width:100%;height:100%}
+#headline{position:absolute;left:6%;right:6%;top:44%;color:#f6f7fc;
+text-align:center;font:700 clamp(28px,5vw,100px)/1.16 Arial,system-ui,sans-serif;
+letter-spacing:-.035em;text-shadow:0 8px 36px #050916cc;pointer-events:none}
+</style></head>
+<body>
+<canvas id="space"></canvas><div id="headline">OPEN SOURCE</div>
+<script type="module">
+import * as THREE from './node_modules/three/build/three.module.js';
+const canvas=document.querySelector('#space');
+const renderer=new THREE.WebGLRenderer({canvas,antialias:true,alpha:false,preserveDrawingBuffer:true});
+const W=window.innerWidth,H=window.innerHeight;
+renderer.setSize(W,H,false);renderer.setPixelRatio(1);
+renderer.setClearColor(0x050916);
+const scene=new THREE.Scene();
+const camera=new THREE.PerspectiveCamera(63,W/H,0.1,170);
+const count=1900;
+const points=new Float32Array(count*3);
+let seed=16642;const rnd=()=>{seed=(seed*1664525+1013904223)>>>0;return seed/4294967296;};
+for(let i=0;i<count;i++){
+  points[i*3]=(rnd()-.5)*130;
+  points[i*3+1]=(rnd()-.5)*90;
+  points[i*3+2]=-2-rnd()*120;
+}
+const geo=new THREE.BufferGeometry();
+geo.setAttribute('position',new THREE.BufferAttribute(points,3));
+const stars=new THREE.Points(geo,new THREE.PointsMaterial({
+  color:0xdde9ff,size:.22,sizeAttenuation:true,transparent:true,opacity:.83}));
+scene.add(stars);
+const hazeGeo=new THREE.SphereGeometry(15,32,16);
+const haze=new THREE.Mesh(hazeGeo,new THREE.MeshBasicMaterial({
+  color:0x242f68,transparent:true,opacity:.23,depthWrite:false,
+  side:THREE.BackSide}));
+haze.position.set(14,3,-48);haze.scale.set(2.5,1.1,.5);scene.add(haze);
+window.renderAt=(t)=>{
+  camera.position.z=-t*2.25;
+  camera.position.x=Math.sin(t*.36)*.7;
+  camera.rotation.z=t*.002;
+  stars.rotation.z=t*.0019;
+  renderer.render(scene,camera);
+};
+window.renderAt(0);
+</script>
+</body></html>
