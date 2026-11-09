@@ -1,5 +1,9 @@
 name: MoneyPrint Studio V3 — MP4 fiel à timeline
 on:
+  push:
+    branches: [main]
+    paths:
+      - 'projects/5-sistemas-empresas-github-v3.json'
   workflow_dispatch:
     inputs:
       project_path:
@@ -18,7 +22,7 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 120
     env:
-      PROJECT_PATH: ${{ inputs.project_path }}
+      PROJECT_PATH: ${{ inputs.project_path || 'projects/5-sistemas-empresas-github-v3.json' }}
       ALIGN_WORDS: ${{ inputs.align_words }}
     steps:
       - uses: actions/checkout@v4
