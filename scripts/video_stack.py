@@ -53,6 +53,8 @@ def normalize_motion_options(raw: object) -> dict:
     for key in ("auto_cut", "scene_index", "threejs"):
         if type(opts[key]) is not bool:
             raise VideoStackError(f"{key} deve ser booleano")
+    if opts["threejs"] and opts["universe_seconds"] <= 0:
+        raise VideoStackError("threejs exige universe_seconds > 0")
     if opts["transition"] not in ("cut", "fade", "wipeleft", "slideleft", "smoothleft", "circleopen"):
         raise VideoStackError("Transição não permitida; sem flash branco")
     if opts["aspect"] not in FORMATS:
@@ -144,19 +146,18 @@ def render_adapter(kind: str, source: Path, target: Path) -> Path:
     elif kind == "hyperframes":
         if not source.is_dir() or not (source / "index.html").is_file():
             raise VideoStackError("HyperFrames necessita de projeto com index.html")
-        if not shutil.which("npx"):
-            raise VideoStackError("Node.js 22+ e HyperFrames local são necessários")
+        executable = shutil.which("hyperframes")
+        if not executable:
+            raise VideoStackError("Instale HyperFrames CLI localmente com Node.js 22+")
         # CLI emits into the project. Use a copy of the project, never touch source files.
         with tempfile.TemporaryDirectory(prefix="moneyprint-hyperframes-") as temp:
             folder = Path(temp) / "project"
             shutil.copytree(source, folder, ignore=shutil.ignore_patterns("node_modules"))
-            completed = subprocess.run(
-                ["npx", "--no-install", "hyperframes", "render"], cwd=folder,
-                check=True, text=True, capture_output=True, timeout=1800)
-            candidates = [p for p in folder.rglob("*.mp4") if p.is_file()]
-            if not candidates:
+            subprocess.run([executable, "render", "--output", str(target.resolve())],
+                           cwd=folder, check=True, text=True,
+                           capture_output=True, timeout=1800)
+            if not target.is_file():
                 raise VideoStackError("HyperFrames não exportou MP4")
-            shutil.copy2(max(candidates, key=lambda f: f.stat().st_mtime), target)
     else:
         raise VideoStackError("Adaptador desconhecido")
     ffprobe_media(target)
