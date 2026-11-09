@@ -64,7 +64,7 @@ créditos antes de publicar. O sistema **não inventa notícias** nem seleciona
 arquivos inexistentes.
 
 O nome do vídeo, os repositórios, o roteiro de cada seção e os termos de
-contexto são controlados pelo JSON. Veja `requests/artisys-oito-repositorios-cinematic.json`
+contexto são controlados pelo JSON. Veja `docs/examples/artisys-oito-repositorios-cinematic.json`
 para a edição inédita dos oito projetos.
 
 A execução é pelo GitHub Actions e gera artifact para revisão, **sem
