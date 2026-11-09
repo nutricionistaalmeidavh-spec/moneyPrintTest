@@ -64,3 +64,22 @@ test("studio rejects unsafe references and invalid scene edits",async()=>{
   const noCsrf=await call("/api/studio/projects","POST",{topic:"Sem CSRF"},session,"invalid");
   assert.equal(noCsrf.status,403);
 });
+
+test("Studio V3 imports 300-second projects with layouts and keeps render protected",async()=>{
+  const {session,csrf}=await auth();
+  const old={schema_version:3,id:"old",revision:1,topic:"5 sistemas open source",script:"Teste de importação.",fps:30,aspect:"16:9",total_frames:9000,
+    tracks:[{id:"video",kind:"video"}],assets:[],scenes:[{id:"scene-001",track_id:"video",title:"ERPNext",text:"ERPNext organiza operações.",
+      kind:"text",asset_id:null,start_frame:0,duration_frames:9000,animation:"cut",framing:"contain",
+      layout:"browser",repo_url:"https://github.com/frappe/erpnext"}]};
+  const res=await call("/api/studio/projects/import","POST",{project:old},session,csrf);
+  assert.equal(res.status,201);
+  const p=(await res.json()).project;
+  assert.notEqual(p.id,old.id);
+  assert.equal(p.scenes[0].repo_url,"https://github.com/frappe/erpnext");
+  const requestRender=await call("/api/studio/projects/"+p.id+"/render","POST",{revision:p.revision},session,csrf);
+  assert.equal(requestRender.status,409); // No connected GitHub token.
+  const insecure={...old,scenes:old.scenes.map(x=>({...x,repo_url:"https://evil.example/other"}))};
+  const denied=await call("/api/studio/projects/import","POST",{project:insecure},session,csrf);
+  assert.equal(denied.status,400);
+  assert.equal((await call("/api/studio/projects/import","POST",{project:old})).status,401);
+});

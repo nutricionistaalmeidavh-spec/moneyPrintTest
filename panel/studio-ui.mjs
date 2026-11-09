@@ -36,6 +36,8 @@ function studioDraw(){
   by("studioSceneText").value=scene.text;
   by("studioSceneSeconds").value=Number((scene.duration_frames/30).toFixed(2));
   by("studioSceneAnimation").value=scene.animation||"cut";
+  by("studioSceneLayout").value=scene.layout||"hero";
+  by("studioSceneRepoUrl").value=scene.repo_url||"";
   by("studioSceneAsset").innerHTML='<option value="">Sem mídia</option>'+studio.assets.filter(function(a){return a.verified}).map(function(a){return '<option value="'+esc(a.id)+'">'+esc(a.title)+'</option>'}).join("");
   by("studioSceneAsset").value=scene.asset_id||"";
   by("studioTime").textContent=(scene.start_frame/30).toFixed(1)+"s – "+((scene.start_frame+scene.duration_frames)/30).toFixed(1)+"s · "+(studio.total_frames/30).toFixed(1)+"s total";
@@ -59,6 +61,8 @@ by("studioSceneText").addEventListener("change",function(){studioChange("text",t
 by("studioSceneSeconds").addEventListener("change",function(){var n=Math.round(Number(this.value)*30);if(!Number.isInteger(n)||n<1){notice("Informe duração maior que zero");return}studioChange("duration_frames",n)});
 by("studioSceneAnimation").addEventListener("change",function(){studioChange("animation",this.value)});
 by("studioSceneAsset").addEventListener("change",function(){studioChange("asset_id",this.value||null)});
+by("studioSceneLayout").addEventListener("change",function(){studioChange("layout",this.value)});
+by("studioSceneRepoUrl").addEventListener("change",function(){var url=this.value.trim();if(url&&!/^https:\/\/github\.com\/[A-Za-z0-9_.-]+\/[A-Za-z0-9_.-]+\/?$/.test(url)){notice("URL deve apontar para repositório público no GitHub");this.value=studio.scenes[studioIndex].repo_url||"";return}studioChange("repo_url",url)});
 function studioMove(dir){
  if(!studio)return;var next=studioIndex+dir;if(next<0||next>=studio.scenes.length)return;
  studioStop();studioSnapshot();var temp=studio.scenes[next];studio.scenes[next]=studio.scenes[studioIndex];studio.scenes[studioIndex]=temp;studioIndex=next;studioRecalc();studioInfo("Ordem alterada; salve a revisão.");studioDraw();
@@ -112,5 +116,27 @@ by("studioExport").addEventListener("click",function(){
 });
 
 
+by("studioImportButton").addEventListener("click",function(){by("studioImportFile").click()});
+by("studioImportFile").addEventListener("change",async function(){
+ const file=this.files?.[0];if(!file)return;
+ try{
+   if(file.size>64000)throw Error("Storyboard ultrapassa 64 KB");
+   const parsed=JSON.parse(await file.text());
+   const result=await request("/api/studio/projects/import","POST",{project:parsed});
+   studioLoad(result.project);await studioList();by("studioProjectSelect").value=result.project.id;
+   notice("Storyboard importado e salvo como novo projeto.");
+ }catch(e){notice("Importação não realizada: "+e.message)}
+ finally{this.value=""}
+});
+by("studioRender").addEventListener("click",async function(){
+ if(!studio)return;
+ if(studioUndo.length){notice("Salve a revisão antes de renderizar o MP4.");return}
+ const btn=this;btn.disabled=true;
+ try{
+   const result=await request("/api/studio/projects/"+encodeURIComponent(studio.id)+"/render","POST",{revision:studio.revision});
+   studioInfo("Render solicitado: "+result.project_path+". Veja o resultado em Execuções.");
+   notice("Render solicitado ao GitHub Actions. Sem publicação automática.");
+ }catch(e){notice("Render não solicitado: "+e.message)}finally{btn.disabled=false}
+});
 return {refresh:studioList,stop:studioStop};
 }

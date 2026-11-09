@@ -1,0 +1,90 @@
+name: MoneyPrint Studio V3 — MP4 fiel à timeline
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'projects/5-sistemas-empresas-github-v3.json'
+  workflow_dispatch:
+    inputs:
+      project_path:
+        description: 'JSON V3 salvo em studio-requests/ ou projects/'
+        required: true
+        type: string
+      align_words:
+        description: 'Marcação aproximada por palavra com faster-whisper (opcional, CPU)'
+        required: false
+        default: false
+        type: boolean
+permissions:
+  contents: read
+jobs:
+  studio-render:
+    runs-on: ubuntu-latest
+    timeout-minutes: 120
+    env:
+      PROJECT_PATH: ${{ inputs.project_path || 'projects/5-sistemas-empresas-github-v3.json' }}
+      ALIGN_WORDS: ${{ inputs.align_words }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - name: Validar arquivo do projeto e contrato canônico
+        run: |
+          python - <<'PY'
+          import json, os, re
+          from pathlib import Path
+          from scripts.studio_render import build_plan
+          path = os.environ['PROJECT_PATH']
+          if not re.fullmatch(r'(?:studio-requests|projects)/[A-Za-z0-9_.-]{1,100}\.json',path) or '..' in path:
+              raise SystemExit('Caminho de projeto fora das pastas autorizadas')
+          file = Path(path)
+          if not file.is_file() or file.stat().st_size > 64000:
+              raise SystemExit('Projeto ausente ou maior que 64 KB')
+          project = json.loads(file.read_text(encoding='utf-8'))
+          plan=build_plan(project)
+          print(f"Plano verificado: {len(plan['scenes'])} cenas, {plan['total_frames']} frames")
+          PY
+      - name: Instalar ferramentas open source
+        run: |
+          sudo apt-get update -qq
+          sudo apt-get install -y ffmpeg fonts-lato fonts-dejavu-core
+          python -m pip install 'Pillow==11.3.0' 'piper-tts==1.8.0' 'playwright==1.56.0'
+          python -m playwright install --with-deps chromium
+          if [ "$ALIGN_WORDS" = 'true' ]; then python -m pip install 'faster-whisper==1.2.1'; fi
+      - name: Baixar voz Piper com verificação SHA256
+        run: |
+          python - <<'PY'
+          from pathlib import Path
+          from scripts.render_request import download_piper
+          print(download_piper(Path('/tmp/moneyprint-voice')))
+          PY
+      - name: Renderizar Studio V3
+        run: |
+          extra=()
+          if [ "$ALIGN_WORDS" = 'true' ]; then extra=(--align-words); fi
+          python -m scripts.studio_render --input "$PROJECT_PATH" --root . \
+            --output "outputs/studio-${{ github.run_id }}" --voice piper \
+            --voice-model /tmp/moneyprint-voice/pt_BR-faber-medium.onnx \
+            --capture-github "${extra[@]}"
+      - name: Validar MP4 real sem bloquear por escolhas estéticas
+        run: |
+          python - <<'PY'
+          import json,subprocess
+          from pathlib import Path
+          output=Path('outputs/studio-${{ github.run_id }}')
+          data=json.loads((output/'diagnostico.json').read_text(encoding='utf-8'))
+          media=json.loads(subprocess.check_output(['ffprobe','-v','error','-show_streams','-of','json',data['output']],text=True))
+          assert any(x['codec_type']=='audio' for x in media['streams']),'Audio ausente'
+          assert any(x['codec_type']=='video' for x in media['streams']),'Video ausente'
+          assert data['autopublish'] is False
+          print('QA técnico aprovado. Revisão visual humana recomendada antes de publicar.')
+          PY
+      - name: Disponibilizar MP4, fontes, licenças e relatório
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: moneyprint-studio-${{ github.run_id }}
+          path: outputs/
+          retention-days: 7
+          if-no-files-found: warn
