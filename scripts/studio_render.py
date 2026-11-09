@@ -316,10 +316,11 @@ def render_project(project: dict, root: Path, output_dir: Path, *, voice: str="n
             if tempo>2.0:
                 raise RenderError("Narração longa demais para a cena "+scene["id"]+"; aumente a duração")
         out=scratch/f"clip_{index:03d}.mp4"
-        if plan["visual_style"]=="light_motion" and not (asset and asset.suffix.lower() in VIDEO_EXT):
+        if plan["visual_style"]=="light_motion":
             from scripts.studio_light_motion import render_light_scene
             motion=render_light_scene(scene,out,scratch,index,fps,count,width,height,
-                screenshot=image_asset,narration=narration,tempo=tempo)
+                screenshot=image_asset,narration=narration,tempo=tempo,
+                moving_preview=asset if (asset and asset.suffix.lower() in VIDEO_EXT) else demo)
             total_beats+=motion["animated"]
             playlist.append(out)
             all_cues.extend(word_cues(scene["text"],scene["start_frame"]/fps,duration))
