@@ -306,11 +306,16 @@ if(path==="/api/render"&&req.method==="POST"){
  }
  const file="requests/panel-"+new Date().toISOString().slice(0,10)+"-"+crypto.randomUUID().slice(0,12)+".json";
  const raw=JSON.stringify(request,null,2)+"\n";
- const created=await gh("/contents/"+file,"PUT",t,{message:"video: pedido via painel ArtiSys - "+title.slice(0,60),content:b64(u8(raw)),branch:"main"});
+ const created=await gh("/contents/"+file,"PUT",t,{message:"video: pedido via painel ArtiSys - "+title.slice(0,60),content:b64(u8(raw)).replace(/-/g,"+").replace(/_/g,"/"),branch:"main"});
+ if(cine&&request.visual_style==="talkcraft_edu"){
+   // Native Talkcraft is NOT installed in render.yml; dispatch its dedicated runner.
+   await gh("/actions/workflows/talkcraft-render.yml/dispatches","POST",t,
+       {ref:"main",inputs:{request_path:file,smoke:"false"}});
+ }
  const now=new Date().toISOString();
- await env.DB.prepare("INSERT INTO jobs(id,kind,title,status,request_path,github_sha,workflow,details,created_at,updated_at) VALUES(?,?,?,?,?,?,?,?,?,?)").bind(crypto.randomUUID(),"render",title,"solicitado",file,created.commit?.sha||null,"render.yml",JSON.stringify({duration,aspect,mode}),now,now).run();
+ await env.DB.prepare("INSERT INTO jobs(id,kind,title,status,request_path,github_sha,workflow,details,created_at,updated_at) VALUES(?,?,?,?,?,?,?,?,?,?)").bind(crypto.randomUUID(),"render",title,"solicitado",file,created.commit?.sha||null,(cine&&request.visual_style==="talkcraft_edu")?"talkcraft-render.yml":"render.yml",JSON.stringify({duration,aspect,mode}),now,now).run();
  await audit(env,"render",file);
- return j({created:true,request_path:file,github_sha:created.commit?.sha||null},201);
+ return j({created:true,request_path:file,github_sha:created.commit?.sha||null,workflow:(cine&&request.visual_style==="talkcraft_edu")?"talkcraft-render.yml":"render.yml"},201);
 }
 if(path==="/api/dispatch"&&req.method==="POST"){const t=await token(env);if(!t)return err("GitHub não conectado",409);const body=await parse(req);const wf=body.workflow;const input=body.inputs||{};if(!WORKFLOWS.includes(wf)||typeof input!=="object"||Array.isArray(input))return err("Workflow não permitido");let safe={};if(wf==="render.yml"){if(!/^requests\/[A-Za-z0-9][A-Za-z0-9_.-]{0,90}\.json$/.test(input.request_path||"")||String(input.request_path).includes(".."))return err("Caminho de pedido inválido");safe.request_path=input.request_path}else if(wf==="tutorial-vertical.yml"){if(!validFile(input.source_file)||!input.source_file.endsWith(".mp4")||!validFile(input.hook_file)||!input.hook_file.endsWith(".mp4")||!validFile(input.recipe)||!input.recipe.endsWith(".json"))return err("Arquivos de tutorial inválidos");safe={source_file:input.source_file,hook_file:input.hook_file,recipe:input.recipe}}await gh("/actions/workflows/"+wf+"/dispatches","POST",t,{ref:"main",inputs:safe});const now=new Date().toISOString();await env.DB.prepare("INSERT INTO jobs(id,kind,title,status,workflow,details,created_at,updated_at) VALUES(?,?,?,?,?,?,?,?)").bind(crypto.randomUUID(),"workflow",wf,"disparo solicitado",wf,JSON.stringify(safe),now,now).run();await audit(env,"dispatch",wf);return j({requested:true,workflow:wf},202)}
 return err("Rota não encontrada",404)}
