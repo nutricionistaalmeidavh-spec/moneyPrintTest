@@ -77,7 +77,7 @@ def _arrow(d, x0, y, x1, thickness, color=BLUE):
     d.polygon([(x1,y),(x1-unit,y-unit*.6),(x1-unit,y+unit*.6)], fill=color)
 
 
-def _flow(d, labels, w, h, pad, portrait):
+def _flow(d, labels, w, h, pad, portrait, stage=2):
     if portrait:
         gap=int(h*.025)
         top=int(h*.47)
@@ -86,16 +86,16 @@ def _flow(d, labels, w, h, pad, portrait):
         right=w-pad
         for i,label in enumerate(labels):
             y=top+i*(card_h+gap)
-            _round(d,(left,y,right,y+card_h),radius=int(w*.024))
+            _round(d,(left,y,right,y+card_h),fill=PANEL if i<=stage else (18,31,47),outline=BLUE if i<=stage else BORDER,radius=int(w*.024))
             d.ellipse((left+int(w*.05),y+int(card_h*.31),
-                       left+int(w*.12),y+int(card_h*.69)),fill=(54,132,163))
+                       left+int(w*.12),y+int(card_h*.69)),fill=(54,132,163) if i<=stage else BORDER)
             _center_text(d,(left+int(w*.16),y,right-int(w*.025),y+card_h),
-                         label,int(w*.045),bold=True)
+                         label,int(w*.045),fill=WHITE if i<=stage else MUTED,bold=True)
             if i<2:
                 ax=w//2
-                d.line((ax,y+card_h+3,ax,y+card_h+gap-6),fill=BLUE,width=max(2,int(w*.004)))
+                d.line((ax,y+card_h+3,ax,y+card_h+gap-6),fill=BLUE if i<stage else BORDER,width=max(2,int(w*.004)))
                 d.polygon([(ax,y+card_h+gap-2),(ax-6,y+card_h+gap-10),
-                           (ax+6,y+card_h+gap-10)],fill=BLUE)
+                           (ax+6,y+card_h+gap-10)],fill=BLUE if i<stage else BORDER)
         return
     top=int(h*.50)
     card_h=int(h*.31)
@@ -103,17 +103,17 @@ def _flow(d, labels, w, h, pad, portrait):
     card_w=(w-2*pad-2*gap)//3
     for i,label in enumerate(labels):
         x=pad+i*(card_w+gap)
-        _round(d,(x,top,x+card_w,top+card_h),radius=int(w*.011))
+        _round(d,(x,top,x+card_w,top+card_h),fill=PANEL if i<=stage else (18,31,47),outline=BLUE if i<=stage else BORDER,radius=int(w*.011))
         _center_text(d,(x+15,top+int(card_h*.16),x+card_w-15,top+int(card_h*.74)),
-                     label,int(w*.023),bold=True)
+                     label,int(w*.023),fill=WHITE if i<=stage else MUTED,bold=True)
         d.rounded_rectangle((x+int(card_w*.21),top+int(card_h*.8),
                              x+int(card_w*.79),top+int(card_h*.825)),
-                            radius=3, fill=(72,152,181))
+                            radius=3, fill=(72,152,181) if i<=stage else BORDER)
         if i<2:
-            _arrow(d,x+card_w+4,top+card_h//2,x+card_w+gap-7,max(2,int(w*.002)))
+            _arrow(d,x+card_w+4,top+card_h//2,x+card_w+gap-7,max(2,int(w*.002)),color=BLUE if i<stage else BORDER)
 
 
-def _comparison(d, before_after, w, h, pad, portrait):
+def _comparison(d, before_after, w, h, pad, portrait, stage=2):
     pairs = [("ANTES",before_after[0],(65,78,98)),("COM OPEN SOURCE",before_after[1],(32,89,95))]
     top=int(h*.48) if not portrait else int(h*.46)
     if portrait:
@@ -127,7 +127,7 @@ def _comparison(d, before_after, w, h, pad, portrait):
     for i,(label,description,color) in enumerate(pairs):
         x=pad if portrait else pad+i*(card_w+gap)
         y=top+i*(card_h+gap) if portrait else top
-        _round(d,(x,y,x+card_w,y+card_h),fill=color,radius=int(min(w,h)*.017))
+        _round(d,(x,y,x+card_w,y+card_h),fill=color if i<=stage//2 else (22,37,52),radius=int(min(w,h)*.017))
         lf=_font(max(13,int(w*(.019 if not portrait else .04))),True)
         d.text((x+int(card_w*.065),y+int(card_h*.17)),label,font=lf,
                fill=GOLD if i==0 else GREEN)
@@ -136,19 +136,19 @@ def _comparison(d, before_after, w, h, pad, portrait):
                      description,int(w*(.03 if not portrait else .048)),bold=True)
 
 
-def _repo_badges(d, w,h,pad, portrait):
+def _repo_badges(d, w,h,pad, portrait, stage=2):
     tags=["Código público","Self-hosted","Sem API paga"]
     base_y=int(h*.62) if not portrait else int(h*.57)
     for i,tag in enumerate(tags):
         x=pad if not portrait else pad
         y=base_y+i*int(h*.07)
         cw=int(w*.37) if not portrait else w-2*pad
-        _round(d,(x,y,x+cw,y+int(h*.054)),fill=(29,54,78),radius=int(min(w,h)*.009))
+        _round(d,(x,y,x+cw,y+int(h*.054)),fill=(29,54,78) if i<=stage else (19,34,49),radius=int(min(w,h)*.009))
         font=_font(max(13,int(w*(.019 if not portrait else .041))),True)
         d.text((x+int(w*.016),y+int(h*.011)),tag,font=font,fill=(195,228,239))
 
 
-def _outro(d,w,h,pad,portrait):
+def _outro(d,w,h,pad,portrait,stage=2):
     labels=["ERPNext","Twenty CRM","Chatwoot","Plane","Paperless-ngx"]
     cols=1 if portrait else 3
     start=int(h*.48) if not portrait else int(h*.48)
@@ -160,26 +160,26 @@ def _outro(d,w,h,pad,portrait):
         row=i//cols
         x=pad+col*(cw+gap)
         y=start+row*(ch+gap)
-        _round(d,(x,y,x+cw,y+ch),fill=(28,57,78),radius=max(8,int(w*.009)))
+        _round(d,(x,y,x+cw,y+ch),fill=(28,57,78) if i <= [1,3,4][stage] else (19,34,49),radius=max(8,int(w*.009)))
         _center_text(d,(x+7,y,x+cw-7,y+ch),label,
                      max(14,int(w*(.021 if not portrait else .046))),bold=True)
 
 
 def paint_layout(image, scene: dict, pad: int, title_bottom: int,
-                 width: int, height: int, has_asset: bool) -> None:
+                 width: int, height: int, has_asset: bool, stage: int=2) -> None:
     """Paint relevant diagram, comparison or project selector below the title."""
     d=ImageDraw.Draw(image)
     layout=scene.get("layout","hero")
     portrait=height>width
     labels, before_after=business_diagram(scene)
     if layout=="flow":
-        _flow(d,labels,width,height,pad,portrait)
+        _flow(d,labels,width,height,pad,portrait,stage=stage)
     elif layout=="split":
-        _comparison(d,before_after,width,height,pad,portrait)
+        _comparison(d,before_after,width,height,pad,portrait,stage=stage)
     elif layout=="browser":
-        _repo_badges(d,width,height,pad,portrait)
+        _repo_badges(d,width,height,pad,portrait,stage=stage)
     elif layout in ("minimal","quote"):
-        _outro(d,width,height,pad,portrait)
+        _outro(d,width,height,pad,portrait,stage=stage)
     elif layout=="hero":
         labels=("GESTÃO","ATENDIMENTO","PRODUTIVIDADE")
         _flow(d,labels,width,height,pad,portrait)
