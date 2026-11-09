@@ -118,7 +118,8 @@ def ass_safe(value: str) -> str:
             .replace("}", "）").replace(",", "，"))
 
 
-def build_ass(plan: list[dict], duration: float, size=(1920,1080)) -> str:
+def build_ass(plan: list[dict], duration: float, size=(1920,1080), news_records: dict | None = None) -> str:
+    news_records = news_records or {}
     w,h=size
     sc=w/1920
     title_size=int(52*sc)
@@ -151,6 +152,28 @@ def build_ass(plan: list[dict], duration: float, size=(1920,1080)) -> str:
         event(start+.35,stop,"Subtitle",
               "{\\an7\\pos("+str(x)+","+str(y+112*sc)+")\\fad(250,250)}"
               +ass_safe(item["subtitle"]))
+    for item in plan:
+        news = news_records.get(item["index"])
+        if not news:
+            continue
+        # News is allowed only as retrieved, verifiable source data, never as
+        # generated claims or synthetic screenshots.
+        from datetime import datetime
+        title = str(news["headline"]).strip()
+        if len(title) > 82:
+            title = title[:79].rstrip() + "…"
+        outlet = str(news["publisher"])[:48]
+        date = str(news["published_at"])[:10]
+        st = min(item["end"]-4.6, item["start"]+max(14.0, (item["end"]-item["start"])*.68))
+        en = min(item["end"]-.5, st+4.0)
+        if en <= st:
+            continue
+        by = int(h-256*sc)
+        event(st,en,"Shape", "{\\an7\\pos("+str(int(72*sc))+","+str(by)+")\\p1\\1c&H100F24&\\1a&H20&\\fad(280,320)}"
+              + f"m 0 0 l {int(1510*sc)} 0 l {int(1510*sc)} {int(196*sc)} l 0 {int(196*sc)} ")
+        event(st+.1,en,"Tag","{\\an7\\pos("+str(int(98*sc))+","+str(by+24*sc)+")\\fad(220,250)}"+ass_safe("NOTÍCIA  ·  FONTE VERIFICADA"))
+        event(st+.25,en,"Subtitle","{\\an7\\pos("+str(int(98*sc))+","+str(by+70*sc)+")\\fad(260,260)}"+ass_safe(title))
+        event(st+.3,en,"Tag","{\\an7\\pos("+str(int(98*sc))+","+str(by+124*sc)+")\\fad(260,260)}"+ass_safe(outlet+"  ·  "+date))
     tail=max(0,duration-6)
     event(tail,duration-.15,"Title",
           "{\\an7\\pos("+str(x)+","+str(y)+")\\fad(260,350)}"
@@ -171,7 +194,8 @@ def build_ass(plan: list[dict], duration: float, size=(1920,1080)) -> str:
 
 
 def render_cinematic(source: Path, target: Path, repo_urls: list[str], *,
-                     broll_paths: dict[int, Path] | None = None,
+                     broll_paths: dict[int, Path | list[Path]] | None = None,
+                     news_records: dict | None = None,
                      chapter_starts: list[float] | None = None,
                      size=(1920,1080), quality="veryfast") -> dict:
     source,target=Path(source),Path(target)
@@ -183,7 +207,7 @@ def render_cinematic(source: Path, target: Path, repo_urls: list[str], *,
     plan=cinematic_plan(repo_urls,duration,chapter_starts)
     target.parent.mkdir(parents=True,exist_ok=True)
     ass=target.parent/"cinematic_titles.ass"
-    ass.write_text(build_ass(plan,duration,size),encoding="utf-8")
+    ass.write_text(build_ass(plan,duration,size,news_records=news_records),encoding="utf-8")
     width,height=size
     filters=[f"[0:v]scale={width}:{height}:flags=lanczos,setsar=1,format=yuv420p[base]"]
     current="base"
@@ -191,23 +215,36 @@ def render_cinematic(source: Path, target: Path, repo_urls: list[str], *,
     broll_paths=broll_paths or {}
     used=[]
     for item in plan:
-        candidate=broll_paths.get(item["index"])
-        if not candidate or item["broll_seconds"] < 1.5:continue
-        candidate=Path(candidate)
-        if not candidate.is_file():continue
-        idx=len(inputs)//2
-        inputs+=["-i",str(candidate)]
-        name=f"br{idx}"
-        offset=item["broll_start"]
-        seconds=item["broll_seconds"]
-        filters.append(f"[{idx}:v]trim=duration={seconds:.3f},setpts=PTS-STARTPTS+{offset:.3f}/TB,"
-                       f"scale={width}:{height}:force_original_aspect_ratio=increase,"
-                       f"crop={width}:{height},setsar=1,format=yuv420p[{name}]")
-        new=f"comp{idx}"
-        filters.append(f"[{current}][{name}]overlay=0:0:enable='between(t,{offset:.3f},{offset+seconds:.3f})':eof_action=pass[{new}]")
-        current=new
-        used.append({"index":item["index"],"file":str(candidate),"start":offset,
-                     "seconds":seconds})
+        selected = broll_paths.get(item["index"])
+        if not selected:
+            continue
+        candidates = selected if isinstance(selected, (list, tuple)) else [selected]
+        time_span = item["end"]-item["start"]
+        if time_span < 7:
+            continue
+        for n,candidate in enumerate(candidates[:4]):
+            candidate=Path(candidate)
+            if not candidate.is_file():
+                continue
+            idx=len(inputs)//2
+            inputs+=["-stream_loop","-1","-i",str(candidate)]
+            slots = (0.21,0.41,0.61,0.78)
+            offset=item["start"]+time_span*slots[n]
+            seconds=min(4.5,time_span*.14,item["end"]-offset-.7)
+            if seconds < 1.5:
+                continue
+            name=f"br{idx}"
+            filters.append(
+                f"[{idx}:v]trim=duration={seconds:.3f},setpts=PTS-STARTPTS+{offset:.3f}/TB,"
+                f"scale={width}:{height}:force_original_aspect_ratio=increase,"
+                f"crop={width}:{height},setsar=1,format=yuva420p,"
+                f"fade=t=in:st={offset:.3f}:d=0.24:alpha=1,"
+                f"fade=t=out:st={offset+seconds-.26:.3f}:d=0.25:alpha=1[{name}]")
+            new=f"comp{idx}"
+            filters.append(f"[{current}][{name}]overlay=0:0:eof_action=pass[{new}]")
+            current=new
+            used.append({"index":item["index"],"file":str(candidate),"start":offset,
+                         "seconds":seconds})
     # ASS is added last so animated title stays legible on top of B-roll.
     escaped=str(ass.resolve()).replace("\\","\\\\").replace(":","\\:")
     filters.append(f"[{current}]ass=filename='{escaped}',format=yuv420p[out]")
@@ -224,7 +261,8 @@ def render_cinematic(source: Path, target: Path, repo_urls: list[str], *,
     if not target.is_file() or target.stat().st_size < 4000:
         raise RuntimeError("Render cinematográfico não produziu MP4 válido")
     result={"source":str(source),"output":str(target),"duration":duration,
-            "resolution":list(size),"repos":plan,"broll_used":used}
+            "resolution":list(size),"repos":plan,"broll_used":used,
+            "verified_news":list(news_records.values()) if news_records else []}
     (target.parent/"cinematic_manifest.json").write_text(
         json.dumps(result,ensure_ascii=False,indent=2),encoding="utf-8")
     return result
