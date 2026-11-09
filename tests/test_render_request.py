@@ -67,6 +67,28 @@ class RenderTests(unittest.TestCase):
                               "repo_urls": ["https://github.com/a/b"],
                               "cinematic": "yes"})
 
+    def test_uploaded_videos_gifs_and_verified_news_are_opt_in(self):
+        data = validate_request({
+            "topic": "8 repos", "visual_mode": "github_cinematic",
+            "repo_urls": ["https://github.com/appwrite/appwrite"],
+            "sections": [{"repo_url": "https://github.com/appwrite/appwrite",
+                          "title": "Appwrite",
+                          "narration": "O projeto ajuda a criar backends para aplicativos."}],
+            "media_clips": [
+                {"repo_index": 1, "path": "assets/restaurante.mov"},
+                {"repo_index": 1, "path": "assets/demo.gif"},
+                {"repo_index": 1, "path": "assets/video.webm"}],
+            "include_verified_news": True
+        })
+        self.assertEqual(len(data["media_clips"]), 3)
+        self.assertTrue(data["include_verified_news"])
+        with self.assertRaises(RequestError):
+            validate_request({"topic": "x", "include_verified_news": True})
+        with self.assertRaises(RequestError):
+            validate_request({"topic": "x", "visual_mode": "github",
+                              "repo_urls": ["https://github.com/a/b"],
+                              "media_clips": [{"repo_index": 1, "path": "../secret.mp4"}]})
+
     def test_free_stock_and_offline_fallback(self):
         self.assertEqual(select_visual_mode("auto", {}), "wikimedia")
         self.assertEqual(select_visual_mode("stock", {}), "wikimedia")
