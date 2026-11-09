@@ -169,7 +169,14 @@ async function studioRoute(req,env,path){
     const raw=b64(u8(JSON.stringify(project))).replace(/-/g,"+").replace(/_/g,"/");
     const content=raw+"=".repeat((4-raw.length%4)%4);
     try{
-      await gh("/contents/"+file,"PUT",t,{message:"studio: pedido canônico "+id+" r"+row.revision,content,branch:"main"});
+      // Re-rendering a saved revision is idempotent: update the existing file with its SHA.
+      // No user-controlled repository path, arbitrary command or external service.
+      let previous=null;
+      try{previous=await gh("/contents/"+file,"GET",t)}
+      catch(e){if(!String(e.message).startsWith("GitHub 404:"))throw e}
+      const payload={message:"studio: pedido canônico "+id+" r"+row.revision,content,branch:"main"};
+      if(previous?.sha)payload.sha=previous.sha;
+      await gh("/contents/"+file,"PUT",t,payload);
       await gh("/actions/workflows/studio-render.yml/dispatches","POST",t,{ref:"main",inputs:{project_path:file,align_words:"false"}});
     }catch(e){return err("Não foi possível solicitar render: "+String(e.message).slice(0,140),502)}
     const now=new Date().toISOString();
