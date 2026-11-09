@@ -24,7 +24,7 @@ on:
         required: false
         type: string
       smoke:
-        description: "Renderizar os primeiros 3 segundos (QA)"
+        description: "Renderizar três efeitos reais do Talkcraft (9 s, QA)"
         required: false
         default: false
         type: boolean
@@ -135,7 +135,13 @@ jobs:
           assert report["autopublish"] is False
           assert report["upstream_sha"]=="501708856fbfdf596e27dba3200e12cf95da57be"
           assert manifest["license_notice"].startswith("PolyForm Noncommercial")
-          assert report["frames"]==(min(90,manifest["totalFrames"]) if "${{ env.SMOKE }}"=="true" else manifest["totalFrames"])
+          assert report["frames"]==(min(270,manifest["totalFrames"]) if "${{ env.SMOKE }}"=="true" else manifest["totalFrames"])
+          if "${{ env.SMOKE }}"=="true":
+              assert {"scribble_chaos","crm_orbit","paper_overload"} <= {c["effect"] for c in manifest["cues"]}
+              assert all(c["method"]=="qa_fixture_not_asr" for c in manifest["cues"])
+          else:
+              print("Efeitos de áudio:",manifest.get("illustration_audit",{}))
+
           print("QA original Talkcraft:",report)
           PY
       - name: Exportar arquivos para revisão
