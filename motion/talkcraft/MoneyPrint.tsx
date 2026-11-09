@@ -191,7 +191,7 @@ const SceneView:React.FC<{scene:Scene}> = ({scene})=>{
             objectFit:'cover',objectPosition:'top',borderRadius:15}}/>
         </div>
       </Plane>}
-      {!scene.image&&<Plane depth={1.2}><FlowIllustration scene={scene}/></Plane>}
+      {!scene.image&&!cues.some(c=>c.effect==='paper_overload')&&<Plane depth={1.2}><FlowIllustration scene={scene}/></Plane>}
       {cues.map(c=>{
         const rawFrom=Math.round(c.at*fps)-scene.startFrame;
         const from=Math.max(0,Math.min(scene.durationFrames-1,rawFrom));
