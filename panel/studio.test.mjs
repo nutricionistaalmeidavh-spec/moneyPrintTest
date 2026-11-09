@@ -83,3 +83,17 @@ test("Studio V3 imports 300-second projects with layouts and keeps render protec
   assert.equal(denied.status,400);
   assert.equal((await call("/api/studio/projects/import","POST",{project:old})).status,401);
 });
+
+test("studio render endpoint requires an explicit saved revision and GitHub connection",async()=>{
+  const {session,csrf}=await auth();
+  const created=await call("/api/studio/projects","POST",{
+    topic:"Cinco sistemas empresariais",script:"Cena inicial. Cena final.",
+    duration_seconds:20,aspect:"16:9"},session,csrf);
+  assert.equal(created.status,201);
+  const project=(await created.json()).project;
+  const path="/api/studio/projects/"+project.id+"/render";
+  assert.equal((await call(path,"POST",{revision:1},session,"invalid")).status,403);
+  const noToken=await call(path,"POST",{revision:1},session,csrf);
+  assert.equal(noToken.status,409);
+  assert.match((await noToken.json()).error,/GitHub não conectado/);
+});
