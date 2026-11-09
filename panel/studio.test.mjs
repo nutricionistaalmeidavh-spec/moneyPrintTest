@@ -117,3 +117,22 @@ test("Studio saves and reopens light animated style without affecting legacy pro
     {...input,visual_style:"commercial_api"},session,csrf);
   assert.equal(invalid.status,400);
 });
+
+
+test("Talkcraft educational mode is explicit, validated, and saved in Studio V3",async()=>{
+ const {session,csrf}=await auth();
+ const body={topic:"Tutorial gratuito de sistemas",
+   script:"O caos das planilhas. Um CRM ajuda a organizar.",
+   duration_seconds:30,aspect:"16:9",visual_style:"talkcraft_edu"};
+ const created=await call("/api/studio/projects","POST",body,session,csrf);
+ assert.equal(created.status,201);
+ const p=(await created.json()).project;
+ assert.equal(p.visual_style,"talkcraft_edu");
+ const saved=await call("/api/studio/projects/"+p.id+"/save","POST",
+   {revision:1,scenes:p.scenes,visual_style:"talkcraft_edu"},session,csrf);
+ assert.equal(saved.status,200);
+ assert.equal((await saved.json()).project.visual_style,"talkcraft_edu");
+ const bad=await call("/api/studio/projects","POST",
+   {...body,visual_style:"paid_service"},session,csrf);
+ assert.equal(bad.status,400);
+});
