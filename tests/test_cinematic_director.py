@@ -63,6 +63,11 @@ class CinematicDirectorTests(unittest.TestCase):
         self.assertEqual(build_fallback_plan(["repo_1"], []),
                          [{"asset_id": "repo_1", "seconds": 12}])
 
+    def test_no_arbitrary_video_take_limit(self):
+        assets = {"repo_1"}
+        shots = [{"asset_id": "repo_1", "seconds": 999} for _ in range(100)]
+        self.assertEqual(validate_director_plan({"shots": shots}, assets), shots)
+
     def test_github_images_only_allow_expected_cdn(self):
         self.assertTrue(approved_github_media_url(
             "https://raw.githubusercontent.com/owner/repo/main/demo.gif"))
