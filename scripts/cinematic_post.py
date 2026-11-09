@@ -154,7 +154,7 @@ def build_ass(plan: list[dict], duration: float, size=(1920,1080), news_records:
               +ass_safe(item["subtitle"]))
     for item in plan:
         news = news_records.get(item["index"])
-        if not news:
+        if not news or news.get("verified_via") != "google_news_rss":
             continue
         # News is allowed only as retrieved, verifiable source data, never as
         # generated claims or synthetic screenshots.
