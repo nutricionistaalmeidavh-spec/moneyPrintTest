@@ -90,8 +90,9 @@ def browser_demo_filter(width: int, height: int, fps: int) -> str:
     caption=max(14,round(height*.03))
     x=int(width*.53)+inset
     y=int(height*.25)+caption
-    bw=max(100,int(width*.41)-2*inset)
-    bh=max(100,int(height*.56)-caption-inset)
+    # Keep overlay dimensions even for H.264 yuv420p chroma subsampling.
+    bw=max(100,((int(width*.41)-2*inset)//2)*2)
+    bh=max(100,((int(height*.56)-caption-inset)//2)*2)
     return (
         f"[0:v]scale={width}:{height},format=yuv420p[base];"
         f"[1:v]scale={bw}:{bh}:force_original_aspect_ratio=decrease,"
