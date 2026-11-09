@@ -9,7 +9,7 @@ from playwright.sync_api import sync_playwright
 PANEL=Path(__file__).resolve().parents[1]
 ART=Path(os.environ.get("PANEL_QA_ARTIFACTS","qa-panel"))
 ART.mkdir(parents=True,exist_ok=True)
-FILES={"/":"builder.html","/ui/builder.css":"builder.css","/ui/builder.js":"builder.js","/ui/flow-core.mjs":"flow-core.mjs"}
+FILES={"/":"builder.html","/ui/builder.css":"builder.css","/ui/builder.js":"builder.js","/ui/flow-core.mjs":"flow-core.mjs","/ui/studio-ui.mjs":"studio-ui.mjs"}
 MIME={"html":"text/html","css":"text/css","js":"text/javascript","mjs":"text/javascript"}
 
 class Handler(BaseHTTPRequestHandler):
