@@ -388,8 +388,8 @@ def render_one(path: Path, output: Path, runtime: Path, env: dict):
     dest = output / path.stem
     dest.mkdir(parents=True, exist_ok=True)
     if data["visual_mode"] == "github_cinematic":
-        from scripts.cinematic_render import render_cinematic
-        return render_cinematic(data, dest, runtime, env)
+        from scripts.motion_pipeline import render_motion_first
+        return render_motion_first(data, dest, runtime, env)
     source = select_visual_mode(data["visual_mode"], env)
     script, terms = data["script"], data["terms"]
     if data.get("sections") and not script:
