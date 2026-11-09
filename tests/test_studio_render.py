@@ -56,6 +56,17 @@ class PlanTests(unittest.TestCase):
         self.assertAlmostEqual(cues[0]["start"], 3.0)
         self.assertAlmostEqual(cues[-1]["end"], 7.0)
 
+    def test_plan_can_import_without_pillow_in_validation_only(self):
+        # GitHub Actions validates JSON before installing the rendering stack.
+        import sys
+        env = dict(__import__('os').environ)
+        env['PYTHONPATH'] = str(Path(__file__).resolve().parents[1])
+        result = subprocess.run([sys.executable, '-S', '-c',
+            'from scripts.studio_render import build_plan; print(build_plan({"schema_version": 3, "fps": 30, "aspect": "16:9", "assets": [], "scenes": [], "total_frames": 0}))'],
+            text=True, capture_output=True, env=env)
+        # It may fail due to invalid project content, but never due to absent Pillow.
+        self.assertNotIn('ModuleNotFoundError', result.stderr)
+
     def test_missing_or_offline_media_is_rejected_not_fake_screenshot(self):
         with tempfile.TemporaryDirectory() as d:
             p = sample()
