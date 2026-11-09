@@ -275,7 +275,7 @@ def _render_animated_video(
                 f"pad={inset_w}:{inset_h}:(ow-iw)/2:(oh-ih)/2:color=0x11192f,"
                 f"trim=duration={seconds:.5f},setpts=PTS-STARTPTS[real{i}]")
             filters.append(f"[base{i}][real{i}]overlay={pos_x}:{pos_y}:"
-                           f"shortest=1,format=yuv420p[v{i}]")
+                           f"shortest=1:format=auto,format=yuv420p[v{i}]")
         else:
             filters.append(f"[base{i}]null[v{i}]")
     audio_index=input_count
