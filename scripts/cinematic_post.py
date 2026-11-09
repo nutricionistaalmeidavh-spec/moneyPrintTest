@@ -44,7 +44,7 @@ class CinematicError(ValueError):
 def check_chapters(timeline: object, count: int, duration: float) -> list[float]:
     """Explicit synchronization map for an existing narratively edited video."""
     if timeline is None:
-        start, end = min(12, duration * .06), max(12, duration - 12)
+        start, end = min(10, duration * .06), duration - min(7, duration * .07)
         step = (end - start) / count
         return [start + i * step for i in range(count)] + [end]
     if not isinstance(timeline, list) or len(timeline) != count + 1:
