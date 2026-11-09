@@ -9,6 +9,7 @@ from __future__ import annotations
 import json
 import re
 import unicodedata
+from difflib import SequenceMatcher
 from pathlib import Path
 
 from scripts.studio_render import build_plan
@@ -17,7 +18,7 @@ UPSTREAM = "https://github.com/Vincentwei1021/video-talkcraft"
 UPSTREAM_SHA = "501708856fbfdf596e27dba3200e12cf95da57be"
 LICENSE_NOTICE = "PolyForm Noncommercial 1.0.0 — personal/educational/research only"
 TRIGGERS = (
-    (("caos", "bagunca", "desorganizacao", "planilha"), "scribble_chaos", "pencil-draw"),
+    (("caos", "bagunca", "desorganizacao", "planilha", "planilhas"), "scribble_chaos", "pencil-draw"),
     (("crm", "twenty", "relacionamento"), "crm_orbit", "orbit-drift"),
     (("atendimento", "chatwoot", "mensagens"), "support_chat", "chat-message-flow"),
     (("vendas", "venda", "comercial"), "sales_flow", "numbered-step-stack"),
@@ -76,6 +77,47 @@ def clip_aligned_cues(project: dict, measured_words: list[dict]) -> list[dict]:
                          "method":"measured_whisper_pt"})
             used.add(key)
             break
+    # ASR can miss "planilha". Infer its position from adjacent REAL voice
+    # timestamps, and mark it as interpolated, never as exact ASR evidence.
+    for scene in plan["scenes"]:
+        if any(c["scene_id"]==scene["id"] and c["effect"]=="scribble_chaos" for c in cues):
+            continue
+        script_tokens=[normal(t) for t in re.findall(r"[\wÀ-ÿ]+",scene["text"])]
+        idx=next((i for i,t in enumerate(script_tokens)
+                  if t in {"planilha","planilhas","caos"}),None)
+        if idx is None:
+            continue
+        scoped=[w for w in words if scene["start_frame"]/fps <= w["start"]
+                < scene["end_frame"]/fps]
+        if len(scoped)<2:
+            continue
+        matcher=SequenceMatcher(None,script_tokens,[w["word"] for w in scoped],autojunk=False)
+        anchors=[]
+        for block in matcher.get_matching_blocks():
+            for offset in range(block.size):
+                anchors.append((block.a+offset,block.b+offset))
+        left=max((p for p in anchors if p[0]<idx),default=None)
+        right=min((p for p in anchors if p[0]>idx),default=None)
+        if left is None or right is None:
+            continue
+        lo=scoped[left[1]]["end"]
+        hi=scoped[right[1]]["start"]
+        if hi<=lo:
+            continue
+        at=round(lo+(hi-lo)*(idx-left[0])/(right[0]-left[0]),3)
+        remaining=scene["end_frame"]/fps-at
+        if remaining<0.5:
+            continue
+        # Do not layer generic sales cards over the hand-drawn "chaos" beat.
+        cues=[cue for cue in cues
+              if not (cue["scene_id"]==scene["id"]
+                      and cue["effect"] in {"business_flow","sales_flow"}
+                      and abs(cue["at"]-at)<2.5)]
+        cues.append({"id":f"{scene['id']}-scribble_chaos",
+                     "scene_id":scene["id"],"word":script_tokens[idx],
+                     "effect":"scribble_chaos","recipe":"pencil-draw",
+                     "at":at,"duration":min(3.0,max(1.4,remaining)),
+                     "method":"interpolated_between_measured_pt"})
     return cues
 
 def audit_illustrations(project: dict, cues: list[dict]) -> dict:
@@ -95,7 +137,9 @@ def audit_illustrations(project: dict, cues: list[dict]) -> dict:
                 if name not in required:
                     required.append(name)
     present = list(dict.fromkeys(cue["effect"] for cue in cues))
+    timing_methods=list(dict.fromkeys(cue.get("method","unknown") for cue in cues))
     return {"required": required,
+            "timing_methods":timing_methods,
             "present": present,
             "missing": [effect for effect in required if effect not in present],
             "cue_count": len(cues),
@@ -128,7 +172,7 @@ def prepare_talkcraft_data(project: dict, aligned_words: list[dict],
       "style":"pastel-light","fps":fps, "aspect":plan["aspect"],
       "totalFrames":plan["total_frames"], "scenes":scenes,
       "cues":cues,"illustration_audit":audit_illustrations(project,cues),
-      "alignment":"measured_whisper_pt" if aligned_words else "none",
+      "alignment":("measured_whisper_pt_with_interpolation" if any(c["method"].startswith("interpolated") for c in cues) else "measured_whisper_pt") if aligned_words else "none",
       "autopublish":False, "commercial_use":False,
     }
     destination.parent.mkdir(parents=True, exist_ok=True)
