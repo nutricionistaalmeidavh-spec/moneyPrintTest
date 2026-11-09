@@ -16,7 +16,7 @@ from pathlib import Path
 from PIL import Image, ImageDraw, ImageFont
 
 from scripts.ai_director import (
-    fetch_news_headline, official_repo_gif, plan_with_local_ai, suggest_broll_query,
+    fetch_news_headline, official_repo_gif, official_repo_image, plan_with_local_ai, suggest_broll_query,
 )
 from scripts.browser_capture import capture_repositories
 from scripts.commons_media import find_free_videos
@@ -282,6 +282,35 @@ def render_cinematic(request: dict, dest: Path, runtime: Path, env: dict) -> dic
             if idx == 0:
                 assets.append({"id": "opening", "kind": "motion_title",
                                "path": str(cover.resolve())})
+
+            # Optional user footage is never classified as invalid by subject:
+            # only file existence, path containment and codec handling matter.
+            for k, supplied in enumerate(request.get("media_clips", []), 1):
+                if supplied["repo_index"] != n:
+                    continue
+                root = (Path.cwd() / "assets").resolve()
+                candidate = (Path.cwd() / supplied["path"]).resolve()
+                if not candidate.is_relative_to(root) or not candidate.is_file():
+                    continue
+                if candidate.suffix.lower() == ".gif":
+                    converted = folder / f"extra_{k:02d}.mp4"
+                    run_ffmpeg([
+                        "-stream_loop", "-1", "-i", str(candidate), "-t", "12",
+                        "-an", "-vf", "fps=24,scale=1280:720:"
+                                     "force_original_aspect_ratio=decrease,"
+                                     "pad=1280:720:(ow-iw)/2:(oh-ih)/2",
+                        "-c:v", "libx264", "-preset", "veryfast", "-crf", "25",
+                        "-pix_fmt", "yuv420p", str(converted)], timeout=160)
+                    candidate = converted
+                assets.append({"id": f"own_{n}_{k}", "kind": "user_video",
+                               "path": str(candidate)})
+                credit_lines.append(f"     Vídeo fornecido: {supplied['path']}")
+
+            screenshot = official_repo_image(section["repo_url"], folder / "screenshot")
+            if screenshot:
+                assets.append({"id": f"image_{n}", "kind": "official_screenshot",
+                               "path": screenshot})
+                credit_lines.append(f"     Imagem do README: {section['repo_url']}")
 
             gif_file = official_repo_gif(section["repo_url"], folder / "demo")
             if gif_file:
