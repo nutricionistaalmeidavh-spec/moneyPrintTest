@@ -302,7 +302,8 @@ def render_stack(source: Path, output: Path, *, options: dict | None = None,
                   "width": w, "height": h, "fps": fps, "transition": "hard_cut" if transition == "cut" else transition,
                   "clips": [{"type": name, "seconds": round(seconds, 3)}
                             for name, _, seconds in timeline],
-                  "audio_preserved": body_meta["has_audio"]}
+                  "audio_preserved": body_meta["has_audio"],
+                  "body_audio_offset_seconds": round(intro_duration, 3)}
         if opts["scene_index"]:
             result["scenes"] = index_scenes(output)
         return result
