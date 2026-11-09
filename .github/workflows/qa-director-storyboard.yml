@@ -1,0 +1,62 @@
+name: QA Storyboard — 25 cenas sem repetir slide
+on:
+  pull_request:
+    paths:
+      - 'storyboards/5-sistemas-director-v1.json'
+      - 'storyboards/5-sistemas-direcao-visual-preview.html'
+      - 'scripts/validate_director_storyboard.py'
+      - 'tests/test_director_storyboard.py'
+      - '.github/workflows/qa-director-storyboard.yml'
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  storyboard-preproduction:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Verificar 25 cenas, 9.000 frames, narração original, assets e progressão
+        run: python -m unittest discover -s tests -p 'test_director_storyboard.py' -v
+      - name: Verificar o JavaScript da prévia autônoma (sem renderizar vídeo)
+        run: |
+          python - <<'PY'
+          from pathlib import Path
+          import re
+          html=Path("storyboards/5-sistemas-direcao-visual-preview.html").read_text(encoding="utf-8")
+          scripts=re.findall(r"<script>(.*?)</script>",html,flags=re.S)
+          assert len(scripts)==1,"Prévia deve conter somente 1 script estático"
+          assert 'const SHOTS=BOARD.shots' in scripts[0]
+          assert 'current=Math.min(SHOTS.length-1,current+1)' in scripts[0]
+          Path("/tmp/director-preview.js").write_text(scripts[0],encoding="utf-8")
+          print("HTML visual íntegro, cena por cena.")
+          PY
+          node --check /tmp/director-preview.js
+      - name: "Confirmação: apenas pré-produção, sem render e sem publicação"
+        run: |
+          python - <<'PY'
+          import json
+          from pathlib import Path
+          board=json.loads(Path("storyboards/5-sistemas-director-v1.json").read_text())
+          assert board["render"]["enabled"] is False
+          assert board["render"]["publish"] is False
+          assert board["production_status"]=="awaiting_visual_approval"
+          print("25 quadros prontos para revisão antes da renderização")
+          PY
+
+      - name: Disponibilizar storyboard visual e JSON para revisão
+        if: success()
+        uses: actions/upload-artifact@v4
+        with:
+          name: moneyprint-storyboard-5-sistemas
+          path: |
+            storyboards/5-sistemas-direcao-visual-preview.html
+            storyboards/5-sistemas-director-v1.json
+          if-no-files-found: error
+          retention-days: 30
