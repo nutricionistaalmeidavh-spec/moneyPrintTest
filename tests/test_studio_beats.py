@@ -1,5 +1,6 @@
 """Regression coverage for animated reveal beats on the Studio V3 canonical timeline."""
 import tempfile
+import shutil
 from pathlib import Path
 import unittest
 
@@ -28,6 +29,7 @@ class MotionBeatsTests(unittest.TestCase):
             with Image.open(a) as i, Image.open(b) as j:
                 self.assertIsNotNone(ImageChops.difference(i,j).getbbox())
 
+    @unittest.skipUnless(shutil.which('ffmpeg') and shutil.which('ffprobe'), 'FFmpeg required')
     def test_full_render_preserves_frame_count_with_three_beats(self):
         with tempfile.TemporaryDirectory() as d:
             result=render_project(example(),Path(d),Path(d)/"out",voice="none",width=320,height=180)
