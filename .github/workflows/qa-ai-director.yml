@@ -1,0 +1,71 @@
+name: QA novo editor com IA - vídeo 1080p
+on:
+  pull_request:
+    paths:
+      - "scripts/cinematic_render.py"
+      - "scripts/ai_director.py"
+      - "tests/test_cinematic_director.py"
+      - "tests/test_cinematic_render.py"
+      - ".github/workflows/qa-ai-director.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  cinematic-director:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+      - name: Instalar FFmpeg e fontes livres
+        run: |
+          sudo apt-get update -qq
+          sudo apt-get install -y ffmpeg fonts-inter fonts-lato fonts-dejavu-core
+          python -m pip install "Pillow==11.3.0"
+      - name: Suite unitária completa
+        run: python -m unittest discover -s tests -v
+      - name: Montar MP4 real de QA com duas fontes e narração
+        run: |
+          python - <<'PY'
+          import json
+          import subprocess
+          from pathlib import Path
+          from scripts.cinematic_render import make_cover, lower_third, render_section
+          root = Path("qa-ai-director")
+          root.mkdir(exist_ok=True)
+          make_cover(root / "cover.png", "8 repositórios open source")
+          lower_third(root / "lower.png", "Appwrite", 1, 8)
+          subprocess.run(["ffmpeg", "-v", "error", "-y", "-f", "lavfi",
+                          "-i", "testsrc2=size=1280x720:rate=24:duration=4",
+                          "-an", "-c:v", "libx264", "-preset", "veryfast",
+                          "-pix_fmt", "yuv420p", str(root / "github.mp4")],
+                         check=True, timeout=70)
+          subprocess.run(["ffmpeg", "-v", "error", "-y", "-f", "lavfi",
+                          "-i", "sine=frequency=440:duration=4",
+                          "-c:a", "pcm_s16le", str(root / "voice.wav")],
+                         check=True, timeout=40)
+          render_section({"title":"Appwrite"},
+                         [(root/"cover.png",1.5),(root/"github.mp4",2.5)],
+                         root/"lower.png", root/"voice.wav", root/"editor.mp4",4)
+          p = subprocess.check_output(["ffprobe","-v","error","-show_entries",
+                       "stream=codec_type,width,height:format=duration",
+                       "-of","json",str(root/"editor.mp4")],text=True)
+          data=json.loads(p)
+          assert any(s.get("codec_type")=="video" and s.get("width")==1920
+                     and s.get("height")==1080 for s in data["streams"]), data
+          assert any(s.get("codec_type")=="audio" for s in data["streams"]), data
+          assert float(data["format"]["duration"])>=3.7, data
+          print(json.dumps(data))
+          PY
+      - name: Disponibilizar prévia de QA
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: qa-ai-director-1080p
+          path: qa-ai-director/editor.mp4
+          retention-days: 3
+          if-no-files-found: warn
