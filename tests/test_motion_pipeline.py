@@ -59,8 +59,8 @@ class MotionPipelineContracts(unittest.TestCase):
 
     def test_srt_shift_preserves_narration_alignment_after_intro(self):
         from scripts.motion_pipeline import shift_srt_cues
-        source = "1\\n00:00:00,000 --> 00:00:01,250\\nOPEN SOURCE\\n\\n"
-        expected = "1\\n00:00:02,400 --> 00:00:03,650\\nOPEN SOURCE\\n\\n"
+        source = "1\n00:00:00,000 --> 00:00:01,250\nOPEN SOURCE\n\n"
+        expected = "1\n00:00:02,400 --> 00:00:03,650\nOPEN SOURCE\n\n"
         self.assertEqual(shift_srt_cues(source, 2.4), expected)
         with self.assertRaises(ValueError):
             shift_srt_cues(source, -1)
