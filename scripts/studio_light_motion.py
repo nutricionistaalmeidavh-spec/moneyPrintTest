@@ -214,10 +214,30 @@ def make_layers(scene,output,width,height,screenshot=None):
     return bg,layers
 
 def render_light_scene(scene,dest,scratch,index,fps,frames,width,height,
-                       screenshot=None,narration=None,tempo=1.0):
+                       screenshot=None,narration=None,tempo=1.0,moving_preview=None):
     """Compose independent moving layers at each frame; FFmpeg encodes once."""
     duration=frames/fps;folder=scratch/f'light_motion_{index:03d}'
+    if moving_preview and scene.get("layout")!="browser":
+        scene={**scene,"layout":"browser"}
     bg,descriptors=make_layers(scene,folder,width,height,screenshot)
+    video_frames=[]
+    if moving_preview and Path(moving_preview).is_file():
+        scale=width/1920
+        vw=int((1795-930-38)*scale)//2*2
+        vh=int((885-517-95)*scale)//2*2
+        video_folder=folder/"real_demo_frames"
+        video_folder.mkdir(exist_ok=True)
+        rate=min(12,fps)
+        cmd=["ffmpeg","-hide_banner","-loglevel","error","-nostdin","-y",
+             "-stream_loop","-1","-i",str(moving_preview),"-an",
+             "-vf",f"fps={rate},scale={vw}:{vh}:force_original_aspect_ratio=increase,crop={vw}:{vh}",
+             "-frames:v",str(math.ceil(frames/fps*rate)),"-q:v","3",
+             str(video_folder/"demo_%04d.jpg")]
+        try:
+            subprocess.run(cmd,check=True,stdout=subprocess.DEVNULL,stderr=subprocess.PIPE,timeout=180)
+            video_frames=[Image.open(path).convert("RGB") for path in sorted(video_folder.glob("demo_*.jpg"))]
+        except (OSError,subprocess.CalledProcessError,subprocess.TimeoutExpired):
+            video_frames=[]
     background_image=Image.open(bg).convert('RGBA')
     layers=[(Image.open(path).convert('RGBA'),x,y,start,delta)
             for path,x,y,start,delta in descriptors]
@@ -248,6 +268,13 @@ def render_light_scene(scene,dest,scratch,index,fps,frames,width,height,
                     a.putalpha(mask)
                 else:a=im
                 canvas.alpha_composite(a,(px,py))
+            if video_frames and t>=1.55:
+                rate=min(12,fps)
+                video_index=min(len(video_frames)-1,int(t*rate))
+                preview=video_frames[video_index].convert("RGBA")
+                vx=round((930+19)*width/1920)
+                vy=round((517+77)*width/1920)
+                canvas.alpha_composite(preview,(vx,vy))
             process.stdin.write(canvas.convert('RGB').tobytes())
         process.stdin.close()
         error=process.stderr.read().decode('utf-8','replace')
@@ -256,4 +283,4 @@ def render_light_scene(scene,dest,scratch,index,fps,frames,width,height,
     except (Exception,KeyboardInterrupt):
         process.kill();process.wait()
         raise
-    return {'layers':len(layers),'animated':len(layers),'duration':duration}
+    return {'layers':len(layers),'animated':len(layers),'duration':duration,'embedded_video':bool(video_frames)}
