@@ -23,6 +23,8 @@ jobs:
           node-version: '22'
       - name: Testes do modelo de grafos
         run: node --test panel/tests/*.test.mjs
+      - name: Garantir sincronização dos assets do Worker
+        run: node panel/check-bundle.mjs
       - name: Conferir sintaxe do UI e Worker
         run: |
           node --check panel/flow-core.mjs
