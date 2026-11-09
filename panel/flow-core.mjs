@@ -155,6 +155,7 @@ export function compileFlow(flow){
   const terms=asList(s.terms);
   if(terms.length>12||terms.some(x=>x.length<2||x.length>70))throw Error("Palavras-chave inválidas (máximo 12)");
   if(terms.length)request.terms=terms;
+  if(!cinematic&&!set.has("ollama")&&(!script||!terms.length))throw Error("Sem Ollama, informe o roteiro e as palavras-chave de mídia");
   if(github){
     const repos=asList(s.repo_urls);
     if(repos.length===0||repos.length>12||repos.some(x=>!REPO.test(x)))throw Error("Informe 1 a 12 URLs GitHub válidas");
