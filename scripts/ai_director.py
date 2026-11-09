@@ -187,7 +187,7 @@ def validate_director_plan(value: object, asset_ids: set[str]) -> list[dict] | N
     if not isinstance(value, dict) or not isinstance(value.get("shots"), list):
         return None
     shots = value["shots"]
-    if not 1 <= len(shots) <= 80:
+    if not shots:
         return None
     clean = []
     for shot in shots:
@@ -195,7 +195,7 @@ def validate_director_plan(value: object, asset_ids: set[str]) -> list[dict] | N
             return None
         if shot["asset_id"] not in asset_ids or type(shot["seconds"]) is not int:
             return None
-        if not 1 <= shot["seconds"] <= 360:
+        if shot["seconds"] <= 0:
             return None
         clean.append({"asset_id": shot["asset_id"], "seconds": shot["seconds"]})
     return clean
