@@ -33,9 +33,9 @@ jobs:
             else
               echo "FALHOU ${slug} | ${url}" >> ganchos/RELATORIO.txt
               if [ -f "$dst" ]; then
-                echo "Resposta invalida: $(file -b "$dst")"
+                echo "Resposta invalida: $(file -b "$dst") tamanho=$(stat -c%s "$dst")"; ffprobe -v warning -show_format -show_streams "$dst" 2>&1 | tail -n 18 || true; head -c 100 "$dst" | od -An -tx1 | head -n 3
               fi
-              rm -f "$dst"
+              cp "$dst" "ganchos/debug_${slug}.bin"; rm -f "$dst"
             fi
           done
           echo "MP4s validos: $successes/10"
