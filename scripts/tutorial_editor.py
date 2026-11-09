@@ -17,8 +17,9 @@ from pathlib import Path
 class RecipeError(ValueError):
     pass
 
-W,H,FPS=720,1280,24
+W,H,FPS=1080,1920,30
 FONT_PATHS=[
+    Path("/usr/share/fonts/opentype/inter/InterDisplay-ExtraBold.otf"),
     Path("/usr/share/fonts/truetype/dejavu/DejaVuSans-Bold.ttf"),
     Path("/usr/share/fonts/truetype/liberation2/LiberationSans-Bold.ttf")
 ]
@@ -157,8 +158,8 @@ def recorded_scene(source,clip,masks,output):
         x,y,w,h=[int(mask[k]) for k in ("x","y","width","height")]
         filters.append(f"drawbox=x={x}:y={y}:w={w}:h={h}:color=0x12121d:t=fill")
     filters += [f"setpts=(PTS-STARTPTS)/{clip['speed']}",f"fps={FPS}",
-                "scale=720:1280:force_original_aspect_ratio=decrease:flags=lanczos",
-                "pad=720:1280:(ow-iw)/2:(oh-ih)/2:color=0x080c19",
+                "scale=1080:1920:force_original_aspect_ratio=decrease:flags=lanczos",
+                "pad=1080:1920:(ow-iw)/2:(oh-ih)/2:color=0x080c19",
                 "setsar=1","format=yuv420p"]
     execute(["ffmpeg","-hide_banner","-loglevel","error","-nostdin","-y",
              "-ss",str(clip["start"]),"-t",str(length),"-i",str(source),
@@ -197,29 +198,43 @@ def hook_video(source,recipe,output):
     length,_=hook_timing(start,end)
     execute(["ffmpeg","-hide_banner","-loglevel","error","-nostdin","-y",
              "-ss",str(start),"-t",str(length),"-i",str(source),
-             "-vf",f"crop={w}:{h}:{x}:{y},fps={FPS},scale=720:1280:flags=lanczos,setsar=1,format=yuv420p",
+             "-vf",f"crop={w}:{h}:{x}:{y},fps={FPS},scale=1080:1920:flags=lanczos,setsar=1,format=yuv420p",
              "-an","-r",str(FPS),"-c:v","libx264","-preset","veryfast",
              "-crf","23","-pix_fmt","yuv420p",str(output)])
 
-def universe_video(gif_source,lines,length,output):
-    """Original licensed GIF asset is local; no artificial placeholder or paid API."""
-    from PIL import Image,ImageDraw
-    frame=Image.new("RGBA",(W,H),(0,0,0,0))
+def universe_video(gif_source, lines, length, output):
+    """Animated astronomical source at 30 fps, supersampled Inter typography."""
+    from PIL import Image, ImageDraw, ImageFilter
+    ss = 2
+    # Render typography at 2160x3840 and downsample for sharp edges.
+    frame = Image.new("RGBA", (W*ss,H*ss), (0,0,0,0))
+    shadow = Image.new("RGBA", frame.size, (0,0,0,0))
+    d = ImageDraw.Draw(shadow)
+    labels = [(p, [108,88,126][i]) for i,p in enumerate(lines[:3])]
+    ys = [820,945,1095]
+    for i,(phrase, preferred_size) in enumerate(labels):
+        face=fit(d, phrase, W*ss-100*ss, preferred_size*ss)
+        d.text((W*ss//2,ys[i]*ss+12), phrase, font=face, anchor="mm",
+               fill=(0,0,0,240),stroke_width=5*ss,stroke_fill=(0,0,0,240))
+    shadow = shadow.filter(ImageFilter.GaussianBlur(10*ss))
+    frame=Image.alpha_composite(frame,shadow)
     d=ImageDraw.Draw(frame)
-    for i,phrase in enumerate(lines[:3]):
-        face=fit(d,phrase,W-64,52)
-        y=410+86*i
-        d.text((W/2+2,y+3),phrase,font=face,anchor="mm",fill=(1,4,15,220),stroke_width=6,stroke_fill=(1,4,15,200))
-        d.text((W/2,y),phrase,font=face,anchor="mm",fill=(255,255,255,255),stroke_width=1,stroke_fill=(20,20,40,255))
+    for i,(phrase,preferred_size) in enumerate(labels):
+        face=fit(d,phrase,W*ss-100*ss,preferred_size*ss)
+        color=(149,249,231,255) if i==2 else (252,253,255,255)
+        d.text((W*ss//2,ys[i]*ss),phrase,font=face,anchor="mm",fill=color)
     overlay=output.parent/"universe-title.png"
-    frame.save(overlay)
+    frame.resize((W,H),Image.Resampling.LANCZOS).save(overlay)
     execute(["ffmpeg","-hide_banner","-loglevel","error","-nostdin","-y",
              "-stream_loop","-1","-i",str(gif_source),"-loop","1","-i",str(overlay),
              "-filter_complex",
-             "[0:v]fps=24,scale=720:1280:force_original_aspect_ratio=increase:flags=lanczos,"
-             "crop=720:1280,setsar=1[v0];[v0][1:v]overlay=shortest=1:format=auto,format=yuv420p[v]",
+             "[0:v]fps=30,scale=1080:1920:force_original_aspect_ratio=increase:flags=lanczos,"
+             "crop=1080:1920,setsar=1[v0];[v0][1:v]overlay=shortest=1:format=auto,"
+             "format=yuv420p[v]",
              "-map","[v]","-an","-t",str(length),"-r",str(FPS),
-             "-c:v","libx264","-preset","veryfast","-crf","24","-pix_fmt","yuv420p",str(output)])
+             "-c:v","libx264","-preset","veryfast","-crf","20",
+             "-pix_fmt","yuv420p",str(output)])
+
 
 def render(source,recipe_file,output,hook_source=None,universe_gif=None):
     from PIL import Image  # noqa: F401
