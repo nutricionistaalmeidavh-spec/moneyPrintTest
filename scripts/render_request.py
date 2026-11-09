@@ -471,16 +471,52 @@ def render_one(path: Path, output: Path, runtime: Path, env: dict):
                 from commons_media import find_free_videos, source_credits
             brolls = {}
             credits = []
-            # All contextual material is free CC0 / CC BY Wikimedia Commons.
-            # Failure to find legal footage leaves the real GitHub video intact.
+            media_sources = {}
+            # Any user-provided MP4/MOV/WebM/GIF in assets/ is usable as a
+            # contextual cut; there is no editorial video-type gate.
+            # Explicit sources take priority over official README GIFs or stock.
+            for media in data.get("media_clips", []):
+                candidate = (Path.cwd() / media["path"]).resolve()
+                asset_root = (Path.cwd() / "assets").resolve()
+                if not candidate.is_relative_to(asset_root) or not candidate.is_file():
+                    print("Aviso: clipe opcional indisponível:", media["path"], flush=True)
+                    continue
+                idx = media["repo_index"]
+                if candidate.suffix.lower() == ".gif":
+                    converted = dest / "context" / f"user_gif_{idx:02d}.mp4"
+                    converted.parent.mkdir(parents=True, exist_ok=True)
+                    subprocess.run(["ffmpeg", "-hide_banner", "-loglevel", "error",
+                        "-nostdin", "-y", "-stream_loop", "-1", "-i", str(candidate),
+                        "-t", "12", "-an", "-vf",
+                        "fps=24,scale=1280:720:force_original_aspect_ratio=decrease,"
+                        "pad=1280:720:(ow-iw)/2:(oh-ih)/2",
+                        "-c:v", "libx264", "-preset", "veryfast", "-crf", "24",
+                        "-pix_fmt", "yuv420p", str(converted)], check=True, timeout=120)
+                    candidate = converted
+                brolls[idx] = candidate
+                media_sources[str(idx)] = "user_supplied"
             for idx, repo_url in enumerate(data["repo_urls"], 1):
+                if idx in brolls:
+                    continue
+                try:
+                    from scripts.ai_director import official_repo_gif
+                    gif_demo = official_repo_gif(repo_url, dest / "official" / f"repo_{idx:02d}")
+                except (ImportError, OSError, ValueError):
+                    gif_demo = None
+                if gif_demo:
+                    brolls[idx] = Path(gif_demo)
+                    media_sources[str(idx)] = "official_readme_gif"
+                    continue
                 tag = metadata_for_repo(repo_url)["category"]
                 terms = BROLL_TERMS.get(tag, BROLL_TERMS["general"])
                 clips, records = find_free_videos(
                     terms, dest / "stock" / f"repo_{idx:02d}", max_results=1)
                 if clips:
                     brolls[idx] = Path(clips[0])
+                    media_sources[str(idx)] = "wikimedia"
                     credits.extend(records)
+            (dest / "fontes_cinematicas.json").write_text(
+                json.dumps(media_sources, ensure_ascii=False, indent=2), encoding="utf-8")
             if credits:
                 (dest / "creditos_broll.txt").write_text(
                     source_credits(credits), encoding="utf-8")
