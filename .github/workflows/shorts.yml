@@ -1,9 +1,6 @@
 name: MoneyPrint Shorts — selecionar gancho existente
 
 on:
-  push:
-    branches: [feat/shorts-hooks-library]
-    paths: [".github/workflows/shorts.yml"]
   workflow_dispatch:
     inputs:
       category:
