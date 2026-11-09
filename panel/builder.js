@@ -24,11 +24,11 @@ function persist(){try{localStorage.setItem("artisys-flow-draft-v2",JSON.stringi
 function loadDraft(){try{const v=JSON.parse(localStorage.getItem("artisys-flow-draft-v2")||"null");if(v&&v.version===1&&Array.isArray(v.nodes)&&Array.isArray(v.edges)&&v.nodes.length<30){flow=v;activeTemplate=""}}catch{}}
 function mobile(){return matchMedia("(max-width:720px)").matches}
 function openPanel(panel){
-  const visible=mobile()&&(panel==="palette"||panel==="inspector");
+  const visible=panel==="inspector"||(mobile()&&panel==="palette");
   $("palette").classList.toggle("open",visible&&panel==="palette");
   $("inspector").classList.toggle("open",visible&&panel==="inspector");
-  $("scrim").classList.toggle("open",visible);
-  document.body.classList.toggle("sheet-open",visible);
+  $("scrim").classList.toggle("open",visible&&mobile());
+  document.body.classList.toggle("sheet-open",visible&&mobile());
   if(visible){
     const inner=$(panel==="palette"?"palette":"inspector").querySelector(".contents");
     if(inner)inner.scrollTop=0;
@@ -342,7 +342,7 @@ $("canvasNodes").addEventListener("click",e=>{
   if(to){if(!connecting){toast("Clique primeiro na saída de um bloco.");return}const s=connecting;connecting=null;modify(f=>connectNodes(f,s,to.dataset.portin));return}
   const remove=e.target.closest("[data-remove]");if(remove){modify(f=>removeTool(f,remove.dataset.remove),"goal");layoutNodes();syncDom();return}
   const edit=e.target.closest("[data-edit]");const block=e.target.closest("[data-node]");
-  if(edit||block){selected=edit?.dataset.edit||block.dataset.node;renderCanvas();renderInspector()}
+  if(edit||block){selected=edit?.dataset.edit||block.dataset.node;renderCanvas();renderInspector();if(!mobile())openPanel("inspector")}
 });
 $("paths").addEventListener("click",e=>{const hit=e.target.closest("[data-from][data-to]");if(hit&&confirm("Remover esta conexão?"))modify(f=>removeEdge(f,hit.dataset.from,hit.dataset.to))});
 let dragging=null;
@@ -368,7 +368,8 @@ $("inspectorBody").addEventListener("change",e=>{if(e.target.dataset.setting==="
 $("inspectorBody").addEventListener("click",e=>{if(e.target.id==="editGeneral"){selected="goal";renderInspector();renderCanvas()}});
 $("zoomIn").addEventListener("click",()=>{zoom=Math.min(1.6,Math.round((zoom+.1)*10)/10);renderCanvas()});
 $("zoomOut").addEventListener("click",()=>{zoom=Math.max(.5,Math.round((zoom-.1)*10)/10);renderCanvas()});
-$("resetZoom").addEventListener("click",()=>{zoom=.8;renderCanvas();$("canvasbody").scrollTo({left:0,top:0})});
+$("resetZoom").addEventListener("click",()=>{zoom=.7;renderCanvas();$("canvasbody").scrollTo({left:0,top:0})});
+$("autoLayout").addEventListener("click",()=>{layoutNodes();renderCanvas();persist();toast("Blocos organizados no canvas")});
 $("previewRequest").addEventListener("click",()=>{try{const compiled=compileFlow(flow);$("requestJson").textContent=JSON.stringify(compiled,null,2);$("requestDialog").showModal()}catch(err){toast(err.message);selected="goal";renderInspector()}});
 $("closeRequest").addEventListener("click",()=>$("requestDialog").close());
 $("copyRequest").addEventListener("click",()=>{navigator.clipboard?.writeText($("requestJson").textContent).then(()=>toast("JSON copiado")).catch(()=>toast("Não foi possível copiar"))});
