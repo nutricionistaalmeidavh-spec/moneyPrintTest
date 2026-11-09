@@ -81,7 +81,7 @@ def run():
                 "name":"sample-skill.json","mimeType":"application/json",
                 "buffer":b'{"name":"Minha Skill","description":"Combina legendas e pesquisa.","tools":["captions","stock"]}'
             })
-            assert page.locator("#showcaseCatalog").get_by_text("Minha Skill").count()>0
+            page.locator("#showcaseCatalog").get_by_text("Minha Skill").wait_for(state="visible",timeout=4000)
             page.screenshot(path=str(ART/"mobile-skills.png"),full_page=True)
             assert not failures,failures
             desktop=browser.new_context(viewport={"width":1440,"height":900})
