@@ -1,38 +1,293 @@
 #!/usr/bin/env python3
-"""Opt-in, offline-first video post-production. Python stdlib + FFmpeg."""
-import argparse,json,pathlib,subprocess,shutil,sys
-def run(args):
-    subprocess.run(args,check=True)
+"""MoneyPrint local editor: deterministic hard cuts, scene indexing and opt-in adapters."""
+from __future__ import annotations
+
+import argparse
+import json
+import math
+import re
+import shutil
+import subprocess
+import tempfile
+from pathlib import Path
+
+FORMATS = {"16:9": (1920, 1080), "9:16": (1080, 1920), "1:1": (1080, 1080)}
+ALLOWED_VIDEO = {".mp4", ".mov", ".webm", ".mkv", ".gif"}
+ASSET_PATTERN = re.compile(r"assets/[A-Za-z0-9_.\-/]{1,170}\Z")
+
+
+class VideoStackError(ValueError):
+    pass
+
+
+def safe_asset(raw: str, asset_root: Path) -> Path:
+    """Only allow media from the versioned repository assets directory."""
+    if (not isinstance(raw, str) or not ASSET_PATTERN.fullmatch(raw)
+            or ".." in Path(raw).parts or Path(raw).suffix.lower() not in ALLOWED_VIDEO):
+        raise VideoStackError("Vídeo deve ser arquivo local dentro de assets/")
+    root = asset_root.resolve()
+    candidate = (root / Path(raw).relative_to("assets")).resolve()
+    if not candidate.is_relative_to(root):
+        raise VideoStackError("Caminho de mídia fora de assets/")
+    return candidate
+
+
+def normalize_motion_options(raw: object) -> dict:
+    if not isinstance(raw, dict):
+        raise VideoStackError("motion deve ser um objeto JSON")
+    allowed = {"hook_asset", "hook_seconds", "universe_seconds", "universe_title",
+               "auto_cut", "scene_index", "transition", "aspect", "hyperframes_project",
+               "openscreen_project", "motion_canvas_clip", "threejs"}
+    if set(raw) - allowed:
+        raise VideoStackError("Opções de edição desconhecidas")
+    opts = {"hook_asset": None, "hook_seconds": 3.0, "universe_seconds": 0.0,
+            "universe_title": "UNIVERSO OPEN SOURCE", "auto_cut": False,
+            "scene_index": False, "transition": "cut", "aspect": "16:9",
+            "hyperframes_project": None, "openscreen_project": None,
+            "motion_canvas_clip": None, "threejs": False}
+    opts.update(raw)
+    for key, limit in (("hook_seconds", 8), ("universe_seconds", 8)):
+        value = opts[key]
+        if type(value) not in (int, float) or not math.isfinite(value) or not 0 <= value <= limit:
+            raise VideoStackError(f"{key} fora dos limites")
+    for key in ("auto_cut", "scene_index", "threejs"):
+        if type(opts[key]) is not bool:
+            raise VideoStackError(f"{key} deve ser booleano")
+    if opts["transition"] not in ("cut", "fade"):
+        raise VideoStackError("Transição não permitida; sem flash branco")
+    if opts["aspect"] not in FORMATS:
+        raise VideoStackError("Proporção inválida")
+    if (not isinstance(opts["universe_title"], str) or len(opts["universe_title"]) > 100
+            or any(ord(c) < 32 for c in opts["universe_title"])):
+        raise VideoStackError("Título de abertura inválido")
+    for key in ("hook_asset", "motion_canvas_clip"):
+        if opts[key] is not None:
+            safe_asset(opts[key], Path("assets"))
+    if opts["hook_asset"] is None and "hook_seconds" in raw:
+        raise VideoStackError("hook_seconds requer hook_asset")
+    for key in ("hyperframes_project", "openscreen_project"):
+        value = opts[key]
+        if value is not None and (
+                not isinstance(value, str) or not re.fullmatch(r"assets/[A-Za-z0-9_.\-/]{1,150}", value)
+                or ".." in Path(value).parts):
+            raise VideoStackError(f"{key} fora de assets/")
+    return opts
+
+
+def plan_intro(hook_seconds: float, universe_seconds: float, body_seconds: float):
+    if any(type(x) not in (int, float) or not math.isfinite(x) or x < 0
+           for x in (hook_seconds, universe_seconds, body_seconds)) or body_seconds <= 0:
+        raise VideoStackError("Duração inválida")
+    return ([(name, duration) for name, duration in
+             (("hook", hook_seconds), ("universe", universe_seconds), ("body", body_seconds))
+             if duration > 0])
+
+
+def ffprobe_media(path: str | Path) -> dict:
+    completed = subprocess.run([
+        "ffprobe", "-v", "error", "-show_entries",
+        "format=duration:stream=codec_type,width,height",
+        "-of", "json", str(path)], check=True, capture_output=True,
+        text=True, timeout=30)
+    data = json.loads(completed.stdout)
+    streams = data.get("streams", [])
+    video = next((s for s in streams if s.get("codec_type") == "video"), None)
+    if not video:
+        raise VideoStackError("Arquivo de mídia não contém vídeo")
+    duration = float(data["format"]["duration"])
+    if not math.isfinite(duration) or duration <= 0:
+        raise VideoStackError("Duração inválida da mídia")
+    return {"duration": duration, "width": video.get("width"),
+            "height": video.get("height"),
+            "has_audio": any(s.get("codec_type") == "audio" for s in streams)}
+
+
+def scene_detect_api(source):
+    try:
+        from scenedetect import ContentDetector, detect
+    except ImportError as exc:
+        raise VideoStackError("Instale scenedetect para indexação de cortes") from exc
+    return detect(str(source), ContentDetector())
+
+
+def index_scenes(source: str | Path) -> list[dict]:
+    """PySceneDetect indexes cuts; no downloads or external AI."""
+    return [{"start": round(start.get_seconds(), 3),
+             "end": round(end.get_seconds(), 3)}
+            for start, end in scene_detect_api(source)]
+
+
+def checked_run(argv: list[str], timeout: int = 1800):
+    subprocess.run(argv, check=True, timeout=timeout, capture_output=True)
+
+
+def auto_cut_silence(source: Path, target: Path) -> Path:
+    """Only opt-in; never change the timing of an approved narration silently."""
+    if not shutil.which("auto-editor"):
+        raise VideoStackError("auto-editor não instalado: instale o adaptador opcional")
+    if not ffprobe_media(source)["has_audio"]:
+        raise VideoStackError("Auto-Editor exige áudio na fonte")
+    checked_run(["auto-editor", str(source), "--margin", "0.18s",
+                 "--output", str(target)], timeout=1800)
+    if not target.is_file() or target.stat().st_size < 1000:
+        raise VideoStackError("Auto-Editor não produziu vídeo")
+    return target
+
+
+def render_adapter(kind: str, source: Path, target: Path) -> Path:
+    """Use installed open-source CLIs. No installation, network or credentials hidden."""
+    target.parent.mkdir(parents=True, exist_ok=True)
+    if kind == "openscreen":
+        if not shutil.which("openscreen"):
+            raise VideoStackError("OpenScreen CLI ausente")
+        checked_run(["openscreen", "export", str(source), "-o", str(target), "--json"])
+    elif kind == "hyperframes":
+        if not source.is_dir() or not (source / "index.html").is_file():
+            raise VideoStackError("HyperFrames necessita de projeto com index.html")
+        if not shutil.which("npx"):
+            raise VideoStackError("Node.js 22+ e HyperFrames local são necessários")
+        # CLI emits into the project. Use a copy of the project, never touch source files.
+        with tempfile.TemporaryDirectory(prefix="moneyprint-hyperframes-") as temp:
+            folder = Path(temp) / "project"
+            shutil.copytree(source, folder, ignore=shutil.ignore_patterns("node_modules"))
+            completed = subprocess.run(
+                ["npx", "--no-install", "hyperframes", "render"], cwd=folder,
+                check=True, text=True, capture_output=True, timeout=1800)
+            candidates = [p for p in folder.rglob("*.mp4") if p.is_file()]
+            if not candidates:
+                raise VideoStackError("HyperFrames não exportou MP4")
+            shutil.copy2(max(candidates, key=lambda f: f.stat().st_mtime), target)
+    else:
+        raise VideoStackError("Adaptador desconhecido")
+    ffprobe_media(target)
+    return target
+
+
+def render_stack(source: Path, output: Path, *, options: dict | None = None,
+                 assets: Path | None = None) -> dict:
+    """Re-encode for consistent format, concatenate hard cuts, align audio exactly."""
+    opts = normalize_motion_options(options or {})
+    source, output = Path(source), Path(output)
+    if not source.is_file():
+        raise VideoStackError("Vídeo principal inexistente")
+    if not shutil.which("ffmpeg") or not shutil.which("ffprobe"):
+        raise VideoStackError("FFmpeg + FFprobe precisam estar instalados")
+    assets = (assets or Path.cwd() / "assets").resolve()
+    output.parent.mkdir(parents=True, exist_ok=True)
+    w, h = FORMATS[opts["aspect"]]
+    fps = 30
+    with tempfile.TemporaryDirectory(prefix="moneyprint-stack-") as tmp:
+        root = Path(tmp)
+        body = source
+        if opts["auto_cut"]:
+            body = auto_cut_silence(source, root / "trimmed.mp4")
+        body_meta = ffprobe_media(body)
+        timeline = []
+        if opts["hook_asset"]:
+            hook = safe_asset(opts["hook_asset"], assets)
+            if not hook.is_file():
+                raise VideoStackError("Gancho não encontrado em assets/")
+            hook_seconds = opts["hook_seconds"]
+            if hook_seconds <= 0 or ffprobe_media(hook)["duration"] + 0.015 < hook_seconds:
+                raise VideoStackError("Gancho menor que duração solicitada")
+            timeline.append(("hook", hook, hook_seconds))
+        if opts["universe_seconds"] > 0:
+            from scripts.motion_design import render_universe
+            universe = root / "universe.mp4"
+            render_universe(universe, title=opts["universe_title"],
+                            seconds=opts["universe_seconds"], size=(w, h), fps=fps)
+            timeline.append(("universe", universe, opts["universe_seconds"]))
+        if opts["motion_canvas_clip"]:
+            clip = safe_asset(opts["motion_canvas_clip"], assets)
+            if not clip.is_file():
+                raise VideoStackError("Clipe Motion Canvas não encontrado")
+            timeline.append(("motion_canvas", clip, ffprobe_media(clip)["duration"]))
+        if opts["openscreen_project"]:
+            path = (assets / Path(opts["openscreen_project"]).relative_to("assets")).resolve()
+            if not path.is_relative_to(assets) or path.suffix != ".openscreen":
+                raise VideoStackError("Projeto OpenScreen inválido")
+            clip = render_adapter("openscreen", path, root / "openscreen.mp4")
+            timeline.append(("openscreen", clip, ffprobe_media(clip)["duration"]))
+        if opts["hyperframes_project"]:
+            path = (assets / Path(opts["hyperframes_project"]).relative_to("assets")).resolve()
+            if not path.is_relative_to(assets):
+                raise VideoStackError("Projeto HyperFrames inválido")
+            clip = render_adapter("hyperframes", path, root / "hyperframes.mp4")
+            timeline.append(("hyperframes", clip, ffprobe_media(clip)["duration"]))
+        timeline.append(("body", body, body_meta["duration"]))
+        normalized = []
+        for idx, (name, clip, seconds) in enumerate(timeline):
+            destination = root / f"segment-{idx:03d}.mp4"
+            checked_run([
+                "ffmpeg", "-hide_banner", "-loglevel", "error", "-nostdin", "-y",
+                "-i", str(clip), "-t", str(seconds),
+                "-vf", f"scale={w}:{h}:force_original_aspect_ratio=decrease:flags=lanczos,"
+                       f"pad={w}:{h}:(ow-iw)/2:(oh-ih)/2:color=0x080d1e,setsar=1,fps={fps},format=yuv420p",
+                "-an", "-c:v", "libx264", "-preset", "veryfast", "-crf", "20",
+                "-pix_fmt", "yuv420p", str(destination)], timeout=1800)
+            normalized.append(destination)
+        listfile = root / "concat.txt"
+        # Paths are all inside our freshly created temp dir.
+        listfile.write_text("".join(f"file '{p.as_posix()}'\n" for p in normalized), encoding="utf-8")
+        joined = root / "joined.mp4"
+        checked_run(["ffmpeg", "-hide_banner", "-loglevel", "error", "-nostdin", "-y",
+                     "-f", "concat", "-safe", "0", "-i", str(listfile),
+                     "-c", "copy", str(joined)])
+        intro_duration = sum(seconds for name, _, seconds in timeline if name != "body")
+        duration = sum(seconds for _, _, seconds in timeline)
+        if body_meta["has_audio"]:
+            delay = round(intro_duration * 1000)
+            checked_run([
+                "ffmpeg", "-hide_banner", "-loglevel", "error", "-nostdin", "-y",
+                "-i", str(joined), "-i", str(body),
+                "-filter_complex", f"[1:a:0]adelay={delay}:all=1,apad[a]",
+                "-map", "0:v:0", "-map", "[a]", "-c:v", "copy", "-c:a", "aac",
+                "-b:a", "160k", "-t", str(duration), "-movflags", "+faststart",
+                str(output)], timeout=1800)
+        else:
+            shutil.copy2(joined, output)
+        final = ffprobe_media(output)
+        if abs(final["duration"] - duration) > 0.25:
+            raise VideoStackError("Duração de renderização não bate com timeline")
+        result = {"output": str(output), "duration_seconds": final["duration"],
+                  "width": w, "height": h, "fps": fps, "transition": "hard_cut",
+                  "clips": [{"type": name, "seconds": round(seconds, 3)}
+                            for name, _, seconds in timeline],
+                  "audio_preserved": body_meta["has_audio"]}
+        if opts["scene_index"]:
+            result["scenes"] = index_scenes(output)
+        return result
+
+
 def main():
-    p=argparse.ArgumentParser()
-    p.add_argument("--input",required=True);p.add_argument("--output",required=True)
-    p.add_argument("--hook");p.add_argument("--hook-seconds",type=float,default=3)
-    p.add_argument("--width",type=int,default=1920);p.add_argument("--height",type=int,default=1080)
-    p.add_argument("--fps",type=int,default=30);p.add_argument("--transition",choices=["cut","fade"],default="cut")
-    a=p.parse_args()
-    if not shutil.which("ffmpeg") or not shutil.which("ffprobe"):p.error("FFmpeg/FFprobe required")
-    if a.hook_seconds<=0 or a.fps<=0 or a.width<=0 or a.height<=0:p.error("Invalid dimensions or duration")
-    output=pathlib.Path(a.output);output.parent.mkdir(parents=True,exist_ok=True)
-    import tempfile
-    with tempfile.TemporaryDirectory() as tmp:
-        def norm(source,dest,seconds=None):
-            cmd=["ffmpeg","-y","-i",source]
-            if seconds:cmd+=["-t",str(seconds)]
-            cmd+=["-vf",f"scale={a.width}:{a.height}:force_original_aspect_ratio=decrease,pad={a.width}:{a.height}:(ow-iw)/2:(oh-ih)/2,setsar=1,fps={a.fps}","-c:v","libx264","-pix_fmt","yuv420p","-an",dest]
-            run(cmd)
-        clips=[]
-        if a.hook:
-            hook=str(pathlib.Path(tmp)/"hook.mp4");norm(a.hook,hook,a.hook_seconds);clips.append(hook)
-        body=str(pathlib.Path(tmp)/"body.mp4");norm(a.input,body);clips.append(body)
-        concat=pathlib.Path(tmp)/"list.txt"
-        concat.write_text("".join("file '"+c.replace("'","'\\''")+"'\n" for c in clips))
-        joined=str(pathlib.Path(tmp)/"joined.mp4")
-        run(["ffmpeg","-y","-f","concat","-safe","0","-i",str(concat),"-c:v","libx264","-pix_fmt","yuv420p",joined])
-        # Preserve original body audio when no hook; with hook, delay audio by hook length.
-        probe=subprocess.run(["ffprobe","-v","error","-select_streams","a:0","-show_entries","stream=index","-of","csv=p=0",a.input],capture_output=True,text=True,check=True)
-        if probe.stdout.strip():
-            delay=int(a.hook_seconds*1000) if a.hook else 0
-            run(["ffmpeg","-y","-i",joined,"-i",a.input,"-filter_complex",f"[1:a]adelay={delay}:all=1[a]","-map","0:v:0","-map","[a]","-c:v","copy","-c:a","aac","-shortest",str(output)])
-        else:shutil.copyfile(joined,output)
-    print(json.dumps({"output":str(output),"hook":bool(a.hook),"transition":"hard_cut","fps":a.fps}))
-if __name__=="__main__":main()
+    parser = argparse.ArgumentParser(description="MoneyPrint open source video stack")
+    parser.add_argument("--input", required=True)
+    parser.add_argument("--output", required=True)
+    parser.add_argument("--hook")
+    parser.add_argument("--hook-seconds", type=float, default=3)
+    parser.add_argument("--universe-seconds", type=float, default=0)
+    parser.add_argument("--universe-title", default="OPEN SOURCE")
+    parser.add_argument("--aspect", choices=FORMATS, default="16:9")
+    parser.add_argument("--auto-cut", action="store_true")
+    parser.add_argument("--scene-index", action="store_true")
+    parser.add_argument("--options-json", help="JSON with motion options")
+    args = parser.parse_args()
+    options = json.loads(Path(args.options_json).read_text()) if args.options_json else {
+        "universe_seconds": args.universe_seconds, "universe_title": args.universe_title,
+        "aspect": args.aspect, "auto_cut": args.auto_cut, "scene_index": args.scene_index}
+    if args.hook:
+        source = Path(args.hook).resolve()
+        asset_root = (Path.cwd() / "assets").resolve()
+        if not source.is_relative_to(asset_root):
+            parser.error("Gancho deve estar em assets/")
+        options.update({"hook_asset": "assets/" + source.relative_to(asset_root).as_posix(),
+                        "hook_seconds": args.hook_seconds})
+    try:
+        print(json.dumps(render_stack(Path(args.input), Path(args.output),
+                                      options=options), ensure_ascii=False))
+    except (VideoStackError, OSError, subprocess.SubprocessError) as exc:
+        parser.exit(1, f"Erro: {exc}\n")
+
+
+if __name__ == "__main__":
+    main()
