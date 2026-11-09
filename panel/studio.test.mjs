@@ -95,5 +95,5 @@ test("studio render endpoint requires an explicit saved revision and GitHub conn
   assert.equal((await call(path,"POST",{revision:1},session,"invalid")).status,403);
   const noToken=await call(path,"POST",{revision:1},session,csrf);
   assert.equal(noToken.status,409);
-  assert.match((await noToken.json()).error,/GitHub não conectado/);
+  assert.match((await noToken.json()).error,/Conecte o GitHub/);
 });
