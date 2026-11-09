@@ -153,17 +153,9 @@ def _slide(scene, output: Path, width: int, height: int, asset: Path | None) -> 
     for line in lines:
         d.text((pad, start_y), line, font=title_font, fill=(241, 246, 252))
         start_y += round(title_font.size*1.23)
-    if scene["layout"] in {"flow", "browser", "split"}:
-        base_y = min(height-round(height*.12), max(round(height*.65),start_y+round(height*.045)))
-        if scene["layout"] == "flow" and not asset:
-            gap = round(width*.015); box_w = round(width*.22)
-            for i, name in enumerate(["CLIENTE", "PROCESSO", "RESULTADO"]):
-                x = pad + i*(box_w+gap)
-                d.rounded_rectangle((x, base_y, x+box_w, min(height-pad,base_y+round(height*.15))), radius=max(5,round(15*scale)),fill=(31,51,70),outline=(73,140,168),width=max(1,round(2*scale)))
-                d.text((x+round(box_w*.1),base_y+round(height*.045)),name,font=label_font,fill=(220,239,247))
-        elif scene["layout"] == "browser" and not asset:
-            d.rounded_rectangle((pad,base_y,width-pad,min(height-pad,base_y+round(height*.16))), radius=12, fill=(30,44,62),outline=(62,102,135),width=2)
-            d.text((pad+round(25*scale),base_y+round(24*scale)), "Exemplo ilustrativo  /  selecione uma captura real",font=body_font,fill=(170,190,212))
+    # Use contextual, business-specific diagrams rather than generic filler cards.
+    from scripts.studio_visuals import paint_layout
+    paint_layout(img, scene, pad, start_y, width, height, asset is not None)
     if asset and asset.suffix.lower() in IMAGE_EXT:
         try:
             with Image.open(asset) as source:
