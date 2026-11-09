@@ -40,6 +40,14 @@ class CinematicTests(unittest.TestCase):
         with self.assertRaises(CinematicError):
             metadata_for_repo("https://evil.example/org/repo")
 
+    def test_pdv_repo_selects_restaurant_context_and_no_media_gate(self):
+        from scripts.cinematic_post import BROLL_TERMS
+        data = metadata_for_repo("https://github.com/exemplo/pdv-restaurante")
+        self.assertEqual(data["category"], "pdv")
+        self.assertTrue(any("restaurant" in term for term in BROLL_TERMS["pdv"]))
+        self.assertEqual(metadata_for_repo("https://github.com/exemplo/obra-bim")["category"],
+                         "construction")
+
     def test_text_safety_and_motion_graphics(self):
         plan = cinematic_plan(REPOS, 331.8)
         text = build_ass(plan, 331.8)
