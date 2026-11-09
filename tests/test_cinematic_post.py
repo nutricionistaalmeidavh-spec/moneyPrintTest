@@ -50,6 +50,16 @@ class CinematicTests(unittest.TestCase):
         self.assertNotIn("{\\evil}", ass_safe("oi{\\evil}"))
         self.assertLess(len(text), 20000)
 
+    def test_fabricated_news_never_appears_in_titles(self):
+        rows = cinematic_plan(REPOS, 331.8)
+        invented = {1: {"headline": "URGENTE: evento inventado",
+                        "publisher": "Jornal falso", "published_at": "2026-11-08"}}
+        plain = build_ass(rows, 331.8, news_records=invented)
+        self.assertNotIn("evento inventado", plain)
+        verified = {1: {**invented[1], "verified_via": "google_news_rss"}}
+        trusted = build_ass(rows, 331.8, news_records=verified)
+        self.assertIn("evento inventado", trusted)
+
     def test_five_minute_timeline_without_explicit_chapters(self):
         p = cinematic_plan(REPOS, 331.8)
         self.assertTrue(0 <= p[0]["start"] < p[-1]["end"] < 331.8)
