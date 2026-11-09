@@ -280,11 +280,26 @@ def render_project(project: dict, root: Path, output_dir: Path, *, voice: str="n
                 f"[video][overlay]overlay=0:0:shortest=1,format=yuv420p[v]")
         else:
             base=["ffmpeg","-hide_banner","-loglevel","error","-nostdin","-y","-loop","1","-framerate",str(fps),"-i",str(art)]
-            # Animate the composed slide very gently; avoid fake full-screen scrolling.
+            # Alternate subtle camera moves, retaining hard cuts and an exact frame count.
+            # These are original slide transforms, not laggy Playwright scrolling.
+            frames=max(1,count-1)
+            motion=index % 4
+            if motion==0:
+                z="min(zoom+0.0007,1.065)"
+                x="iw/2-(iw/zoom/2)"
+            elif motion==1:
+                z=f"max(1.065-on*0.065/{frames},1.0)"
+                x="iw/2-(iw/zoom/2)"
+            elif motion==2:
+                z="1.065"
+                x=f"(iw-iw/zoom)*min(1,on/{frames})"
+            else:
+                z="1.065"
+                x=f"(iw-iw/zoom)*(1-min(1,on/{frames}))"
             vf=(f"[0:v]scale={width}:{height},"
-                f"zoompan=z='min(zoom+0.0005,1.045)':d=1:"
-                f"x='iw/2-(iw/zoom/2)':y='ih/2-(ih/zoom/2)':"
-                f"s={width}x{height}:fps={fps},format=yuv420p[v]")
+                f"zoompan=z='{z}':d=1:x='{x}':"
+                f"y='ih/2-(ih/zoom/2)':s={width}x{height}:fps={fps},"
+                f"format=yuv420p[v]")
         if narration:
             base += ["-i",str(narration)]
             audio_idx=2 if moving else 1
