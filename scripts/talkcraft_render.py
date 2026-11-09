@@ -238,9 +238,11 @@ def main():
     remotion_render(upstream,mp4,frames=("0-"+str(min(269,plan["total_frames"]-1))) if args.smoke else None)
     expected=min(270,plan["total_frames"]) if args.smoke else plan["total_frames"]
     report=qa(mp4,expected)
+    manifest=json.loads((output/"talkcraft_manifest.json").read_text(encoding="utf-8"))
+    report["illustration_audit"]=manifest.get("illustration_audit",{})
     report.update({"engine":"original_video_talkcraft","upstream_sha":UPSTREAM_SHA,
                    "license":"PolyForm Noncommercial 1.0.0","educational_only":True,
-                   "alignment":"none_smoke" if args.smoke else "measured_whisper_pt",
+                   "alignment":"none_smoke" if args.smoke else manifest.get("alignment","unknown"),
                    "output":str(mp4),"autopublish":False})
     (output/"diagnostico.json").write_text(json.dumps(report,ensure_ascii=False,indent=2))
     print(json.dumps(report,ensure_ascii=False))
