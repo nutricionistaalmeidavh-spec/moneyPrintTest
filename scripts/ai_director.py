@@ -184,7 +184,7 @@ def validate_director_plan(value: object, asset_ids: set[str]) -> list[dict] | N
     if not isinstance(value, dict) or not isinstance(value.get("shots"), list):
         return None
     shots = value["shots"]
-    if not 1 <= len(shots) <= 12:
+    if not 1 <= len(shots) <= 80:
         return None
     clean = []
     for shot in shots:
@@ -192,7 +192,7 @@ def validate_director_plan(value: object, asset_ids: set[str]) -> list[dict] | N
             return None
         if shot["asset_id"] not in asset_ids or type(shot["seconds"]) is not int:
             return None
-        if not 2 <= shot["seconds"] <= 15:
+        if not 1 <= shot["seconds"] <= 360:
             return None
         clean.append({"asset_id": shot["asset_id"], "seconds": shot["seconds"]})
     return clean
@@ -204,7 +204,7 @@ def build_fallback_plan(ids: list[str], preferred: list[str]) -> list[dict]:
     github_id = ids[0]
     chosen = [github_id]
     extras = [key for key in preferred if key in ids and key != github_id]
-    for extra in extras[:3]:
+    for extra in extras:
         chosen.extend([extra, github_id])
     if len(chosen) == 1:
         return [{"asset_id": github_id, "seconds": 12}]
@@ -218,7 +218,7 @@ def plan_with_local_ai(section: dict, assets: list[dict]) -> tuple[list[dict], s
         [a["id"] for a in assets[1:]])
     prompt = (
         "Você é editor de um documentário tecnológico em português. "
-        "Planeje de 4 a 9 takes elegantes e rápidos (2 a 15 segundos). "
+        "Planeje takes elegantes de duração livre, equilibrando cenas rápidas e cenas de demonstração. "
         "Use APENAS asset_id da lista verificada; priorize gravação GitHub real, "
         "intercale b-roll contextual, GIF oficial e manchete verificada SE EXISTIREM. "
         "Nunca invente assets, manchetes nem fontes. Use navegação em vários takes. "
@@ -244,3 +244,32 @@ def plan_with_local_ai(section: dict, assets: list[dict]) -> tuple[list[dict], s
     except (OSError, ValueError, TypeError, KeyError):
         pass
     return fallback, "fallback:invalid_ai_output"
+
+
+def suggest_broll_query(section: dict) -> tuple[str, str]:
+    """Have the local director plan a practical real-world stock-footage search."""
+    default = section.get("broll_query", "").strip()
+    prompt = (
+        "Você é pesquisador visual. Escolha UMA busca concreta em inglês para "
+        "vídeo real do Wikimedia Commons relacionado ao USO da ferramenta, "
+        "por exemplo 'restaurant cashier serving customer' para PDV. "
+        "Não peça vídeo de interface de site. "
+        "JSON somente: {\"query\": \"...\"}. "
+        "Repositório: " + section["title"] + "; contexto: " +
+        section["narration"][:500]
+    )
+    try:
+        data = json.dumps({"model": AGENT_MODEL, "prompt": prompt,
+                           "stream": False, "format": "json",
+                           "options": {"temperature": 0.18, "num_predict": 100}}).encode()
+        req = urllib.request.Request(
+            "http://127.0.0.1:11434/api/generate", data=data,
+            headers={"Content-Type": "application/json"})
+        with urllib.request.urlopen(req, timeout=90) as response:
+            raw = json.load(response)
+        query = json.loads(raw["response"]).get("query")
+        if isinstance(query, str) and re.fullmatch(r"[A-Za-z0-9][A-Za-z0-9 ,'-]{3,65}", query):
+            return query, "ollama"
+    except (OSError, ValueError, KeyError, TypeError):
+        pass
+    return default or "computer software developer", "fallback"
