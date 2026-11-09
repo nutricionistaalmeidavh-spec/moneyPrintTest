@@ -1,0 +1,76 @@
+name: QA cinematografico - motion + b-roll + navegador
+
+on:
+  pull_request:
+    paths:
+      - "scripts/cinematic_post.py"
+      - "scripts/render_request.py"
+      - "tests/test_cinematic_post.py"
+      - ".github/workflows/qa-cinematic.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  cinematic-e2e:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+      - name: Open-source tools e fonte Inter
+        run: |
+          sudo apt-get update -qq
+          sudo apt-get install -y ffmpeg fonts-inter
+          python -m pip install "playwright==1.56.0"
+          python -m playwright install --with-deps chromium
+          fc-match Inter | head -1
+      - name: Suite de validacao
+        run: python -m unittest discover -s tests -v
+      - name: Capturar os 8 repositorios reais em navegador desktop
+        run: |
+          python - <<'PY'
+          from pathlib import Path
+          from scripts.browser_capture import capture_repositories
+          urls = [
+              "https://github.com/appwrite/appwrite",
+              "https://github.com/payloadcms/payload",
+              "https://github.com/FlowiseAI/Flowise",
+              "https://github.com/docling-project/docling",
+              "https://github.com/meilisearch/meilisearch",
+              "https://github.com/keycloak/keycloak",
+              "https://github.com/novuhq/novu",
+              "https://github.com/Infisical/infisical",
+          ]
+          clips = capture_repositories(urls, 120, Path("qa-cinematic/browser"))
+          assert len(clips) == 8
+          print("Capturas reais:", clips)
+          PY
+      - name: Buscar b-roll editorial gratuito licenciado
+        continue-on-error: true
+        run: |
+          python - <<'PY'
+          import json
+          from pathlib import Path
+          from scripts.commons_media import find_free_videos, source_credits
+          searches = ["document scanner", "computer work", "data center servers", "mobile phone"]
+          credits = []
+          for i, term in enumerate(searches, 1):
+              clips, records = find_free_videos([term], Path(f"qa-cinematic/context/{i}"), max_results=1)
+              credits.extend(records)
+              print(term, clips)
+          if credits:
+              Path("qa-cinematic/CREDITOS_BROLL.txt").write_text(
+                  source_credits(credits), encoding="utf-8")
+          PY
+      - name: Empacotar capturas para remasterizar video original
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: moneyprint-cinematic-reference
+          path: qa-cinematic/
+          retention-days: 7
+          if-no-files-found: warn
