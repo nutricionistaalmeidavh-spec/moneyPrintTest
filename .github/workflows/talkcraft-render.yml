@@ -1,5 +1,9 @@
 name: MoneyPrint — Video Talkcraft original (educacional)
 on:
+  push:
+    branches: [main]
+    paths:
+      - 'projects/5-sistemas-talkcraft-educacional.json'
   pull_request:
     paths:
       - "scripts/talkcraft_*.py"
@@ -67,7 +71,7 @@ jobs:
               target.parent.mkdir(parents=True,exist_ok=True)
               target.write_text(json.dumps(data,ensure_ascii=False,indent=2))
           else:
-              path=proj or "tests/fixtures/talkcraft-edu-smoke.json"
+              path=proj or ("projects/5-sistemas-talkcraft-educacional.json" if os.environ.get("GITHUB_EVENT_NAME")=="push" else "tests/fixtures/talkcraft-edu-smoke.json")
               if not re.fullmatch(r"(?:projects|studio-requests|tests/fixtures)/[a-zA-Z0-9_.-]{1,100}\.json",path):
                   raise SystemExit("Projeto fora da pasta permitida")
               target=Path(path)
