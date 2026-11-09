@@ -100,3 +100,21 @@
   .aside .contents{min-height:0}
 }
 @media(max-width:360px){.showcase-cards{grid-template-columns:1fr}.quick-tool-buttons{grid-template-columns:1fr}}
+
+
+/* Reference-aligned desktop layout: wide node canvas, tool library below, editor at right. */
+@media(min-width:721px){
+ .workspace{display:block!important}
+ .canvas-wrap{height:525px;min-height:525px;width:100%}
+ .palette{display:none!important}
+ .inspector{display:none;position:fixed;z-index:130;right:22px;top:85px;bottom:20px;
+   width:min(400px,calc(100vw - 44px));height:auto;max-height:none;min-height:0;
+   background:linear-gradient(150deg,#192b43,#13233a);box-shadow:0 18px 85px #000b}
+ .inspector.open{display:flex;position:fixed;flex-direction:column}
+ .inspector .sheet-header{display:flex;align-items:center;min-height:73px}
+ .inspector .sheet-close{display:grid!important;place-items:center;flex-shrink:0}
+ .inspector .contents{display:block;flex:1 1 auto;min-height:0;max-height:none;overflow:auto;padding:17px}
+ .inspector .sheet-footer{display:block;flex:0 0 auto;padding:12px 18px;border-top:1px solid #38546d}
+ .inspector .sheet-footer .btn{width:100%}
+ .tool-open{display:inline-flex;align-items:center}
+}
