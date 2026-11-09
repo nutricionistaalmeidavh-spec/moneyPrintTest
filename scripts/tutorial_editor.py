@@ -59,7 +59,8 @@ def validate_recipe(recipe, *, duration, resolution):
         if not 0 <= c["start"] < c["end"] <= duration or not 1 <= c["speed"] <= 3.5 or c["start"] < prior:
             raise RecipeError("Cortes sobrepostos ou fora de intervalo")
         prior = c["end"]
-        clean_text(c.get("caption"), 48)
+        if recipe.get("show_step_labels", False):
+            clean_text(c.get("caption"), 48)
         for m in masks:
             if c["start"] < m["end"] and c["end"] > m["start"]:
                 if not (m["start"] <= c["start"] and m["end"] >= c["end"]):
@@ -132,22 +133,27 @@ def still(image, seconds, target):
           "-an","-r",str(FPS),"-c:v","libx264","-preset","veryfast",
           "-crf","24","-pix_fmt","yuv420p",str(target)])
 
-def scene(source, clip, masks, caption, target):
-    duration = float(clip["end"]-clip["start"])
+def scene(source, clip, masks, target):
+    """No top step counter and no bottom action subtitles."""
+    duration = float(clip["end"] - clip["start"])
     filters = []
     for m in masks:
-        # Opaque, irreversible masking applied to source before scaling.
         filters.append("drawbox=x={x}:y={y}:w={width}:h={height}:color=0x12121d:t=fill".format(
-            **{k:int(m[k]) for k in ("x","y","width","height")}))
-    filters += [f"setpts=(PTS-STARTPTS)/{clip['speed']}", f"fps={FPS}",
+            **{k: int(m[k]) for k in ("x", "y", "width", "height")}))
+    filters += [
+        f"setpts=(PTS-STARTPTS)/{clip['speed']}",
+        f"fps={FPS}",
         "scale=720:1280:force_original_aspect_ratio=decrease:flags=lanczos",
-        "pad=720:1280:(ow-iw)/2:(oh-ih)/2:color=0x080d1d","setsar=1"]
-    call(["ffmpeg","-hide_banner","-loglevel","error","-nostdin","-y",
-          "-ss",str(clip["start"]),"-t",str(duration),"-i",str(source),
-          "-loop","1","-i",str(caption),
-          "-filter_complex",f"[0:v]{','.join(filters)}[bg];[bg][1:v]overlay=shortest=1:format=auto,format=yuv420p[v]",
-          "-map","[v]","-an","-r",str(FPS),"-c:v","libx264","-preset","veryfast",
-          "-crf","25","-pix_fmt","yuv420p","-t",str(duration/clip["speed"]),str(target)])
+        "pad=720:1280:(ow-iw)/2:(oh-ih)/2:color=0x080d1d",
+        "setsar=1", "format=yuv420p"
+    ]
+    call(["ffmpeg", "-hide_banner", "-loglevel", "error", "-nostdin", "-y",
+          "-ss", str(clip["start"]), "-t", str(duration), "-i", str(source),
+          "-vf", ",".join(filters),
+          "-an", "-r", str(FPS), "-c:v", "libx264", "-preset", "veryfast",
+          "-crf", "22", "-pix_fmt", "yuv420p",
+          "-t", str(duration / clip["speed"]), str(target)])
+
 
 def original_audio(path, seconds):
     # Original pulse, not the reference video's potentially copyrighted music.
@@ -164,29 +170,92 @@ def original_audio(path, seconds):
     with wave.open(str(path),"wb") as f:
         f.setnchannels(1);f.setsampwidth(2);f.setframerate(rate);f.writeframes(pcm.tobytes())
 
-def render(source, recipe_path, output):
-    if not source.is_file():
-        raise RecipeError("Gravacao nao encontrada")
+def hook_timing(start, end, total=3):
+    """Keep the nearly-accident motorcycle footage at original 1x speed."""
+    if any(type(v) not in (int,float) for v in (start,end,total)):
+        raise RecipeError("Tempos do gancho invalidos")
+    motor = end-start
+    if not 0 <= start < end or not .4 <= motor <= 1.2 or total != 3:
+        raise RecipeError("Moto de .4 a 1.2 s sem camera lenta; abertura total 3 s")
+    return round(motor, 4), round(total-motor, 4)
+
+
+def validate_hook(recipe, duration, resolution):
+    if recipe.get("opening_style") != "universe_gif":
+        raise RecipeError("Abertura deve ser universe_gif")
+    if recipe.get("hook_source_resolution") != list(resolution):
+        raise RecipeError("Resolucao do video da moto mudou")
+    crop=recipe.get("hook_crop")
+    if not isinstance(crop,list) or len(crop)!=4 or any(type(v)!=int for v in crop):
+        raise RecipeError("Recorte de gancho invalido")
+    x,y,w,h=crop
+    if x<0 or y<0 or w<160 or h<240 or x+w>resolution[0] or y+h>resolution[1]:
+        raise RecipeError("Recorte do gancho fora da gravacao")
+    start=recipe.get("hook_source_start")
+    end=recipe.get("hook_source_end")
+    motor,space=hook_timing(start,end,recipe.get("hook_duration_seconds"))
+    if end>duration or abs(recipe.get("universe_seconds",0)-space)>.1:
+        raise RecipeError("Gancho e universo precisam somar 3 s sem esticar moto")
+    return motor,space
+
+
+def motorcycle_video(source, recipe, seconds, target):
+    x,y,w,h=recipe["hook_crop"]
+    start=recipe["hook_source_start"]
+    call(["ffmpeg","-hide_banner","-loglevel","error","-nostdin","-y",
+          "-ss",str(start),"-t",str(seconds),"-i",str(source),
+          "-vf",f"crop={w}:{h}:{x}:{y},fps={FPS},scale=720:1280:flags=lanczos,setsar=1,format=yuv420p",
+          "-an","-c:v","libx264","-preset","veryfast","-crf","23",
+          "-pix_fmt","yuv420p","-r",str(FPS),str(target)])
+
+
+def universe_video(gif_source, lines, seconds, target, text_file):
+    """Use externally supplied universe GIF; local file, not a paid service."""
+    from PIL import Image, ImageDraw
+    overlay=Image.new("RGBA",SIZE,(0,0,0,0))
+    d=ImageDraw.Draw(overlay)
+    for n,line in enumerate(lines[:3]):
+        txt=clean_text(line,75)
+        f=fitting(d,txt,SIZE[0]-60,50)
+        y=500+n*82
+        d.text((SIZE[0]//2+2,y+3),txt,font=f,anchor="mm",
+               fill=(0,0,0,255),stroke_width=5,stroke_fill=(0,0,0,235))
+        d.text((SIZE[0]//2,y),txt,font=f,anchor="mm",fill=(255,255,255,255))
+    overlay.save(text_file)
+    call(["ffmpeg","-hide_banner","-loglevel","error","-nostdin","-y",
+          "-stream_loop","-1","-i",str(gif_source),"-loop","1","-i",str(text_file),
+          "-filter_complex","[0:v]fps=24,scale=720:1280:force_original_aspect_ratio=increase,"
+                            "crop=720:1280,setsar=1[space];"
+                            "[space][1:v]overlay=shortest=1:format=auto,format=yuv420p[v]",
+          "-map","[v]","-an","-t",str(seconds),"-r",str(FPS),
+          "-c:v","libx264","-preset","veryfast","-crf","24",
+          "-pix_fmt","yuv420p",str(target)])
+
+
+def render(source, recipe_path, output, hook_source=None, universe_gif=None):
+    if not source.is_file() or not hook_source or not hook_source.is_file():
+        raise RecipeError("Forneca gravacao da tela e clipe de gancho")
+    if not universe_gif or not universe_gif.is_file():
+        raise RecipeError("Forneca GIF de universo, arquivo privado local")
     if not shutil.which("ffmpeg") or not shutil.which("ffprobe"):
         raise RecipeError("Instale FFmpeg")
-    duration, res = probe(source)
-    recipe=validate_recipe(json.loads(recipe_path.read_text(encoding="utf-8")),duration=duration,resolution=res)
+    duration,res=probe(source)
+    recipe=validate_recipe(json.loads(recipe_path.read_text(encoding="utf-8")),
+                           duration=duration,resolution=res)
+    hd,hr=probe(hook_source)
+    motor,space=validate_hook(recipe,hd,hr)
     output.parent.mkdir(parents=True,exist_ok=True)
     with tempfile.TemporaryDirectory(prefix="moneyprint-tutorial-") as tmp:
         t=Path(tmp)
         parts=[]
-        title_image(t/"intro.png",recipe["hook"])
-        still(t/"intro.png",2.2,t/"000.mp4")
-        parts.append(t/"000.mp4")
+        motorcycle_video(hook_source,recipe,motor,t/"000-moto.mp4")
+        parts.append(t/"000-moto.mp4")
+        universe_video(universe_gif,recipe["hook"],space,t/"001-universe.mp4",t/"title.png")
+        parts.append(t/"001-universe.mp4")
         for i,c in enumerate(recipe["clips"],1):
-            png=t/f"caption_{i}.png"
-            mp4=t/f"{i:03d}.mp4"
-            caption_image(png,c["caption"],i,len(recipe["clips"]))
-            scene(source,c,masks_for_clip(recipe,c),png,mp4)
+            mp4=t/f"{i:03d}-take.mp4"
+            scene(source,c,masks_for_clip(recipe,c),mp4)
             parts.append(mp4)
-        title_image(t/"outro.png",recipe["outro"])
-        still(t/"outro.png",2.0,t/"999.mp4")
-        parts.append(t/"999.mp4")
         playlist=t/"videos.txt"
         playlist.write_text("".join(f"file '{p}'\n" for p in parts),encoding="utf-8")
         joined=t/"silent.mp4"
@@ -199,15 +268,21 @@ def render(source, recipe_path, output):
               "-map","0:v:0","-map","1:a:0","-c:v","copy","-c:a","aac","-shortest",
               "-map_metadata","-1","-movflags","+faststart",str(output)])
     return {"output":str(output),"seconds":round(secs,2),"takes":len(recipe["clips"]),
-            "privacy":"opaque_masks","original_audio":"excluded","publication":"manual_only"}
+            "layout":"no_top_or_bottom_overlays","hook_playback":"original_speed",
+            "privacy":"opaque_masks","publication":"manual_review_only"}
+
 
 def main():
     p=argparse.ArgumentParser()
     p.add_argument("--source",required=True,type=Path)
+    p.add_argument("--hook-source",required=True,type=Path)
+    p.add_argument("--universe-gif",required=True,type=Path)
     p.add_argument("--recipe",required=True,type=Path)
     p.add_argument("--output",required=True,type=Path)
     args=p.parse_args()
-    print(json.dumps(render(args.source,args.recipe,args.output),ensure_ascii=False,indent=2))
+    print(json.dumps(render(args.source,args.recipe,args.output,args.hook_source,args.universe_gif),
+                     ensure_ascii=False,indent=2))
+
 
 if __name__=="__main__":
     main()
