@@ -25,7 +25,7 @@ jobs:
         run: |
           sudo apt-get update -qq
           sudo apt-get install -y ffmpeg fonts-inter
-          python -m pip install "playwright==1.56.0"
+          python -m pip install "playwright==1.56.0" "Pillow==11.3.0"
           python -m playwright install --with-deps chromium
           fc-match Inter | head -1
       - name: Suite de validacao
