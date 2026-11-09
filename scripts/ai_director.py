@@ -40,8 +40,8 @@ def validate_sections(raw: object, urls: list[str]) -> list[dict]:
         title, narration, query = item.get("title"), item.get("narration"), item.get("broll_query", "")
         if not isinstance(title, str) or not 2 <= len(title.strip()) <= 75 or "\n" in title:
             raise ValueError("Título inválido em sections")
-        if not isinstance(narration, str) or not 40 <= len(narration.strip()) <= 1700 or "\x00" in narration:
-            raise ValueError("Narração de seção inválida (40 a 1700 caracteres)")
+        if not isinstance(narration, str) or not 15 <= len(narration.strip()) <= 1700 or "\x00" in narration:
+            raise ValueError("Narração de seção inválida (15 a 1700 caracteres)")
         if not isinstance(query, str) or len(query) > 70 or "\n" in query or "\r" in query:
             raise ValueError("broll_query inválida")
         result.append({"repo_url": urls[i], "title": title.strip(),
