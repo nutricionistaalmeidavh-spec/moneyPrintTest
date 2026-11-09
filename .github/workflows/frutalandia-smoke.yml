@@ -1,0 +1,40 @@
+name: Frutalândia — QA de geometria 3D real
+
+on:
+  pull_request:
+    paths:
+      - "scripts/frutalandia_blender.py"
+      - "scripts/frutalandia_episode_runner.py"
+      - "stories/frutalandia/**"
+      - ".github/workflows/frutalandia-smoke.yml"
+
+permissions:
+  contents: read
+
+jobs:
+  blender-real-frame:
+    runs-on: ubuntu-latest
+    timeout-minutes: 35
+    steps:
+      - uses: actions/checkout@v4
+      - name: Instalar Blender e FFmpeg open source
+        run: |
+          sudo apt-get update -qq
+          sudo apt-get install -y -qq blender ffmpeg
+      - name: Renderizar frame 3D real com Cycles CPU
+        env:
+          FRUTALANDIA_SMOKE: "1"
+        run: |
+          mkdir -p outputs/smoke
+          blender -b -t 2 --python scripts/frutalandia_blender.py -- \
+            stories/frutalandia/audio-do-amanha-ep01.json outputs/smoke
+          test -s outputs/smoke/blender-render-config.json
+          find outputs/smoke -name 'silent*.mp4' -size +1k -print -quit | grep .
+      - name: Exportar frame do teste
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: frutalandia-3d-smoke
+          path: outputs/smoke/
+          retention-days: 2
+          if-no-files-found: warn
