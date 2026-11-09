@@ -8,7 +8,7 @@ class TutorialEditorTests(unittest.TestCase):
             "title":"Exemplo","format":"9:16","source_resolution":[512,1108],
             "hook":["INICIO"],"outro":["FIM"],
             "privacy_masks":[{"start":0,"end":8,"x":140,"y":100,"width":240,"height":60}],
-            "clips":[{"start":1,"end":3,"speed":1.5,"caption":"TEXTO"}]
+            "clips":[{"start":1,"end":3,"speed":1.5}]
         }
     def test_good_recipe(self):
         r=validate_recipe(self.recipe,duration=20,resolution=(512,1108))
@@ -40,6 +40,25 @@ class TutorialEditorTests(unittest.TestCase):
         self.recipe["clips"][0]["end"]=21
         with self.assertRaises(RecipeError):
             validate_recipe(self.recipe,duration=20,resolution=(512,1108))
+
+
+class CleanPresentationTests(unittest.TestCase):
+    def test_fast_original_hook_not_slowed(self):
+        from scripts.tutorial_editor import hook_timing
+        hook,universe=hook_timing(0.03,0.83)
+        self.assertAlmostEqual(hook,0.8)
+        self.assertAlmostEqual(universe,2.2)
+        with self.assertRaises(RecipeError):
+            hook_timing(0,3.5)
+    def test_no_overlaid_caption_or_step_number_in_recipe(self):
+        request={"title":"x","format":"9:16","source_resolution":[512,1108],
+                 "hook":["INTRO"],"outro":["FIM"],
+                 "privacy_masks":[{"start":0,"end":8,"x":140,"y":100,"width":240,"height":60}],
+                 "clips":[{"start":1,"end":3,"speed":1.5}]}
+        validate_recipe(request,duration=20,resolution=(512,1108))
+        request["clips"][0]["caption"]="NÃO MOSTRAR"
+        with self.assertRaises(RecipeError):
+            validate_recipe(request,duration=20,resolution=(512,1108))
 
 if __name__=="__main__":
     unittest.main()
