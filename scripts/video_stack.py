@@ -53,7 +53,7 @@ def normalize_motion_options(raw: object) -> dict:
     for key in ("auto_cut", "scene_index", "threejs"):
         if type(opts[key]) is not bool:
             raise VideoStackError(f"{key} deve ser booleano")
-    if opts["transition"] not in ("cut", "fade"):
+    if opts["transition"] not in ("cut", "fade", "wipeleft", "slideleft", "smoothleft", "circleopen"):
         raise VideoStackError("Transição não permitida; sem flash branco")
     if opts["aspect"] not in FORMATS:
         raise VideoStackError("Proporção inválida")
@@ -228,31 +228,77 @@ def render_stack(source: Path, output: Path, *, options: dict | None = None,
                 "-an", "-c:v", "libx264", "-preset", "veryfast", "-crf", "20",
                 "-pix_fmt", "yuv420p", str(destination)], timeout=1800)
             normalized.append(destination)
-        listfile = root / "concat.txt"
-        # Paths are all inside our freshly created temp dir.
-        listfile.write_text("".join(f"file '{p.as_posix()}'\n" for p in normalized), encoding="utf-8")
+        durations = [ffprobe_media(p)["duration"] for p in normalized]
+        transition = opts["transition"]
+        overlap = 0.24 if transition != "cut" and len(normalized) > 1 else 0.0
+        if overlap and min(durations) <= overlap + 0.08:
+            raise VideoStackError("Clipe curto demais para a transição escolhida")
         joined = root / "joined.mp4"
-        checked_run(["ffmpeg", "-hide_banner", "-loglevel", "error", "-nostdin", "-y",
-                     "-f", "concat", "-safe", "0", "-i", str(listfile),
-                     "-c", "copy", str(joined)])
-        intro_duration = sum(seconds for name, _, seconds in timeline if name != "body")
-        duration = sum(seconds for _, _, seconds in timeline)
-        if body_meta["has_audio"]:
-            delay = round(intro_duration * 1000)
-            checked_run([
-                "ffmpeg", "-hide_banner", "-loglevel", "error", "-nostdin", "-y",
-                "-i", str(joined), "-i", str(body),
-                "-filter_complex", f"[1:a:0]adelay={delay}:all=1,apad[a]",
-                "-map", "0:v:0", "-map", "[a]", "-c:v", "copy", "-c:a", "aac",
-                "-b:a", "160k", "-t", str(duration), "-movflags", "+faststart",
-                str(output)], timeout=1800)
+        if overlap:
+            inputs = []
+            stages = []
+            for idx, clip in enumerate(normalized):
+                inputs.extend(["-i", str(clip)])
+                stages.append(f"[{idx}:v]settb=AVTB,setpts=PTS-STARTPTS[v{idx}]")
+            accumulated = durations[0]
+            previous = "v0"
+            for idx in range(1, len(normalized)):
+                out_label = f"x{idx}"
+                stages.append(
+                    f"[{previous}][v{idx}]xfade=transition={transition}:"
+                    f"duration={overlap}:offset={accumulated-overlap:.5f}[{out_label}]"
+                )
+                accumulated += durations[idx] - overlap
+                previous = out_label
+            checked_run(["ffmpeg", "-hide_banner", "-loglevel", "error", "-nostdin",
+                         "-y", *inputs, "-filter_complex", ";".join(stages),
+                         "-map", f"[{previous}]", "-an", "-c:v", "libx264",
+                         "-preset", "veryfast", "-crf", "20", "-pix_fmt", "yuv420p",
+                         "-movflags", "+faststart", str(joined)], timeout=1800)
+        else:
+            listfile = root / "concat.txt"
+            listfile.write_text("".join(f"file '{p.as_posix()}'\n" for p in normalized),
+                                encoding="utf-8")
+            checked_run(["ffmpeg", "-hide_banner", "-loglevel", "error", "-nostdin",
+                         "-y", "-f", "concat", "-safe", "0", "-i", str(listfile),
+                         "-c", "copy", str(joined)])
+        intro_duration = sum(durations[:-1]) - overlap * (len(normalized) - 1)
+        duration = sum(durations) - overlap * (len(normalized) - 1)
+        hook_entry = next(((clip, seconds) for name, clip, seconds in timeline
+                           if name == "hook"), None)
+        has_hook_audio = bool(hook_entry and ffprobe_media(hook_entry[0])["has_audio"])
+        if body_meta["has_audio"] or has_hook_audio:
+            inputs = ["-i", str(joined), "-i", str(body)]
+            filters = []
+            if body_meta["has_audio"]:
+                delay = max(0, round(intro_duration * 1000))
+                filters.append(f"[1:a:0]adelay={delay}:all=1,apad[bodyaudio]")
+            if has_hook_audio:
+                inputs.extend(["-i", str(hook_entry[0])])
+                hook_seconds = hook_entry[1]
+                filters.append(
+                    f"[2:a:0]atrim=duration={hook_seconds:.5f},"
+                    f"asetpts=PTS-STARTPTS,apad[hookaudio]"
+                )
+            if body_meta["has_audio"] and has_hook_audio:
+                filters.append("[bodyaudio][hookaudio]amix=inputs=2:"
+                               "duration=longest:normalize=0,alimiter=limit=0.95[a]")
+            elif body_meta["has_audio"]:
+                filters.append("[bodyaudio]anull[a]")
+            else:
+                filters.append("[hookaudio]anull[a]")
+            checked_run(["ffmpeg", "-hide_banner", "-loglevel", "error", "-nostdin",
+                         "-y", *inputs, "-filter_complex", ";".join(filters),
+                         "-map", "0:v:0", "-map", "[a]", "-c:v", "copy",
+                         "-c:a", "aac", "-b:a", "160k", "-t", str(duration),
+                         "-movflags", "+faststart", str(output)], timeout=1800)
         else:
             shutil.copy2(joined, output)
         final = ffprobe_media(output)
         if abs(final["duration"] - duration) > 0.25:
             raise VideoStackError("Duração de renderização não bate com timeline")
         result = {"output": str(output), "duration_seconds": final["duration"],
-                  "width": w, "height": h, "fps": fps, "transition": "hard_cut",
+                  "width": w, "height": h, "fps": fps, "transition": "hard_cut" if transition == "cut" else transition,
                   "clips": [{"type": name, "seconds": round(seconds, 3)}
                             for name, _, seconds in timeline],
                   "audio_preserved": body_meta["has_audio"]}
@@ -272,11 +318,13 @@ def main():
     parser.add_argument("--aspect", choices=FORMATS, default="16:9")
     parser.add_argument("--auto-cut", action="store_true")
     parser.add_argument("--scene-index", action="store_true")
+    parser.add_argument("--transition", choices=["cut", "fade", "wipeleft", "slideleft", "smoothleft", "circleopen"], default="cut")
     parser.add_argument("--options-json", help="JSON with motion options")
     args = parser.parse_args()
     options = json.loads(Path(args.options_json).read_text()) if args.options_json else {
         "universe_seconds": args.universe_seconds, "universe_title": args.universe_title,
-        "aspect": args.aspect, "auto_cut": args.auto_cut, "scene_index": args.scene_index}
+        "aspect": args.aspect, "auto_cut": args.auto_cut, "scene_index": args.scene_index,
+        "transition": args.transition}
     if args.hook:
         source = Path(args.hook).resolve()
         asset_root = (Path.cwd() / "assets").resolve()
