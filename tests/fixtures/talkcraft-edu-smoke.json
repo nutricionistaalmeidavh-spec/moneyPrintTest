@@ -6,7 +6,7 @@
   "script": "O caos da planilha. O CRM organiza clientes.",
   "fps": 30,
   "aspect": "16:9",
-  "total_frames": 180,
+  "total_frames": 270,
   "visual_style": "talkcraft_edu",
   "tracks": [
     {
@@ -45,6 +45,19 @@
       "animation": "cut",
       "framing": "contain",
       "layout": "browser"
+    },
+    {
+      "id": "scene-003",
+      "track_id": "video",
+      "title": "PAPÉIS E DOCUMENTOS",
+      "text": "Contratos e documentos ficam espalhados.",
+      "kind": "text",
+      "asset_id": null,
+      "start_frame": 180,
+      "duration_frames": 90,
+      "animation": "cut",
+      "framing": "contain",
+      "layout": "flow"
     }
   ]
 }
