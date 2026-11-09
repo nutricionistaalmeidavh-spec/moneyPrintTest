@@ -85,3 +85,12 @@ test("maximum duration follows the actual render engine limits",()=>{
   cinematic.settings.sections=[{repo_url:cinematic.settings.repo_urls[0],title:"Appwrite",narration:"O Appwrite permite integrar serviços de backend em projetos modernos."}];
   assert.throws(()=>compileFlow(cinematic),/360/);
 });
+
+test("motion cut parameters honor the editor 8-second limit",()=>{
+ const f=makeTemplate("cinematic");f.settings.topic="Cena Github";
+ f.settings.repo_urls=["https://github.com/appwrite/appwrite"];
+ f.settings.sections=[{repo_url:f.settings.repo_urls[0],title:"Appwrite",narration:"Ferramentas abertas de backend, autenticação e gerenciamento de dados."}];
+ f.settings.universe_seconds=9;assert.throws(()=>compileFlow(f),/8 segundos/);
+ f.settings.universe_seconds=0;const hook=insertTool(f,"hook");hook.settings.hook_asset="assets/approved/clip.mp4";hook.settings.hook_seconds=9;
+ assert.throws(()=>compileFlow(hook),/8 segundos/);
+});
