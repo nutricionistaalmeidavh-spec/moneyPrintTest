@@ -147,7 +147,7 @@ def _lines(draw, text, font, max_width, max_lines=6):
     return out[:max_lines]
 
 
-def _slide(scene, output: Path, width: int, height: int, asset: Path | None) -> None:
+def _slide(scene, output: Path, width: int, height: int, asset: Path | None, *, stage: int=2) -> None:
     """Original editable-content slide; approved image appears inside browser mockup."""
     from PIL import Image, ImageDraw
     scale = width / 1920
@@ -173,7 +173,7 @@ def _slide(scene, output: Path, width: int, height: int, asset: Path | None) -> 
         start_y += round(title_font.size*1.23)
     # Use contextual, business-specific diagrams rather than generic filler cards.
     from scripts.studio_visuals import paint_layout
-    paint_layout(img, scene, pad, start_y, width, height, asset is not None)
+    paint_layout(img, scene, pad, start_y, width, height, asset is not None, stage=stage)
     if asset and asset.suffix.lower() in IMAGE_EXT:
         try:
             with Image.open(asset) as source:
@@ -269,6 +269,7 @@ def render_project(project: dict, root: Path, output_dir: Path, *, voice: str="n
             if demo:
                 official_demos[url] = Path(demo)
     playlist=[]
+    total_beats=0
     all_cues=[]
     warnings=[]
     credits=[]
@@ -313,6 +314,7 @@ def render_project(project: dict, root: Path, output_dir: Path, *, voice: str="n
                 raise RenderError("Narração longa demais para a cena "+scene["id"]+"; aumente a duração")
         out=scratch/f"clip_{index:03d}.mp4"
         moving=asset is not None and asset.suffix.lower() in VIDEO_EXT
+        scene_beats=1
         if moving:
             base=["ffmpeg","-hide_banner","-loglevel","error","-nostdin","-y","-stream_loop","-1","-i",str(asset),"-loop","1","-framerate",str(fps),"-i",str(art)]
             vf=(f"[0:v]scale={width}:{height}:force_original_aspect_ratio=increase,"
@@ -325,39 +327,39 @@ def render_project(project: dict, root: Path, output_dir: Path, *, voice: str="n
                   "-stream_loop","-1","-i",str(demo)]
             vf=browser_demo_filter(width,height,fps)
         else:
-            base=["ffmpeg","-hide_banner","-loglevel","error","-nostdin","-y","-loop","1","-framerate",str(fps),"-i",str(art)]
-            # Alternate subtle camera moves, retaining hard cuts and an exact frame count.
-            # These are original slide transforms, not laggy Playwright scrolling.
-            frames=max(1,count-1)
-            motion=index % 4
-            if motion==0:
-                z="min(zoom+0.0007,1.065)"
-                x="iw/2-(iw/zoom/2)"
-            elif motion==1:
-                z=f"max(1.065-on*0.065/{frames},1.0)"
-                x="iw/2-(iw/zoom/2)"
-            elif motion==2:
-                z="1.065"
-                x=f"(iw-iw/zoom)*min(1,on/{frames})"
-            else:
-                z="1.065"
-                x=f"(iw-iw/zoom)*(1-min(1,on/{frames}))"
-            vf=(f"[0:v]scale={width}:{height},"
-                f"zoompan=z='{z}':d=1:x='{x}':"
-                f"y='ih/2-(ih/zoom/2)':s={width}x{height}:fps={fps},"
-                f"format=yuv420p[v]")
+            scene_beats=min(3,count)
+            lengths=[count//scene_beats+(1 if i<count%scene_beats else 0) for i in range(scene_beats)]
+            base=["ffmpeg","-hide_banner","-loglevel","error","-nostdin","-y"]
+            vf_items=[]
+            for k,nframes in enumerate(lengths):
+                art=scratch/f"slide_{index:03d}_stage{k}.png"
+                chosen=image_asset
+                if repo_url and github_stills.get(repo_url):
+                    chosen=github_stills[repo_url][k%len(github_stills[repo_url])]
+                _slide(scene,art,width,height,chosen,stage=k)
+                base+=["-loop","1","-framerate",str(fps),"-i",str(art)]
+                # Multiple distinct visual beats, real cuts, no white flash.
+                vf_items.append(
+                    f"[{k}:v]scale={width}:{height},"
+                    f"zoompan=z='min(zoom+0.00024,1.025)':d=1:"
+                    f"x='iw/2-(iw/zoom/2)':y='ih/2-(ih/zoom/2)':"
+                    f"s={width}x{height}:fps={fps},"
+                    f"trim=duration={nframes/fps:.6f},setpts=PTS-STARTPTS,format=yuv420p[v{k}]")
+            vf=";".join(vf_items)+";"+"".join(f"[v{k}]" for k in range(scene_beats))+f"concat=n={scene_beats}:v=1:a=0[v]"
+            audio_idx=scene_beats
         if narration:
             base += ["-i",str(narration)]
-            audio_idx=2 if (moving or demo) else 1
+            audio_idx=2 if (moving or demo) else scene_beats
             af=f"[{audio_idx}:a]aresample=48000,atempo={tempo:.5f},apad,atrim=0:{duration:.6f}[a]"
         else:
             base += ["-f","lavfi","-i","anullsrc=r=48000:cl=stereo"]
-            audio_idx=2 if moving else 1
+            audio_idx=2 if (moving or demo) else scene_beats
             af=f"[{audio_idx}:a]atrim=0:{duration:.6f}[a]"
         _run(base+["-filter_complex",vf+";"+af,"-map","[v]","-map","[a]",
                    "-frames:v",str(count),"-t",f"{duration:.6f}","-r",str(fps),
                    "-c:v","libx264","-preset","veryfast","-crf","20","-pix_fmt","yuv420p",
                    "-c:a","aac","-b:a","128k","-ar","48000","-movflags","+faststart",str(out)])
+        total_beats+=scene_beats
         playlist.append(out)
         all_cues.extend(word_cues(scene["text"],scene["start_frame"]/fps,duration))
     concat=scratch/"concat.txt"
@@ -393,7 +395,7 @@ def render_project(project: dict, root: Path, output_dir: Path, *, voice: str="n
     (output_dir/"palavras.json").write_text(json.dumps({"method":mode,"cues":all_cues},ensure_ascii=False,indent=2),encoding="utf-8")
     result={"status":"ok","output":str(target),"fps":fps,"total_frames":actual,
             "duration_seconds":plan["duration_seconds"],"word_alignment":mode,
-            "credits":str(credits_path),"warnings":warnings,"voice":voice,"autopublish":False}
+            "credits":str(credits_path),"warnings":warnings,"voice":voice,"autopublish":False,"visual_beats":total_beats}
     (output_dir/"diagnostico.json").write_text(json.dumps(result,ensure_ascii=False,indent=2),encoding="utf-8")
     return result
 
