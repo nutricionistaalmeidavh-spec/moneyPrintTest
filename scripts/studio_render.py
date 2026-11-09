@@ -13,8 +13,6 @@ import re
 import subprocess
 import tempfile
 
-from PIL import Image, ImageDraw, ImageFont, ImageFilter
-
 
 class RenderError(ValueError):
     """Invalid canonical timeline or missing verified media."""
@@ -104,6 +102,7 @@ def word_cues(text: str, start: float, duration: float) -> list[dict]:
 
 
 def _font(size: int, bold=False):
+    from PIL import ImageFont
     candidates = (["/usr/share/fonts/truetype/lato/Lato-Bold.ttf",
                    "/usr/share/fonts/truetype/dejavu/DejaVuSans-Bold.ttf"] if bold else
                   ["/usr/share/fonts/truetype/lato/Lato-Regular.ttf",
@@ -132,6 +131,7 @@ def _lines(draw, text, font, max_width, max_lines=6):
 
 def _slide(scene, output: Path, width: int, height: int, asset: Path | None) -> None:
     """Original editable-content slide; approved image appears inside browser mockup."""
+    from PIL import Image, ImageDraw
     scale = width / 1920
     img = Image.new("RGB", (width, height), "#0B1321")
     d = ImageDraw.Draw(img)
