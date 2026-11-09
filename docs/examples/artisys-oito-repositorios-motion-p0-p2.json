@@ -1,0 +1,75 @@
+{
+  "topic": "Pare de programar tudo do zero — 8 repositórios open source",
+  "duration_seconds": 330,
+  "aspect": "16:9",
+  "visual_mode": "github_cinematic",
+  "repo_urls": [
+    "https://github.com/appwrite/appwrite",
+    "https://github.com/payloadcms/payload",
+    "https://github.com/FlowiseAI/Flowise",
+    "https://github.com/docling-project/docling",
+    "https://github.com/meilisearch/meilisearch",
+    "https://github.com/keycloak/keycloak",
+    "https://github.com/novuhq/novu",
+    "https://github.com/Infisical/infisical"
+  ],
+  "sections": [
+    {
+      "repo_url": "https://github.com/appwrite/appwrite",
+      "title": "Appwrite",
+      "narration": "Você ainda começa cada aplicativo criando login, banco de dados e armazenamento do zero? O primeiro repositório é o Appwrite. Ele reúne serviços de backend que normalmente consomem dias de trabalho: autenticação, banco, arquivos e funções. Repare na página real do projeto, na documentação e nas integrações disponíveis. A vantagem não é apertar um botão e ter um produto pronto. É ganhar uma base sólida para construir aplicativos com menos repetição. Imagine uma pequena empresa desenvolvendo um portal de clientes ou uma aplicação interna. Com o Appwrite, o time pode concentrar mais energia na experiência do usuário e menos na infraestrutura inicial.",
+      "broll_query": "software developer laptop typing"
+    },
+    {
+      "repo_url": "https://github.com/payloadcms/payload",
+      "title": "Payload CMS",
+      "narration": "O segundo projeto é o Payload CMS. Pense em um site que precisa de notícias, páginas, catálogos e conteúdos editáveis por uma equipe. Em vez de construir um painel administrativo inteiro, você pode usar um sistema de gestão de conteúdo que já oferece estrutura para coleções, campos e APIs. Aqui, o interessante é observar como o repositório apresenta seus recursos e como o painel foi pensado para pessoas que trabalham com conteúdo. Isso serve para portais, sites empresariais e aplicações que dependem de informações sempre atualizadas. Mas vale testar o fluxo de edição com seus usuários antes de escolher a solução para um projeto real.",
+      "broll_query": "website editor office laptop"
+    },
+    {
+      "repo_url": "https://github.com/FlowiseAI/Flowise",
+      "title": "Flowise",
+      "narration": "Agora imagine automatizar tarefas e experimentar aplicações de inteligência artificial sem começar desenhando todas as conexões manualmente. O Flowise oferece uma interface visual para organizar fluxos e integrar componentes de IA. No repositório e nas demonstrações, o valor está na ideia de enxergar as etapas do processo e entender como os dados circulam. Isso pode ajudar na construção de assistentes internos, testes de atendimento e protótipos de automação. O ponto importante é não confundir um fluxo bonito com um sistema pronto para produção. Antes de usar com clientes, valide permissões, custos de modelos externos, privacidade e tratamento de erros. O código aberto facilita experimentar.",
+      "broll_query": "office team automating computers"
+    },
+    {
+      "repo_url": "https://github.com/docling-project/docling",
+      "title": "Docling",
+      "narration": "O quarto repositório resolve um problema que parece simples, mas pode consumir muito tempo: transformar documentos em informações aproveitáveis. O Docling trabalha com a conversão e estruturação de documentos, incluindo arquivos que misturam textos, tabelas e outros elementos. Em vez de copiar dados manualmente de cada PDF, uma equipe pode preparar um fluxo de extração e conferência. Pense em escritórios, obras e empresas que recebem relatórios, contratos e propostas o dia inteiro. A demonstração real do projeto ajuda a entender as possibilidades, mas a conferência humana continua necessária quando um dado é importante. Automatização boa não é só velocidade: também precisa de rastreabilidade e revisão.",
+      "broll_query": "office worker scanning paper documents"
+    },
+    {
+      "repo_url": "https://github.com/meilisearch/meilisearch",
+      "title": "Meilisearch",
+      "narration": "Sabe quando você digita uma palavra em um catálogo e a busca parece não entender o que procura? O Meilisearch é um mecanismo de pesquisa pensado para criar experiências de busca rápidas em aplicações. Ele pode ser usado em catálogos de produtos, bibliotecas, sistemas internos ou páginas com muitos registros. Veja no GitHub como a ferramenta organiza a documentação e os exemplos de uso. Em um sistema comercial, por exemplo, encontrar um item rapidamente pode ser tão importante quanto cadastrar esse item. Só não esqueça que uma boa busca também depende da qualidade dos dados, dos filtros e da indexação. A ferramenta ajuda, mas não corrige uma base desorganizada.",
+      "broll_query": "retail employee using computer inventory"
+    },
+    {
+      "repo_url": "https://github.com/keycloak/keycloak",
+      "title": "Keycloak",
+      "narration": "O sexto projeto é sobre um ponto que quase ninguém percebe quando o aplicativo funciona, mas todo mundo nota quando falha: a identidade de quem entra no sistema. O Keycloak reúne recursos para autenticação e gerenciamento de acesso. Em empresas com vários softwares, isso pode ajudar a organizar o login e as permissões de forma mais consistente. Mas segurança não surge automaticamente só porque você instalou uma ferramenta conhecida. É preciso definir políticas, configurar os ambientes e testar os acessos corretamente. Observe a documentação do repositório e os exemplos de integração. Uma boa arquitetura de identidade deve facilitar a vida de quem usa e reduzir os riscos de acesso indevido.",
+      "broll_query": "office computer cybersecurity security access"
+    },
+    {
+      "repo_url": "https://github.com/novuhq/novu",
+      "title": "Novu",
+      "narration": "O sétimo repositório é o Novu, voltado à organização de notificações em aplicações. Imagine um software que precisa avisar sobre um pedido, uma atualização de cadastro ou uma tarefa concluída. Se cada mensagem for criada de um jeito diferente, manter os canais e os modelos pode virar uma confusão. A proposta aqui é estruturar melhor esses fluxos de comunicação. Nas páginas do projeto, observe como as notificações são tratadas como parte do produto, não como um detalhe esquecido no final do desenvolvimento. E lembre: enviar mais avisos não significa melhorar a experiência. O conteúdo precisa ser útil, oportuno e respeitar as preferências de cada pessoa.",
+      "broll_query": "mobile phone notification office work"
+    },
+    {
+      "repo_url": "https://github.com/Infisical/infisical",
+      "title": "Infisical",
+      "narration": "Por último, uma ferramenta especialmente importante para quem desenvolve e publica sistemas: o Infisical. Um projeto pode funcionar muito bem e ainda assim ficar vulnerável se senhas, tokens e chaves forem espalhados por arquivos ou códigos compartilhados. Ferramentas de gerenciamento de segredos ajudam a separar essas informações do restante da aplicação e a organizar quem pode acessá-las. No GitHub, confira a proposta, a documentação e os modos de integração antes de decidir como utilizar. Esses oito repositórios não substituem planejamento, testes ou boas práticas. Eles mostram que construir software não precisa significar reinventar todas as peças. Se você trabalha com tecnologia, salve esta seleção e explore os projetos com atenção.",
+      "broll_query": "data center server room cybersecurity"
+    }
+  ],
+  "motion": {
+    "universe_seconds": 1.2,
+    "universe_title": "8 FERRAMENTAS OPEN SOURCE",
+    "aspect": "16:9",
+    "transition": "cut",
+    "auto_cut": false,
+    "scene_index": true,
+    "threejs": false
+  }
+}
