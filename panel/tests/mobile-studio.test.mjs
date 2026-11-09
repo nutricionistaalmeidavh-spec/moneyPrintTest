@@ -73,3 +73,12 @@ test("Imported skill remains strict: executable code and metadata cannot slip th
   assert.throws(()=>applySkill(makeTemplate("automatic"),{...input,id:"external",command:"rm"}),/código|não suportad/i);
   assert.throws(()=>parseSkillManifest({...input,icon:"✳"}),/código|não suportad/i);
 });
+
+test("Studio has layout, repository and render controls inside protected mobile view",()=>{
+ const html=read("builder.html");
+ const ui=read("studio-ui.mjs");
+ for(const id of ["studioSceneLayout","studioSceneRepoUrl","studioImportButton","studioRender"])
+   assert.match(html,new RegExp('id="'+id+'"'));
+ assert.match(ui,/api\/studio\/projects\/import/);
+ assert.match(ui,/\/render/);
+});
