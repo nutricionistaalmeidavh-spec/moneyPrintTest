@@ -82,3 +82,11 @@ test("Studio has layout, repository and render controls inside protected mobile 
  assert.match(ui,/api\/studio\/projects\/import/);
  assert.match(ui,/\/render/);
 });
+
+test("Storyboard advanced scene labels remain editable on mobile",()=>{
+ const html=read("builder.html");
+ const ui=read("studio-ui.mjs");
+ for(const id of ["studioFlowSteps","studioBullets","studioCaption"])
+   assert.match(html,new RegExp('id="'+id+'"'));
+ assert.match(ui,/studioChange\("flow_steps"/);
+});

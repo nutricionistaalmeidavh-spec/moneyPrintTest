@@ -38,6 +38,9 @@ function studioDraw(){
   by("studioSceneAnimation").value=scene.animation||"cut";
   by("studioSceneLayout").value=scene.layout||"hero";
   by("studioSceneRepoUrl").value=scene.repo_url||"";
+  by("studioFlowSteps").value=(scene.flow_steps||[]).join("\n");
+  by("studioBullets").value=(scene.bullets||[]).join("\n");
+  by("studioCaption").value=scene.caption||"";
   by("studioSceneAsset").innerHTML='<option value="">Sem mídia</option>'+studio.assets.filter(function(a){return a.verified}).map(function(a){return '<option value="'+esc(a.id)+'">'+esc(a.title)+'</option>'}).join("");
   by("studioSceneAsset").value=scene.asset_id||"";
   by("studioTime").textContent=(scene.start_frame/30).toFixed(1)+"s – "+((scene.start_frame+scene.duration_frames)/30).toFixed(1)+"s · "+(studio.total_frames/30).toFixed(1)+"s total";
@@ -49,7 +52,7 @@ function studioDraw(){
 }
 function studioSelect(i){if(!studio||i<0||i>=studio.scenes.length)return;studioStop();studioIndex=i;studioDraw()}
 function studioChange(key,value){
-  if(!studio)return;var s=studio.scenes[studioIndex];if(s[key]===value)return;
+  if(!studio)return;var s=studio.scenes[studioIndex];if(JSON.stringify(s[key])===JSON.stringify(value))return;
   studioSnapshot();s[key]=value;if(key==="asset_id")s.kind=value?"media":"text";
   studioRecalc();studioInfo("Alterações pendentes. Salve para persistir no painel.");studioDraw();
 }
@@ -62,6 +65,14 @@ by("studioSceneSeconds").addEventListener("change",function(){var n=Math.round(N
 by("studioSceneAnimation").addEventListener("change",function(){studioChange("animation",this.value)});
 by("studioSceneAsset").addEventListener("change",function(){studioChange("asset_id",this.value||null)});
 by("studioSceneLayout").addEventListener("change",function(){studioChange("layout",this.value)});
+function applyStoryboardItems(key,value){
+ const items=value.split("\n").map(x=>x.trim()).filter(Boolean);
+ if(items.length>3||items.some(x=>x.length>48||x.length<2||/[<>\r]/.test(x))){notice("Use de uma a três frases curtas de até 48 caracteres");studioDraw();return}
+ studioChange(key,items);
+}
+by("studioFlowSteps").addEventListener("change",function(){applyStoryboardItems("flow_steps",this.value)});
+by("studioBullets").addEventListener("change",function(){applyStoryboardItems("bullets",this.value)});
+by("studioCaption").addEventListener("change",function(){studioChange("caption",this.value.trim())});
 by("studioSceneRepoUrl").addEventListener("change",function(){var url=this.value.trim();if(url&&!/^https:\/\/github\.com\/[A-Za-z0-9_.-]+\/[A-Za-z0-9_.-]+\/?$/.test(url)){notice("URL deve apontar para repositório público no GitHub");this.value=studio.scenes[studioIndex].repo_url||"";return}studioChange("repo_url",url)});
 function studioMove(dir){
  if(!studio)return;var next=studioIndex+dir;if(next<0||next>=studio.scenes.length)return;

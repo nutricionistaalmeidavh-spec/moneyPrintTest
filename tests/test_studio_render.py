@@ -56,6 +56,37 @@ class PlanTests(unittest.TestCase):
         self.assertAlmostEqual(cues[0]["start"], 3.0)
         self.assertAlmostEqual(cues[-1]["end"], 7.0)
 
+    def test_rejects_invalid_storyboard_visual_data(self):
+        p = sample()
+        p["scenes"][1]["flow_steps"] = ["Lead", "Em negociação", "Concluído"]
+        p["scenes"][1]["bullets"] = ["Contato", "Proposta", "Fechamento"]
+        plan = build_plan(p)
+        self.assertEqual(plan["scenes"][1]["flow_steps"][1], "Em negociação")
+        p["scenes"][1]["flow_steps"] = ["ok", "ok", "<script>alert(1)</script>"]
+        with self.assertRaises(RenderError): build_plan(p)
+
+    def test_flow_progression_produces_distinct_stages(self):
+        from scripts.studio_render import _slide
+        from PIL import Image, ImageChops
+        with tempfile.TemporaryDirectory() as d:
+            p = sample()["scenes"][1]
+            p["flow_steps"] = ["Contato", "Proposta", "Venda"]
+            a, b = Path(d)/"stage-a.png", Path(d)/"stage-b.png"
+            _slide(p,a,640,360,None,stage=0)
+            _slide(p,b,640,360,None,stage=2)
+            with Image.open(a) as left, Image.open(b) as right:
+                self.assertIsNotNone(ImageChops.difference(left,right).getbbox())
+
+    @unittest.skipUnless(__import__("shutil").which("ffmpeg") and __import__("shutil").which("ffprobe"), "ffmpeg required")
+    def test_video_with_dynamic_beats_remains_exact_frames(self):
+        with tempfile.TemporaryDirectory() as d:
+            p=sample()
+            p["scenes"][1]["flow_steps"]=["Lead", "Proposta", "Cliente"]
+            result=render_project(p,Path(d),Path(d)/"out",voice="none",width=320,height=180)
+            self.assertEqual(result["total_frames"],90)
+            self.assertEqual(result["scenes_rendered"],2)
+            self.assertGreaterEqual(result["visual_beats"],5)
+
     def test_plan_can_import_without_pillow_in_validation_only(self):
         # GitHub Actions validates JSON before installing the rendering stack.
         import sys

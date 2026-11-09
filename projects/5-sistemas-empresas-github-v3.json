@@ -39,7 +39,12 @@
       "animation": "cut",
       "framing": "contain",
       "layout": "hero",
-      "eyebrow": "PARE DE PAGAR POR TUDO"
+      "eyebrow": "PARE DE PAGAR POR TUDO",
+      "bullets": [
+        "5 PROJETOS",
+        "OPEN SOURCE",
+        "SEM MENSALIDADE OBRIGATÓRIA"
+      ]
     },
     {
       "id": "scene-002",
@@ -53,7 +58,13 @@
       "animation": "cut",
       "framing": "contain",
       "layout": "split",
-      "eyebrow": "5 SISTEMAS  /  5 PROBLEMAS"
+      "eyebrow": "5 SISTEMAS  /  5 PROBLEMAS",
+      "bullets": [
+        "ERP e estoque",
+        "Clientes e atendimento",
+        "Projetos e documentos"
+      ],
+      "caption": "Ferramentas reais, com código público e instalação própria."
     },
     {
       "id": "scene-003",
@@ -67,7 +78,13 @@
       "animation": "cut",
       "framing": "contain",
       "layout": "flow",
-      "eyebrow": "ERPNEXT"
+      "eyebrow": "ERPNEXT",
+      "flow_steps": [
+        "PLANILHAS",
+        "RETRABALHO",
+        "DADOS DISPERSOS"
+      ],
+      "caption": "Quando os dados não conversam, o retrabalho aumenta."
     },
     {
       "id": "scene-004",
@@ -82,7 +99,12 @@
       "framing": "contain",
       "layout": "browser",
       "repo_url": "https://github.com/frappe/erpnext",
-      "eyebrow": "ERPNEXT"
+      "eyebrow": "ERPNEXT",
+      "bullets": [
+        "Vendas e compras",
+        "Estoque integrado",
+        "Gestão financeira"
+      ]
     },
     {
       "id": "scene-005",
@@ -96,7 +118,13 @@
       "animation": "cut",
       "framing": "contain",
       "layout": "flow",
-      "eyebrow": "ERPNEXT"
+      "eyebrow": "ERPNEXT",
+      "flow_steps": [
+        "PEDIDO",
+        "ESTOQUE",
+        "FINANCEIRO"
+      ],
+      "caption": "Uma operação conectada a outros setores da empresa."
     },
     {
       "id": "scene-006",
@@ -110,7 +138,13 @@
       "animation": "cut",
       "framing": "contain",
       "layout": "split",
-      "eyebrow": "ERPNEXT"
+      "eyebrow": "ERPNEXT",
+      "bullets": [
+        "Implantação própria",
+        "Controle de processos",
+        "Planejamento técnico"
+      ],
+      "caption": "Código gratuito não elimina manutenção e treinamento."
     },
     {
       "id": "scene-007",
@@ -124,7 +158,13 @@
       "animation": "cut",
       "framing": "contain",
       "layout": "flow",
-      "eyebrow": "TWENTY CRM"
+      "eyebrow": "TWENTY CRM",
+      "flow_steps": [
+        "CONTATO NOVO",
+        "SEM RETORNO",
+        "VENDA PERDIDA"
+      ],
+      "caption": "Oportunidades precisam de acompanhamento."
     },
     {
       "id": "scene-008",
@@ -139,7 +179,12 @@
       "framing": "contain",
       "layout": "browser",
       "repo_url": "https://github.com/twentyhq/twenty",
-      "eyebrow": "TWENTY CRM"
+      "eyebrow": "TWENTY CRM",
+      "bullets": [
+        "Contatos",
+        "Oportunidades",
+        "Pipeline de vendas"
+      ]
     },
     {
       "id": "scene-009",
@@ -153,7 +198,13 @@
       "animation": "cut",
       "framing": "contain",
       "layout": "flow",
-      "eyebrow": "TWENTY CRM"
+      "eyebrow": "TWENTY CRM",
+      "flow_steps": [
+        "LEAD",
+        "PROPOSTA",
+        "NEGOCIAÇÃO"
+      ],
+      "caption": "Um funil visual para acompanhar responsabilidades."
     },
     {
       "id": "scene-010",
@@ -167,7 +218,13 @@
       "animation": "cut",
       "framing": "contain",
       "layout": "split",
-      "eyebrow": "TWENTY CRM"
+      "eyebrow": "TWENTY CRM",
+      "bullets": [
+        "Histórico acessível",
+        "Tarefas com responsáveis",
+        "Próximos passos"
+      ],
+      "caption": "O CRM organiza o trabalho. A venda ainda depende da equipe."
     },
     {
       "id": "scene-011",
@@ -181,7 +238,13 @@
       "animation": "cut",
       "framing": "contain",
       "layout": "flow",
-      "eyebrow": "CHATWOOT"
+      "eyebrow": "CHATWOOT",
+      "flow_steps": [
+        "MENSAGENS",
+        "SEM RESPONSÁVEL",
+        "ATENDIMENTO PERDIDO"
+      ],
+      "caption": "A centralização ajuda a reduzir ruídos no atendimento."
     },
     {
       "id": "scene-012",
@@ -196,7 +259,12 @@
       "framing": "contain",
       "layout": "browser",
       "repo_url": "https://github.com/chatwoot/chatwoot",
-      "eyebrow": "CHATWOOT"
+      "eyebrow": "CHATWOOT",
+      "bullets": [
+        "Caixa de entrada",
+        "Agentes",
+        "Conversas organizadas"
+      ]
     },
     {
       "id": "scene-013",
@@ -210,7 +278,13 @@
       "animation": "cut",
       "framing": "contain",
       "layout": "flow",
-      "eyebrow": "CHATWOOT"
+      "eyebrow": "CHATWOOT",
+      "flow_steps": [
+        "CONVERSA",
+        "RESPONSÁVEL",
+        "RESOLUÇÃO"
+      ],
+      "caption": "Acompanhe o atendimento até a conclusão."
     },
     {
       "id": "scene-014",
@@ -224,7 +298,13 @@
       "animation": "cut",
       "framing": "contain",
       "layout": "split",
-      "eyebrow": "CHATWOOT"
+      "eyebrow": "CHATWOOT",
+      "bullets": [
+        "Verificar integrações",
+        "Políticas dos canais",
+        "Possíveis taxas externas"
+      ],
+      "caption": "WhatsApp e outros canais podem ter regras e custos próprios."
     },
     {
       "id": "scene-015",
@@ -238,7 +318,13 @@
       "animation": "cut",
       "framing": "contain",
       "layout": "flow",
-      "eyebrow": "PLANE"
+      "eyebrow": "PLANE",
+      "flow_steps": [
+        "REUNIÃO",
+        "TAREFA SEM DONO",
+        "PRAZO ESTOURADO"
+      ],
+      "caption": "Projetos exigem responsáveis e prioridades claras."
     },
     {
       "id": "scene-016",
@@ -253,7 +339,12 @@
       "framing": "contain",
       "layout": "browser",
       "repo_url": "https://github.com/makeplane/plane",
-      "eyebrow": "PLANE"
+      "eyebrow": "PLANE",
+      "bullets": [
+        "Tarefas",
+        "Projetos",
+        "Quadros e visualizações"
+      ]
     },
     {
       "id": "scene-017",
@@ -267,7 +358,13 @@
       "animation": "cut",
       "framing": "contain",
       "layout": "flow",
-      "eyebrow": "PLANE"
+      "eyebrow": "PLANE",
+      "flow_steps": [
+        "A FAZER",
+        "EM ANDAMENTO",
+        "CONCLUÍDO"
+      ],
+      "caption": "Kanban visível para acompanhar o progresso."
     },
     {
       "id": "scene-018",
@@ -281,7 +378,13 @@
       "animation": "cut",
       "framing": "contain",
       "layout": "split",
-      "eyebrow": "PLANE"
+      "eyebrow": "PLANE",
+      "bullets": [
+        "Definir prioridades",
+        "Atribuir responsáveis",
+        "Atualizar a execução"
+      ],
+      "caption": "A ferramenta mostra o fluxo; a equipe define o processo."
     },
     {
       "id": "scene-019",
@@ -295,7 +398,13 @@
       "animation": "cut",
       "framing": "contain",
       "layout": "flow",
-      "eyebrow": "PAPERLESS-NGX"
+      "eyebrow": "PAPERLESS-NGX",
+      "flow_steps": [
+        "CONTRATO",
+        "PASTAS SOLTAS",
+        "BUSCA MANUAL"
+      ],
+      "caption": "Documentos espalhados consomem tempo."
     },
     {
       "id": "scene-020",
@@ -310,7 +419,12 @@
       "framing": "contain",
       "layout": "browser",
       "repo_url": "https://github.com/paperless-ngx/paperless-ngx",
-      "eyebrow": "PAPERLESS-NGX"
+      "eyebrow": "PAPERLESS-NGX",
+      "bullets": [
+        "Importação",
+        "Organização de arquivos",
+        "Busca em documentos"
+      ]
     },
     {
       "id": "scene-021",
@@ -324,7 +438,13 @@
       "animation": "cut",
       "framing": "contain",
       "layout": "flow",
-      "eyebrow": "PAPERLESS-NGX"
+      "eyebrow": "PAPERLESS-NGX",
+      "flow_steps": [
+        "ARQUIVO PDF",
+        "INDEXAÇÃO / OCR",
+        "PESQUISA"
+      ],
+      "caption": "Documentos localizáveis com mais facilidade."
     },
     {
       "id": "scene-022",
@@ -338,7 +458,13 @@
       "animation": "cut",
       "framing": "contain",
       "layout": "split",
-      "eyebrow": "PAPERLESS-NGX"
+      "eyebrow": "PAPERLESS-NGX",
+      "bullets": [
+        "Controle de acesso",
+        "Backups",
+        "Retenção de dados"
+      ],
+      "caption": "Dados sensíveis exigem políticas de proteção."
     },
     {
       "id": "scene-023",
@@ -352,7 +478,13 @@
       "animation": "cut",
       "framing": "contain",
       "layout": "flow",
-      "eyebrow": "MAPA DA EMPRESA"
+      "eyebrow": "MAPA DA EMPRESA",
+      "flow_steps": [
+        "OPERAÇÕES E VENDAS",
+        "EQUIPE E ATENDIMENTO",
+        "DOCUMENTOS"
+      ],
+      "caption": "Cada projeto resolve uma parte específica do trabalho."
     },
     {
       "id": "scene-024",
@@ -366,7 +498,13 @@
       "animation": "cut",
       "framing": "contain",
       "layout": "split",
-      "eyebrow": "CORE OPEN SOURCE"
+      "eyebrow": "CORE OPEN SOURCE",
+      "bullets": [
+        "Hospedagem",
+        "Manutenção",
+        "Segurança e equipe"
+      ],
+      "caption": "Avalie a edição comunitária antes de colocar em produção."
     },
     {
       "id": "scene-025",
@@ -380,7 +518,12 @@
       "animation": "cut",
       "framing": "contain",
       "layout": "hero",
-      "eyebrow": "ARTISYS  /  MONEYPRINT"
+      "eyebrow": "ARTISYS  /  MONEYPRINT",
+      "bullets": [
+        "LINKS NA DESCRIÇÃO",
+        "SALVE O VÍDEO",
+        "QUAL VOCÊ USARIA?"
+      ]
     }
   ]
 }

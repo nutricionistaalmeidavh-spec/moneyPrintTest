@@ -75,6 +75,16 @@ def build_plan(project: dict) -> dict:
             raise RenderError("Layout de cena não suportado")
         if raw.get("animation", "cut") not in {"cut", "fade", "slide"}:
             raise RenderError("Animação não suportada")
+        for field in ("flow_steps", "bullets"):
+            items=raw.get(field)
+            if items is not None:
+                if not isinstance(items,list) or not 1<=len(items)<=3 or any(
+                        not isinstance(v,str) or not 2<=len(v)<=48 or
+                        any(x in v for x in "<>\n\r\x00") for v in items):
+                    raise RenderError("Dados visuais inválidos: "+field)
+        if raw.get("caption") is not None and (
+                not isinstance(raw["caption"],str) or len(raw["caption"])>200):
+            raise RenderError("Texto auxiliar inválido")
         prepared.append({**raw, "layout": layout, "end_frame": cursor + count,
                          "duration_seconds": count / fps})
         cursor += count
@@ -129,66 +139,10 @@ def _lines(draw, text, font, max_width, max_lines=6):
     return out[:max_lines]
 
 
-def _slide(scene, output: Path, width: int, height: int, asset: Path | None) -> None:
-    """Original editable-content slide; approved image appears inside browser mockup."""
-    from PIL import Image, ImageDraw
-    scale = width / 1920
-    img = Image.new("RGB", (width, height), "#0B1321")
-    d = ImageDraw.Draw(img)
-    # Dark gradient + restrained geometric motion elements.
-    for y in range(height):
-        v = y / max(1, height)
-        d.line((0, y, width, y), fill=(int(11 + 7*v), int(19 + 9*v), int(33 + 14*v)))
-    accent = (70, 169, 208)
-    pad = max(18, round(width * .065))
-    d.rounded_rectangle((pad, max(12, round(height*.12)), pad+max(28,int(70*scale)), max(16,round(height*.12))+max(3,round(7*scale))), radius=3, fill=accent)
-    label_font = _font(max(10,round(23*scale)),bold=True)
-    title_font = _font(max(19,round((69 if scene["layout"] in {"hero", "quote"} else 54)*scale)),bold=True)
-    body_font = _font(max(11,round(33*scale)))
-    label = scene.get("eyebrow") or "MONEYPRINT  /  OPEN SOURCE"
-    d.text((pad, round(height*.16)), label[:70].upper(), font=label_font, fill=(125, 203, 231))
-    start_y = round(height*.27)
-    text_width = round(width*.78) if not asset else round(width*.48)
-    lines = _lines(d, scene["title"], title_font, text_width, 5)
-    for line in lines:
-        d.text((pad, start_y), line, font=title_font, fill=(241, 246, 252))
-        start_y += round(title_font.size*1.23)
-    if scene["layout"] in {"flow", "browser", "split"}:
-        base_y = min(height-round(height*.12), max(round(height*.65),start_y+round(height*.045)))
-        if scene["layout"] == "flow" and not asset:
-            gap = round(width*.015); box_w = round(width*.22)
-            for i, name in enumerate(["CLIENTE", "PROCESSO", "RESULTADO"]):
-                x = pad + i*(box_w+gap)
-                d.rounded_rectangle((x, base_y, x+box_w, min(height-pad,base_y+round(height*.15))), radius=max(5,round(15*scale)),fill=(31,51,70),outline=(73,140,168),width=max(1,round(2*scale)))
-                d.text((x+round(box_w*.1),base_y+round(height*.045)),name,font=label_font,fill=(220,239,247))
-        elif scene["layout"] == "browser" and not asset:
-            d.rounded_rectangle((pad,base_y,width-pad,min(height-pad,base_y+round(height*.16))), radius=12, fill=(30,44,62),outline=(62,102,135),width=2)
-            d.text((pad+round(25*scale),base_y+round(24*scale)), "Exemplo ilustrativo  /  selecione uma captura real",font=body_font,fill=(170,190,212))
-    if asset and asset.suffix.lower() in IMAGE_EXT:
-        try:
-            with Image.open(asset) as source:
-                source = source.convert("RGB")
-                bx, by = int(width*.53), int(height*.25)
-                bw, bh = int(width*.41), int(height*.56)
-                box = Image.new("RGB",(bw,bh),"#172536")
-                cap = max(12,round(32*scale))
-                thumb = source.copy()
-                thumb.thumbnail((bw,bh-cap),Image.Resampling.LANCZOS)
-                box.paste(thumb,((bw-thumb.width)//2,cap+(bh-cap-thumb.height)//2))
-                d.rounded_rectangle((bx-6,by-6,bx+bw+6,by+bh+6),radius=max(8,round(17*scale)),fill=(63,104,135))
-                img.paste(box,(bx,by))
-                d = ImageDraw.Draw(img)
-                for idx,col in enumerate(["#e07e81","#d8be7c","#77bfa4"]):
-                    x=bx+round((17+17*idx)*scale)
-                    d.ellipse((x,by+round(8*scale),x+round(9*scale),by+round(17*scale)),fill=col)
-        except (OSError, ValueError) as exc:
-            raise RenderError("Não foi possível ler imagem aprovada") from exc
-    if scene["layout"] == "minimal":
-        pass
-    footer_font = _font(max(10,round(20*scale)))
-    d.text((pad,height-round(height*.072)), "ARTISYS  ·  MONEYPRINT",font=footer_font,fill=(117,139,162))
-    output.parent.mkdir(parents=True,exist_ok=True)
-    img.save(output)
+def _slide(scene, output: Path, width: int, height: int, asset: Path | None, *, stage: int=2) -> None:
+    # Delay heavy Pillow imports until after CI validates the JSON contract.
+    from scripts.studio_visuals import draw_slide
+    draw_slide(scene,output,width,height,asset,stage=stage)
 
 
 def _run(command, text=None):
@@ -241,6 +195,7 @@ def render_project(project: dict, root: Path, output_dir: Path, *, voice: str="n
         except Exception as exc:
             raise RenderError("Falha na captura real do GitHub: "+type(exc).__name__) from exc
     playlist=[]
+    total_beats=0
     all_cues=[]
     warnings=[]
     credits=[]
@@ -253,15 +208,12 @@ def render_project(project: dict, root: Path, output_dir: Path, *, voice: str="n
         if asset_meta:
             credits.append({"scene":scene["id"],"file":asset_meta["path"],
                             "license":asset_meta["license"],"attribution":asset_meta["attribution"]})
-        art=scratch/f"slide_{index:03d}.png"
-        # Video assets are used as moving background, stills inside a browser-like card.
         image_asset=asset if asset and asset.suffix.lower() in IMAGE_EXT else None
         repo_url=scene.get("repo_url")
         if repo_url and not image_asset and github_stills.get(repo_url):
             image_asset=github_stills[repo_url][(index-1)%len(github_stills[repo_url])]
             credits.append({"scene":scene["id"],"source_url":repo_url,
                             "attribution":"Captura Playwright de repositório público", "type":"github_screenshot"})
-        _slide(scene,art,width,height,image_asset)
         narration=None
         tempo=1.0
         if voice=="piper":
@@ -276,30 +228,49 @@ def render_project(project: dict, root: Path, output_dir: Path, *, voice: str="n
         out=scratch/f"clip_{index:03d}.mp4"
         moving=asset is not None and asset.suffix.lower() in VIDEO_EXT
         if moving:
-            base=["ffmpeg","-hide_banner","-loglevel","error","-nostdin","-y","-stream_loop","-1","-i",str(asset),"-loop","1","-framerate",str(fps),"-i",str(art)]
+            # User-approved footage may play behind a soft overlay. No arbitrary online footage.
+            art=scratch/f"slide_{index:03d}_stage2.png"
+            _slide(scene,art,width,height,None,stage=2)
+            base=["ffmpeg","-hide_banner","-loglevel","error","-nostdin","-y",
+                  "-stream_loop","-1","-i",str(asset),"-loop","1","-framerate",str(fps),"-i",str(art)]
             vf=(f"[0:v]scale={width}:{height}:force_original_aspect_ratio=increase,"
                 f"crop={width}:{height},fps={fps},format=yuv420p[video];"
                 f"[1:v]format=rgba,colorchannelmixer=aa=0.22[overlay];"
                 f"[video][overlay]overlay=0:0:shortest=1,format=yuv420p[v]")
+            audio_idx=2
+            scene_beats=1
         else:
-            base=["ffmpeg","-hide_banner","-loglevel","error","-nostdin","-y","-loop","1","-framerate",str(fps),"-i",str(art)]
-            # Animate the composed slide very gently; avoid fake full-screen scrolling.
-            vf=(f"[0:v]scale={width}:{height},"
-                f"zoompan=z='min(zoom+0.0005,1.045)':d=1:"
-                f"x='iw/2-(iw/zoom/2)':y='ih/2-(ih/zoom/2)':"
-                f"s={width}x{height}:fps={fps},format=yuv420p[v]")
+            scene_beats=min(3,count)
+            lengths=[count//scene_beats+(1 if i<count%scene_beats else 0) for i in range(scene_beats)]
+            base=["ffmpeg","-hide_banner","-loglevel","error","-nostdin","-y"]
+            vf_items=[]
+            for k,nframes in enumerate(lengths):
+                art=scratch/f"slide_{index:03d}_stage{k}.png"
+                chosen=image_asset
+                if repo_url and github_stills.get(repo_url):
+                    chosen=github_stills[repo_url][k%len(github_stills[repo_url])]
+                _slide(scene,art,width,height,chosen,stage=k)
+                base+=["-loop","1","-framerate",str(fps),"-i",str(art)]
+                # Multiple distinct visual beats, real cuts, no white flash.
+                vf_items.append(
+                    f"[{k}:v]scale={width}:{height},"
+                    f"zoompan=z='min(zoom+0.00024,1.025)':d=1:"
+                    f"x='iw/2-(iw/zoom/2)':y='ih/2-(ih/zoom/2)':"
+                    f"s={width}x{height}:fps={fps},"
+                    f"trim=duration={nframes/fps:.6f},setpts=PTS-STARTPTS,format=yuv420p[v{k}]")
+            vf=";".join(vf_items)+";"+"".join(f"[v{k}]" for k in range(scene_beats))+f"concat=n={scene_beats}:v=1:a=0[v]"
+            audio_idx=scene_beats
         if narration:
             base += ["-i",str(narration)]
-            audio_idx=2 if moving else 1
             af=f"[{audio_idx}:a]aresample=48000,atempo={tempo:.5f},apad,atrim=0:{duration:.6f}[a]"
         else:
             base += ["-f","lavfi","-i","anullsrc=r=48000:cl=stereo"]
-            audio_idx=2 if moving else 1
             af=f"[{audio_idx}:a]atrim=0:{duration:.6f}[a]"
         _run(base+["-filter_complex",vf+";"+af,"-map","[v]","-map","[a]",
                    "-frames:v",str(count),"-t",f"{duration:.6f}","-r",str(fps),
                    "-c:v","libx264","-preset","veryfast","-crf","20","-pix_fmt","yuv420p",
                    "-c:a","aac","-b:a","128k","-ar","48000","-movflags","+faststart",str(out)])
+        total_beats+=scene_beats
         playlist.append(out)
         all_cues.extend(word_cues(scene["text"],scene["start_frame"]/fps,duration))
     concat=scratch/"concat.txt"
@@ -335,7 +306,8 @@ def render_project(project: dict, root: Path, output_dir: Path, *, voice: str="n
     (output_dir/"palavras.json").write_text(json.dumps({"method":mode,"cues":all_cues},ensure_ascii=False,indent=2),encoding="utf-8")
     result={"status":"ok","output":str(target),"fps":fps,"total_frames":actual,
             "duration_seconds":plan["duration_seconds"],"word_alignment":mode,
-            "credits":str(credits_path),"warnings":warnings,"voice":voice,"autopublish":False}
+            "credits":str(credits_path),"warnings":warnings,"voice":voice,"autopublish":False,
+            "scenes_rendered":len(plan["scenes"]),"visual_beats":total_beats}
     (output_dir/"diagnostico.json").write_text(json.dumps(result,ensure_ascii=False,indent=2),encoding="utf-8")
     return result
 
