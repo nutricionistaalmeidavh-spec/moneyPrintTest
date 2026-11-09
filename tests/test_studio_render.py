@@ -77,6 +77,7 @@ class PlanTests(unittest.TestCase):
             with Image.open(a) as left, Image.open(b) as right:
                 self.assertIsNotNone(ImageChops.difference(left,right).getbbox())
 
+    @unittest.skipUnless(__import__("shutil").which("ffmpeg") and __import__("shutil").which("ffprobe"), "ffmpeg required")
     def test_video_with_dynamic_beats_remains_exact_frames(self):
         with tempfile.TemporaryDirectory() as d:
             p=sample()
