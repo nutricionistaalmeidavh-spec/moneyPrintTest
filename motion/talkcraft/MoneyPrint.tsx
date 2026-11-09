@@ -15,6 +15,7 @@ import {PencilDraw} from '../../../template/components/pencil';
 import {card as OrbitCard} from '../cards/gen/orbit-drift';
 import {card as ChatCard} from '../cards/gen/chat-message-flow';
 import {card as StepsCard} from '../cards/gen/numbered-step-stack';
+import {card as PaperFanCard} from '../cards/gen/stack-fan-out';
 import data from './MoneyPrintData.json';
 
 type Scene = {
@@ -99,8 +100,28 @@ const ChaosLines: React.FC = () => {
 };
 
 const Recipe:React.FC<{cue:Cue;scene:Scene}> = ({cue,scene}) => {
-  if(cue.effect==='scribble_chaos'||cue.effect==='document_flow'){
+  if(cue.effect==='scribble_chaos'){
     return <ChaosLines/>;
+  }
+  if(cue.effect==='paper_overload'){
+    // Native VIDEO TALKCRAFT stack-fan-out recipe, not a Pillow imitation.
+    // Five original educational document SVGs are supplied as card images.
+    const PaperFan=PaperFanCard.component;
+    return <AbsoluteFill style={{background:'transparent'}}>
+      <div style={{position:'absolute',left:220,top:360,width:960,height:540,
+        transform:'scale(1.45)',transformOrigin:'top left',borderRadius:20,
+        boxShadow:'0 22px 65px rgba(39,57,100,.08)',overflow:'hidden'}}>
+        <PaperFan title=""
+          src1={staticFile('moneyprint/paper_1.svg')}
+          src2={staticFile('moneyprint/paper_2.svg')}
+          src3={staticFile('moneyprint/paper_3.svg')}
+          src4={staticFile('moneyprint/paper_4.svg')}
+          src5={staticFile('moneyprint/paper_5.svg')}/>
+      </div>
+      <div style={{position:'absolute',bottom:40,right:95,fontSize:18,color:'#7c87a6'}}>
+        DOCUMENTOS · ILUSTRAÇÃO DIDÁTICA
+      </div>
+    </AbsoluteFill>;
   }
   const chosen=cue.effect==='crm_orbit'?OrbitCard:
                cue.effect==='support_chat'?ChatCard:StepsCard;
@@ -115,6 +136,8 @@ const Recipe:React.FC<{cue:Cue;scene:Scene}> = ({cue,scene}) => {
      ink:'#234c5d',themBg:'#e9f2f9'}:
     {stepsDsl: cue.effect==='sales_flow'?
        '01|Primeiro contato\n02|Enviar proposta\n03|Concluir venda':
+       cue.effect==='document_flow'?
+       '01|Documento recebido\n02|Indexação\n03|Pesquisa e recuperação':
        '01|Informação recebida\n02|Equipe acompanha\n03|Processo concluído',
      noColor:'#6c57d5'};
   return <AbsoluteFill style={{alignItems:'center',justifyContent:'center'}}>
@@ -174,7 +197,7 @@ const SceneView:React.FC<{scene:Scene}> = ({scene})=>{
         const from=Math.max(0,Math.min(scene.durationFrames-1,rawFrom));
         const duration=Math.max(1,Math.min(scene.durationFrames-from,Math.round(c.duration*fps)));
         return <Sequence key={c.id} from={from} durationInFrames={duration}>
-          <AbsoluteFill style={{background:(c.effect==='scribble_chaos'||c.effect==='document_flow')?'transparent':'rgba(248,250,255,.94)'}}>
+          <AbsoluteFill style={{background:(c.effect==='scribble_chaos'||c.effect==='paper_overload')?'transparent':'rgba(248,250,255,.94)'}}>
             <Recipe cue={c} scene={scene}/>
           </AbsoluteFill>
         </Sequence>
