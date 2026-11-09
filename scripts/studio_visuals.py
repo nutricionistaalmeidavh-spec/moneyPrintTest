@@ -97,8 +97,8 @@ def _flow(d, labels, w, h, pad, portrait):
                 d.polygon([(ax,y+card_h+gap-2),(ax-6,y+card_h+gap-10),
                            (ax+6,y+card_h+gap-10)],fill=BLUE)
         return
-    top=int(h*.61)
-    card_h=int(h*.19)
+    top=int(h*.50)
+    card_h=int(h*.31)
     gap=int(w*.038)
     card_w=(w-2*pad-2*gap)//3
     for i,label in enumerate(labels):
@@ -115,7 +115,7 @@ def _flow(d, labels, w, h, pad, portrait):
 
 def _comparison(d, before_after, w, h, pad, portrait):
     pairs = [("ANTES",before_after[0],(65,78,98)),("COM OPEN SOURCE",before_after[1],(32,89,95))]
-    top=int(h*.56) if not portrait else int(h*.46)
+    top=int(h*.48) if not portrait else int(h*.46)
     if portrait:
         card_w=w-2*pad
         card_h=int(h*.17)
@@ -151,9 +151,9 @@ def _repo_badges(d, w,h,pad, portrait):
 def _outro(d,w,h,pad,portrait):
     labels=["ERPNext","Twenty CRM","Chatwoot","Plane","Paperless-ngx"]
     cols=1 if portrait else 3
-    start=int(h*.56) if not portrait else int(h*.48)
+    start=int(h*.48) if not portrait else int(h*.48)
     cw=(w-2*pad-int(w*.02)*(cols-1))//cols
-    ch=int(h*(.11 if not portrait else .069))
+    ch=int(h*(.16 if not portrait else .069))
     gap=int(w*.02) if not portrait else int(h*.014)
     for i,label in enumerate(labels):
         col=i%cols
