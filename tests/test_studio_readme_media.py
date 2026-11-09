@@ -48,9 +48,9 @@ class OfficialReadmeMediaTests(unittest.TestCase):
                     "repo_url":"https://github.com/chatwoot/chatwoot"
                 }]
             }
-            with patch("scripts.repo_stills.capture_repo_stills",return_value=[[str(still)]]), \\
-                 patch("scripts.ai_director.official_repo_image",return_value=str(still)), \\
-                 patch("scripts.ai_director.official_repo_gif",return_value=str(demo)):
+            with (patch("scripts.repo_stills.capture_repo_stills",return_value=[[str(still)]]),
+                  patch("scripts.ai_director.official_repo_image",return_value=str(still)),
+                  patch("scripts.ai_director.official_repo_gif",return_value=str(demo))):
                 result=render_project(project,base,base/"out",voice="none",
                                       width=320,height=180,capture_github=True)
             self.assertEqual(result["total_frames"],90)
