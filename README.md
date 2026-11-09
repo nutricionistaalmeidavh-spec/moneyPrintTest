@@ -32,6 +32,52 @@ Pedido com roteiro e termos definidos pelo ChatGPT (evita carregar LLM no runner
 }
 ```
 
+### Gravar as páginas do GitHub como no computador (sem celular)
+
+Use `"visual_mode": "github"` com 1 a 12 URLs de repositórios públicos.
+O pipeline abre **Chromium com Playwright em desktop 1280×720**, visita cada
+repositório, percorre a página e grava clipes reais. FFmpeg converte o WebM
+para MP4; MoneyPrinterTurbo usa os clipes como material local e inclui a
+narração do Piper e as legendas Whisper. Não exige chave, conta do GitHub
+no navegador, celular, PC ligado nem serviço pago.
+
+Exemplo de pedido para **8 repositórios / 5 minutos**, em `requests/8-repos.json`:
+
+```json
+{
+  "topic": "8 projetos open source que ajudam a criar software",
+  "duration_seconds": 300,
+  "aspect": "16:9",
+  "visual_mode": "github",
+  "repo_urls": [
+    "https://github.com/appwrite/appwrite",
+    "https://github.com/payloadcms/payload",
+    "https://github.com/FlowiseAI/Flowise",
+    "https://github.com/docling-project/docling",
+    "https://github.com/meilisearch/meilisearch",
+    "https://github.com/keycloak/keycloak",
+    "https://github.com/novuhq/novu",
+    "https://github.com/Infisical/infisical"
+  ],
+  "script": "SUBSTITUA POR UM ROTEIRO REAL DE APROXIMADAMENTE 750 PALAVRAS",
+  "terms": ["software development", "open source GitHub"]
+}
+```
+
+**Importante:** o texto `script` do exemplo é apenas um marcador e **não**
+deve ser usado para renderização. Para vídeos longos, forneça roteiro completo
+com duração compatível. Se omitir `script`, o modelo Ollama local tentará
+gerá-lo, mas poderá falhar na validação de comprimento; não é prometida
+duração exata. A duração final acompanha a narração real. URLs permitidas
+seguem exclusivamente o formato `https://github.com/owner/repo`;
+não é permitido gravar sites arbitrários ou páginas privadas. O navegador
+instala apenas neste modo, no GitHub Actions; os outros modos permanecem
+com limite de 15–90 segundos.
+
+O GitHub Actions publica os MP4 em **Artifacts**, retidos por 7 dias.
+O uso de runners gratuitos está sujeito aos limites e à política de cobrança
+da conta GitHub; nenhuma API comercial é dependência do projeto.
+
 ### Buscar vídeos reais sem chave de API
 
 O modo padrão é **Wikimedia Commons**, pela API pública, **sem cadastro ou chave**.
