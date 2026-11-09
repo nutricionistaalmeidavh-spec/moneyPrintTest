@@ -82,3 +82,45 @@ jobs:
           path: qa/
           retention-days: 7
           if-no-files-found: warn
+
+  threejs:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+      - name: Install free deterministic 3D runtime
+        run: |
+          sudo apt-get update -qq
+          sudo apt-get install -y ffmpeg
+          python -m pip install "Pillow==11.3.0" "playwright==1.56.0"
+          python -m playwright install --with-deps chromium
+          npm install --prefix motion/three-universe --ignore-scripts --no-audit --no-fund
+      - name: Render real Three.js WebGL frames to MP4
+        run: |
+          python - <<'PY'
+          from pathlib import Path
+          from scripts.motion_design import render_threejs_universe
+          from scripts.video_stack import ffprobe_media
+          target = Path("qa-threejs/universe.mp4")
+          render_threejs_universe(target,title="OPEN SOURCE",seconds=0.24,
+                                  size=(480,270),fps=25)
+          media = ffprobe_media(target)
+          assert media["width"]==480 and media["height"]==270
+          assert .22<=media["duration"]<=.35,media
+          assert target.stat().st_size>2000
+          print(media)
+          PY
+      - name: Archive 3D output
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: moneyprint-p2-threejs-smoke
+          path: qa-threejs/universe.mp4
+          retention-days: 7
+          if-no-files-found: warn
