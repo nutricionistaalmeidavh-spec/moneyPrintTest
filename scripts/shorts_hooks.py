@@ -59,7 +59,7 @@ def choose_hook(rows, *, category="all", seed=1, recent=None):
         key=lambda r: r["arquivo"])
     available = [item for item in available if item["arquivo"] not in exclude]
     if not available:
-        raise HookCatalogError("Nenhum candidato disponível para a categoria e histórico")
+        raise HookCatalogError("Sem candidatos disponíveis para a categoria e histórico")
     return available[(seed - 1) % len(available)]
 
 def main():
