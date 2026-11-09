@@ -131,7 +131,7 @@ function renderInspector(){
   }else if(t.id==="slides"){
     html='<p class="notes">Cada repositório necessita de uma narração própria. As cenas são montadas como slides animados, com screenshots, GIFs e vídeos quando disponíveis.</p>'+sectionControls()+
        '<h3>Motion e transições</h3>'+
-       inputField("field-universe_seconds","Abertura universo (segundos)",s.universe_seconds,"0 desativa a abertura","number",'min="0" max="15" step="0.5"')+
+       inputField("field-universe_seconds","Abertura universo (segundos)",s.universe_seconds,"0 desativa a abertura","number",'min="0" max="8" step="0.5"')+
        inputField("field-universe_title","Texto da abertura",s.universe_title)+
        '<div class="field"><label for="field-transition">Transição</label><select data-setting="transition" id="field-transition">'+["cut","fade","wipeleft","slideleft","smoothleft","circleopen"].map(x=>'<option value="'+x+'" '+(s.transition===x?"selected":"")+'>'+escapeHtml(x)+"</option>").join("")+'</select></div>';
   }else if(t.id==="stock"){
@@ -139,7 +139,7 @@ function renderInspector(){
       '<p class="notes">Wikimedia Commons com licença aprovada; indisponibilidade pode resultar em artes locais no modo automático.</p>';
   }else if(t.id==="hook"){
     html=inputField("field-hook_asset","Vídeo existente em assets/",s.hook_asset,"Ex.: assets/approved/hook.mp4. Não faz upload de arquivos.")+
-      inputField("field-hook_seconds","Duração do corte (segundos)",s.hook_seconds,"Corte seco por padrão.","number",'min=".5" max="10" step=".5"');
+      inputField("field-hook_seconds","Duração do corte (segundos)",s.hook_seconds,"Corte seco por padrão.","number",'min=".5" max="8" step=".5"');
   }else if(t.id==="motioncanvas"){
     html=inputField("field-motion_canvas_clip","Clipe Motion Canvas pronto",s.motion_canvas_clip,"Ex.: assets/animations/intro.mp4. Precisa estar no repositório.");
   }else if(t.id==="news"){
