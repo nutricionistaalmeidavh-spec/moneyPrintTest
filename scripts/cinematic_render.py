@@ -241,7 +241,7 @@ def render_cinematic(request: dict, dest: Path, runtime: Path, env: dict) -> dic
     make_cover(cover, request["topic"])
 
     # Capture websites afresh; files are captured by Chromium on runner, not user phone.
-    browser = capture_repositories(repos, plan_seconds, dest / "browser")
+    browser = capture_repositories(repos, plan_seconds, dest / "browser", focus_readme=True)
     if len(browser) != len(repos):
         raise RuntimeError("Nem todos os repositórios foram gravados")
 
