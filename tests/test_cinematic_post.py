@@ -40,6 +40,14 @@ class CinematicTests(unittest.TestCase):
         with self.assertRaises(CinematicError):
             metadata_for_repo("https://evil.example/org/repo")
 
+    def test_pdv_repo_selects_restaurant_context_and_no_media_gate(self):
+        from scripts.cinematic_post import BROLL_TERMS
+        data = metadata_for_repo("https://github.com/exemplo/pdv-restaurante")
+        self.assertEqual(data["category"], "pdv")
+        self.assertTrue(any("restaurant" in term for term in BROLL_TERMS["pdv"]))
+        self.assertEqual(metadata_for_repo("https://github.com/exemplo/obra-bim")["category"],
+                         "construction")
+
     def test_text_safety_and_motion_graphics(self):
         plan = cinematic_plan(REPOS, 331.8)
         text = build_ass(plan, 331.8)
@@ -49,6 +57,16 @@ class CinematicTests(unittest.TestCase):
         self.assertIn("8 PROJETOS", text)
         self.assertNotIn("{\\evil}", ass_safe("oi{\\evil}"))
         self.assertLess(len(text), 20000)
+
+    def test_fabricated_news_never_appears_in_titles(self):
+        rows = cinematic_plan(REPOS, 331.8)
+        invented = {1: {"headline": "URGENTE: evento inventado",
+                        "publisher": "Jornal falso", "published_at": "2026-11-08"}}
+        plain = build_ass(rows, 331.8, news_records=invented)
+        self.assertNotIn("evento inventado", plain)
+        verified = {1: {**invented[1], "verified_via": "google_news_rss"}}
+        trusted = build_ass(rows, 331.8, news_records=verified)
+        self.assertIn("evento inventado", trusted)
 
     def test_five_minute_timeline_without_explicit_chapters(self):
         p = cinematic_plan(REPOS, 331.8)
