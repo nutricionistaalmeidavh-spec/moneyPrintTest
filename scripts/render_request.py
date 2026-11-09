@@ -119,6 +119,8 @@ def validate_request(raw: dict) -> dict:
         raise RequestError("motion exige visual_mode github_cinematic")
     try:
         motion = normalize_motion_options(raw.get("motion", {}))
+        if "aspect" not in raw.get("motion", {}):
+            motion["aspect"] = aspect
     except VideoStackError as exc:
         raise RequestError(str(exc)) from exc
     include_verified_news = raw.get("include_verified_news", False)

@@ -15,6 +15,20 @@ class RenderTests(unittest.TestCase):
         self.assertEqual(request["visual_mode"], "auto")
         self.assertEqual(request["aspect"], "9:16")
 
+    def test_cinematic_motion_inherits_requested_video_aspect(self):
+        repo = "https://github.com/appwrite/appwrite"
+        request = {"topic":"Vertical open source video",
+                   "visual_mode":"github_cinematic", "aspect":"9:16",
+                   "repo_urls":[repo], "sections":[{
+                     "repo_url":repo, "title":"Appwrite",
+                     "narration":"O Appwrite oferece uma base open source para aplicativos."
+                   }]}
+        self.assertEqual(validate_request({**request, "motion":{"universe_seconds":1}})
+                         ["motion"]["aspect"], "9:16")
+        self.assertEqual(validate_request({
+            **request,"motion":{"universe_seconds":1,"aspect":"1:1"}
+        })["motion"]["aspect"], "1:1")
+
     def test_dangerous_or_expensive_parameters_are_denied(self):
         for request in [
             {"topic": ""},
