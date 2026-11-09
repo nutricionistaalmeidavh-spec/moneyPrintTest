@@ -1,0 +1,2936 @@
+{
+  "schema": "moneyprint-director-storyboard-v1",
+  "id": "5-sistemas-github-direcao-editorial-v1",
+  "title": "5 sistemas gratuitos no GitHub — direção visual de 5 minutos",
+  "source": {
+    "repository": "nutricionistaalmeidavh-spec/moneyPrintTest",
+    "path": "projects/5-sistemas-talkcraft-educacional.json",
+    "scene_ids": [
+      "scene-001",
+      "scene-002",
+      "scene-003",
+      "scene-004",
+      "scene-005",
+      "scene-006",
+      "scene-007",
+      "scene-008",
+      "scene-009",
+      "scene-010",
+      "scene-011",
+      "scene-012",
+      "scene-013",
+      "scene-014",
+      "scene-015",
+      "scene-016",
+      "scene-017",
+      "scene-018",
+      "scene-019",
+      "scene-020",
+      "scene-021",
+      "scene-022",
+      "scene-023",
+      "scene-024",
+      "scene-025"
+    ],
+    "original_revision": 2
+  },
+  "version": 1,
+  "production_status": "awaiting_visual_approval",
+  "fps": 30,
+  "aspect": "16:9",
+  "total_frames": 9000,
+  "creative_goal": "Documentário explicativo com collage motion didático, pessoa PB + balões, animações semânticas, diagrama de processos e capturas verdadeiras de software.",
+  "director": "Direção criativa humana + ChatGPT, execução determinística pelo MoneyPrint após aprovação.",
+  "visual_grammar": {
+    "background": "#F8FAFF",
+    "ink": "#192643",
+    "accent": "#7560D5",
+    "secondary": "#4FA5D7",
+    "positive": "#53AE91",
+    "typography": "Lato / Inter (licença livre), títulos curtos, fontes mínimas legíveis",
+    "style": "editorial 2.5D + colagem PB + cards coloridos e fluxos vetoriais",
+    "reference_notes": [
+      "Emaranhado com balão de ideia e muitas setas; nunca apenas 3 curvas",
+      "CRM representado por composição com pessoa PB, orbita e ícones ao redor, não tela genérica",
+      "Diagramas conectados com lógica progressiva e palavras legíveis, como referência MCP vs API",
+      "Capturas reais do GitHub com setas/zoom apenas em regiões verificadas"
+    ],
+    "no_flashes": true,
+    "no_static_slideshow": true,
+    "no_return_to_previous_scene": true,
+    "no_repeat_full_screen": true,
+    "no_fabricated_ui": true,
+    "camera": "movimentos 2.5D discretos; continuidade entre objetos escolhidos no campo transition.carry_element",
+    "narration": "texto do projeto canônico integral, sem substituir sem consentimento"
+  },
+  "render": {
+    "enabled": false,
+    "condition": "aprovação editorial explícita após conferir 25 quadros e prévias curtas",
+    "tool": "Talkcraft Remotion original, somente educacional não comercial",
+    "publish": false,
+    "cost_policy": "core R$ 0 / self-hosted / código aberto; Talkcraft componente opcional não comercial"
+  },
+  "review_procedure": [
+    "revisar as 25 composições do quadro a quadro",
+    "aprovar posição de pessoa/ícones/paleta",
+    "obter assets pendentes sem usar imagens stock protegidas",
+    "capturar interfaces verdadeiras e conferir permissões",
+    "renderizar 3 provas de 6–10 segundos (cenas 03, 08, 19)",
+    "comparar provas com o storyboard aprovado",
+    "só depois executar 9000 frames completos"
+  ],
+  "assets": [
+    {
+      "id": "vectors",
+      "kind": "original_vector",
+      "status": "ready",
+      "description": "Criação vetorial própria e formas primitivas; sem bancos de imagens",
+      "license": "original criado no MoneyPrint; uso educacional permitido",
+      "source_required": false
+    },
+    {
+      "id": "cutout_manager",
+      "kind": "generated_cutout",
+      "status": "pending_original",
+      "description": "Retrato PB original de trabalhador ou gerente, removido fundo; sem uso de banco stock da referência",
+      "license": "a produzir originalmente; não usar iStock sem licença",
+      "source_required": true
+    },
+    {
+      "id": "cutout_sales",
+      "kind": "generated_cutout",
+      "status": "pending_original",
+      "description": "Pessoa PB da área comercial isolada, direitos assegurados",
+      "license": "a produzir originalmente; não reutilizar imagem protegida",
+      "source_required": true
+    },
+    {
+      "id": "cutout_support",
+      "kind": "generated_cutout",
+      "status": "pending_original",
+      "description": "Profissional de suporte PB com headset isolado",
+      "license": "a produzir originalmente; não reutilizar imagem protegida",
+      "source_required": true
+    },
+    {
+      "id": "capture_erpnext",
+      "kind": "github_capture",
+      "status": "capture_required",
+      "description": "Playwright / README oficial ERPNext",
+      "license": "imagem original da interface de terceiro; verificar termos antes da publicação",
+      "source_required": true
+    },
+    {
+      "id": "capture_twenty",
+      "kind": "github_capture",
+      "status": "capture_required",
+      "description": "Playwright / README oficial Twenty",
+      "license": "imagem original da interface de terceiro; verificar termos antes da publicação",
+      "source_required": true
+    },
+    {
+      "id": "capture_chatwoot",
+      "kind": "github_capture",
+      "status": "capture_required",
+      "description": "Playwright / README oficial Chatwoot",
+      "license": "imagem original da interface de terceiro; verificar termos antes da publicação",
+      "source_required": true
+    },
+    {
+      "id": "capture_plane",
+      "kind": "github_capture",
+      "status": "capture_required",
+      "description": "Playwright / README oficial Plane",
+      "license": "imagem original da interface de terceiro; verificar termos antes da publicação",
+      "source_required": true
+    },
+    {
+      "id": "capture_paperless",
+      "kind": "github_capture",
+      "status": "capture_required",
+      "description": "Playwright / README oficial Paperless-ngx",
+      "license": "imagem original da interface de terceiro; verificar termos antes da publicação",
+      "source_required": true
+    }
+  ],
+  "shots": [
+    {
+      "scene_id": "scene-001",
+      "index": 1,
+      "narration": "Cinco sistemas gratuitos que sua empresa precisa conhecer.",
+      "source_title": "VOCÊ ESTÁ PAGANDO POR ISSO?",
+      "timeline": {
+        "start_frame": 0,
+        "duration_frames": 90,
+        "at_s": 0,
+        "duration_s": 3
+      },
+      "visual": {
+        "composition_id": "C01-opening_burst",
+        "template_kind": "opening_burst",
+        "intent": "Cinco ferramentas, cinco peças de um mesmo mapa",
+        "composition": "Número 5 gigante e mosaico de cinco ícones de software formando um mapa editorial",
+        "primary_metaphor": "Número 5 gigante e mosaico de cinco ícones de software formando um mapa editorial",
+        "title": "5 sistemas",
+        "palette": "offwhite / lavender / sky / sage / ink; personagem PB quando existir",
+        "layout": "16:9 · 1920x1080; safe area 6%; grid assimétrico editorial",
+        "layers": [
+          {
+            "id": "background",
+            "role": "canvas",
+            "description": "Fundo quase branco com pequenas texturas e profundidade sutil, sem flashes"
+          },
+          {
+            "id": "primary_subject",
+            "role": "hero",
+            "description": "Número 5 gigante e mosaico de cinco ícones de software formando um mapa editorial"
+          },
+          {
+            "id": "information_cards",
+            "role": "supports",
+            "description": "círculos vazados, brilho muito leve, chips de software"
+          },
+          {
+            "id": "semantic_effect",
+            "role": "annotation",
+            "description": "Entradas com significado editorial; destacar palavras e relações de maneira contextual"
+          },
+          {
+            "id": "typography",
+            "role": "text",
+            "description": "5 sistemas — título curto legível, sem barras de capítulo repetidas"
+          }
+        ],
+        "avoid": "não repetir composição anterior; não usar overlays de tela cheia que ocultem narração; não inventar UI"
+      },
+      "audio_sync": {
+        "mode": "word_anchor_to_align",
+        "timestamps_confirmed": false,
+        "keywords": [
+          "Cinco sistemas"
+        ],
+        "voice": "Piper pt-BR; conferir alinhamento depois da gravação"
+      },
+      "motion_beats": [
+        {
+          "at_s": 0.1,
+          "timing": "editorial",
+          "layer": "primary_subject",
+          "action": "5 se forma a partir de cinco cards",
+          "duration_s": 0.55,
+          "easing": "ease_out_cubic"
+        },
+        {
+          "at_s": 0.75,
+          "timing": "word_anchor_pending",
+          "layer": "information_cards",
+          "action": "selos GitHub entram em cascata",
+          "duration_s": 0.55,
+          "easing": "ease_out_cubic"
+        },
+        {
+          "at_s": 1.65,
+          "timing": "editorial",
+          "layer": "semantic_effect",
+          "action": "a câmera aproxima o mosaico",
+          "duration_s": 0.55,
+          "easing": "ease_in_out"
+        }
+      ],
+      "transition": {
+        "to_scene": "scene-002",
+        "type": "match_morph",
+        "carry_element": "o card central se transforma num ícone do GitHub",
+        "duration_s": 0.35
+      },
+      "asset_ids": [
+        "vectors"
+      ],
+      "render_preview_mode": "director_only",
+      "qa": {
+        "no_return_to_prior_scene": true,
+        "no_repeated_full_composition": true,
+        "semantic_relevance": true,
+        "require_real_capture_if_claimed": true
+      }
+    },
+    {
+      "scene_id": "scene-002",
+      "index": 2,
+      "narration": "Sabe aquele sistema de gestão, de atendimento ou de clientes pelo qual muitas empresas pagam todo mês? Existem alternativas de código aberto disponíveis no GitHub. Hoje eu vou mostrar cinco, com aplicações reais e sem prometer mágica.",
+      "source_title": "O GITHUB NÃO É SÓ PARA PROGRAMADORES",
+      "timeline": {
+        "start_frame": 90,
+        "duration_frames": 450,
+        "at_s": 3,
+        "duration_s": 15
+      },
+      "visual": {
+        "composition_id": "C02-editorial_person_orbit",
+        "template_kind": "editorial_person_orbit",
+        "intent": "Pessoa em preto e branco cercada por balões e informações",
+        "composition": "Um gestor brasileiro em recorte PB no centro; balões com sistemas, clientes e atendimento orbitam em 2.5D",
+        "primary_metaphor": "Um gestor brasileiro em recorte PB no centro; balões com sistemas, clientes e atendimento orbitam em 2.5D",
+        "title": "Conhecimento aberto",
+        "palette": "offwhite / lavender / sky / sage / ink; personagem PB quando existir",
+        "layout": "16:9 · 1920x1080; safe area 6%; grid assimétrico editorial",
+        "layers": [
+          {
+            "id": "background",
+            "role": "canvas",
+            "description": "Fundo quase branco com pequenas texturas e profundidade sutil, sem flashes"
+          },
+          {
+            "id": "primary_subject",
+            "role": "hero",
+            "description": "Um gestor brasileiro em recorte PB no centro; balões com sistemas, clientes e atendimento orbitam em 2.5D"
+          },
+          {
+            "id": "information_cards",
+            "role": "supports",
+            "description": "recorte fotográfico PB, balões verde/lilás, badges GitHub"
+          },
+          {
+            "id": "semantic_effect",
+            "role": "annotation",
+            "description": "Entradas com significado editorial; destacar palavras e relações de maneira contextual"
+          },
+          {
+            "id": "typography",
+            "role": "text",
+            "description": "Conhecimento aberto — título curto legível, sem barras de capítulo repetidas"
+          }
+        ],
+        "avoid": "não repetir composição anterior; não usar overlays de tela cheia que ocultem narração; não inventar UI"
+      },
+      "audio_sync": {
+        "mode": "word_anchor_to_align",
+        "timestamps_confirmed": false,
+        "keywords": [
+          "gestão",
+          "clientes",
+          "GitHub"
+        ],
+        "voice": "Piper pt-BR; conferir alinhamento depois da gravação"
+      },
+      "motion_beats": [
+        {
+          "at_s": 0.1,
+          "timing": "editorial",
+          "layer": "primary_subject",
+          "action": "recorte do gestor emerge",
+          "duration_s": 2.55,
+          "easing": "ease_out_cubic"
+        },
+        {
+          "at_s": 3.75,
+          "timing": "word_anchor_pending",
+          "layer": "information_cards",
+          "action": "bolhas gestão/atendimento/clientes surgem uma por vez",
+          "duration_s": 2.55,
+          "easing": "ease_out_cubic"
+        },
+        {
+          "at_s": 8.25,
+          "timing": "editorial",
+          "layer": "semantic_effect",
+          "action": "órbitas se conectam com linhas finas",
+          "duration_s": 2.55,
+          "easing": "ease_in_out"
+        },
+        {
+          "at_s": 11.7,
+          "timing": "editorial",
+          "layer": "camera_or_transition",
+          "action": "câmera passa à bolha 'gestão'",
+          "duration_s": 2.55,
+          "easing": "ease_out_cubic"
+        }
+      ],
+      "transition": {
+        "to_scene": "scene-003",
+        "type": "parallax_push",
+        "carry_element": "a bolha gestão amplia e vira planilha",
+        "duration_s": 0.35
+      },
+      "asset_ids": [
+        "cutout_manager",
+        "vectors"
+      ],
+      "render_preview_mode": "director_only",
+      "qa": {
+        "no_return_to_prior_scene": true,
+        "no_repeated_full_composition": true,
+        "semantic_relevance": true,
+        "require_real_capture_if_claimed": true
+      }
+    },
+    {
+      "scene_id": "scene-003",
+      "index": 3,
+      "narration": "Primeiro, pense em uma empresa que controla estoque numa planilha, vendas em outra e ainda precisa conferir o financeiro manualmente. Quando as informações não conversam, o retrabalho começa a custar caro.",
+      "source_title": "O CAOS DAS PLANILHAS",
+      "timeline": {
+        "start_frame": 540,
+        "duration_frames": 360,
+        "at_s": 18,
+        "duration_s": 12
+      },
+      "visual": {
+        "composition_id": "C03-chaos_thought_cloud",
+        "template_kind": "chaos_thought_cloud",
+        "intent": "Balão de pensamento caótico completo, não apenas um rabisco",
+        "composition": "Gestor PB comprimido sob planilhas sobrepostas; emaranhado central com setas tortas, perguntas, balões pontilhados e cifras",
+        "primary_metaphor": "Gestor PB comprimido sob planilhas sobrepostas; emaranhado central com setas tortas, perguntas, balões pontilhados e cifras",
+        "title": "Planilhas que não conversam",
+        "palette": "offwhite / lavender / sky / sage / ink; personagem PB quando existir",
+        "layout": "16:9 · 1920x1080; safe area 6%; grid assimétrico editorial",
+        "layers": [
+          {
+            "id": "background",
+            "role": "canvas",
+            "description": "Fundo quase branco com pequenas texturas e profundidade sutil, sem flashes"
+          },
+          {
+            "id": "primary_subject",
+            "role": "hero",
+            "description": "Gestor PB comprimido sob planilhas sobrepostas; emaranhado central com setas tortas, perguntas, balões pontilhados e cifras"
+          },
+          {
+            "id": "information_cards",
+            "role": "supports",
+            "description": "emaranhado de 15 linhas vetoriais, 4 setas, 3 balões, células de planilha soltas"
+          },
+          {
+            "id": "semantic_effect",
+            "role": "annotation",
+            "description": "Entradas com significado editorial; destacar palavras e relações de maneira contextual"
+          },
+          {
+            "id": "typography",
+            "role": "text",
+            "description": "Planilhas que não conversam — título curto legível, sem barras de capítulo repetidas"
+          }
+        ],
+        "avoid": "não repetir composição anterior; não usar overlays de tela cheia que ocultem narração; não inventar UI"
+      },
+      "audio_sync": {
+        "mode": "word_anchor_to_align",
+        "timestamps_confirmed": false,
+        "keywords": [
+          "planilha",
+          "vendas",
+          "financeiro"
+        ],
+        "voice": "Piper pt-BR; conferir alinhamento depois da gravação"
+      },
+      "motion_beats": [
+        {
+          "at_s": 0.1,
+          "timing": "editorial",
+          "layer": "primary_subject",
+          "action": "tabelas se acumulam",
+          "duration_s": 2.04,
+          "easing": "ease_out_cubic"
+        },
+        {
+          "at_s": 3,
+          "timing": "word_anchor_pending",
+          "layer": "information_cards",
+          "action": "balão oval de pensamento surge",
+          "duration_s": 2.04,
+          "easing": "ease_out_cubic"
+        },
+        {
+          "at_s": 6.6,
+          "timing": "editorial",
+          "layer": "semantic_effect",
+          "action": "emaranhado é desenhado por grupos com setas",
+          "duration_s": 2.04,
+          "easing": "ease_in_out"
+        },
+        {
+          "at_s": 9.36,
+          "timing": "editorial",
+          "layer": "camera_or_transition",
+          "action": "elementos se chocam e são puxados para uma grade",
+          "duration_s": 2.04,
+          "easing": "ease_out_cubic"
+        }
+      ],
+      "transition": {
+        "to_scene": "scene-004",
+        "type": "follow_flow",
+        "carry_element": "um dos fios do emaranhado estica e vira conector de ERP",
+        "duration_s": 0.35
+      },
+      "asset_ids": [
+        "cutout_manager",
+        "vectors"
+      ],
+      "render_preview_mode": "director_only",
+      "qa": {
+        "no_return_to_prior_scene": true,
+        "no_repeated_full_composition": true,
+        "semantic_relevance": true,
+        "require_real_capture_if_claimed": true
+      }
+    },
+    {
+      "scene_id": "scene-004",
+      "index": 4,
+      "narration": "É aqui que entra o ERPNext. Um ERP open source com módulos para vendas, compras, estoque e contabilidade, além de outros processos empresariais. É um sistema completo, mas precisa de implantação e configuração.",
+      "source_title": "ERPNext: GESTÃO INTEGRADA",
+      "timeline": {
+        "start_frame": 900,
+        "duration_frames": 360,
+        "at_s": 30,
+        "duration_s": 12
+      },
+      "visual": {
+        "composition_id": "C04-erp_real_screen",
+        "template_kind": "erp_real_screen",
+        "intent": "Captura verdadeira do ERPNext dentro de monitor com três módulos orbitando",
+        "composition": "Screenshot real do projeto, leve perspectiva de monitor, labels Vendas, Compras, Estoque e Contabilidade",
+        "primary_metaphor": "Screenshot real do projeto, leve perspectiva de monitor, labels Vendas, Compras, Estoque e Contabilidade",
+        "title": "ERPNext",
+        "palette": "offwhite / lavender / sky / sage / ink; personagem PB quando existir",
+        "layout": "16:9 · 1920x1080; safe area 6%; grid assimétrico editorial",
+        "layers": [
+          {
+            "id": "background",
+            "role": "canvas",
+            "description": "Fundo quase branco com pequenas texturas e profundidade sutil, sem flashes"
+          },
+          {
+            "id": "primary_subject",
+            "role": "hero",
+            "description": "Screenshot real do projeto, leve perspectiva de monitor, labels Vendas, Compras, Estoque e Contabilidade"
+          },
+          {
+            "id": "information_cards",
+            "role": "supports",
+            "description": "navegador real, cards de módulos, linhas de ligação, brilho lilás"
+          },
+          {
+            "id": "semantic_effect",
+            "role": "annotation",
+            "description": "Entradas com significado editorial; destacar palavras e relações de maneira contextual"
+          },
+          {
+            "id": "typography",
+            "role": "text",
+            "description": "ERPNext — título curto legível, sem barras de capítulo repetidas"
+          }
+        ],
+        "avoid": "não repetir composição anterior; não usar overlays de tela cheia que ocultem narração; não inventar UI"
+      },
+      "audio_sync": {
+        "mode": "word_anchor_to_align",
+        "timestamps_confirmed": false,
+        "keywords": [
+          "ERPNext",
+          "vendas",
+          "estoque"
+        ],
+        "voice": "Piper pt-BR; conferir alinhamento depois da gravação"
+      },
+      "motion_beats": [
+        {
+          "at_s": 0.1,
+          "timing": "editorial",
+          "layer": "primary_subject",
+          "action": "a captura aparece em wipe",
+          "duration_s": 2.04,
+          "easing": "ease_out_cubic"
+        },
+        {
+          "at_s": 3,
+          "timing": "word_anchor_pending",
+          "layer": "information_cards",
+          "action": "cards de módulos entram com atraso",
+          "duration_s": 2.04,
+          "easing": "ease_out_cubic"
+        },
+        {
+          "at_s": 6.6,
+          "timing": "editorial",
+          "layer": "semantic_effect",
+          "action": "zoom centra no núcleo sem fingir clique",
+          "duration_s": 2.04,
+          "easing": "ease_in_out"
+        },
+        {
+          "at_s": 9.36,
+          "timing": "editorial",
+          "layer": "camera_or_transition",
+          "action": "cursor destaca apenas áreas reais verificadas",
+          "duration_s": 2.04,
+          "easing": "ease_out_cubic"
+        }
+      ],
+      "transition": {
+        "to_scene": "scene-005",
+        "type": "mask_reveal",
+        "carry_element": "o badge Vendas deixa o monitor e inicia a esteira da cena seguinte",
+        "duration_s": 0.35
+      },
+      "asset_ids": [
+        "capture_erpnext",
+        "vectors"
+      ],
+      "render_preview_mode": "director_only",
+      "qa": {
+        "no_return_to_prior_scene": true,
+        "no_repeated_full_composition": true,
+        "semantic_relevance": true,
+        "require_real_capture_if_claimed": true
+      }
+    },
+    {
+      "scene_id": "scene-005",
+      "index": 5,
+      "narration": "Imagine registrar um pedido e acompanhar seu reflexo no estoque e no financeiro dentro de um mesmo ambiente. A animação mostra esse caminho. Os módulos disponíveis e as configurações precisam ser avaliados para cada negócio.",
+      "source_title": "DA VENDA AO ESTOQUE",
+      "timeline": {
+        "start_frame": 1260,
+        "duration_frames": 360,
+        "at_s": 42,
+        "duration_s": 12
+      },
+      "visual": {
+        "composition_id": "C05-order_flow",
+        "template_kind": "order_flow",
+        "intent": "Fluxograma horizontal ilustrando Pedido → Estoque → Financeiro",
+        "composition": "Ícones de pedido, caixas organizadas e gráfico de recebimento conectados por uma linha animada",
+        "primary_metaphor": "Ícones de pedido, caixas organizadas e gráfico de recebimento conectados por uma linha animada",
+        "title": "Tudo conectado",
+        "palette": "offwhite / lavender / sky / sage / ink; personagem PB quando existir",
+        "layout": "16:9 · 1920x1080; safe area 6%; grid assimétrico editorial",
+        "layers": [
+          {
+            "id": "background",
+            "role": "canvas",
+            "description": "Fundo quase branco com pequenas texturas e profundidade sutil, sem flashes"
+          },
+          {
+            "id": "primary_subject",
+            "role": "hero",
+            "description": "Ícones de pedido, caixas organizadas e gráfico de recebimento conectados por uma linha animada"
+          },
+          {
+            "id": "information_cards",
+            "role": "supports",
+            "description": "três módulos coloridos, conectores, bolhas de status, trilho horizontal"
+          },
+          {
+            "id": "semantic_effect",
+            "role": "annotation",
+            "description": "Entradas com significado editorial; destacar palavras e relações de maneira contextual"
+          },
+          {
+            "id": "typography",
+            "role": "text",
+            "description": "Tudo conectado — título curto legível, sem barras de capítulo repetidas"
+          }
+        ],
+        "avoid": "não repetir composição anterior; não usar overlays de tela cheia que ocultem narração; não inventar UI"
+      },
+      "audio_sync": {
+        "mode": "word_anchor_to_align",
+        "timestamps_confirmed": false,
+        "keywords": [
+          "pedido",
+          "estoque",
+          "financeiro"
+        ],
+        "voice": "Piper pt-BR; conferir alinhamento depois da gravação"
+      },
+      "motion_beats": [
+        {
+          "at_s": 0.1,
+          "timing": "editorial",
+          "layer": "primary_subject",
+          "action": "pedido chega pela esquerda",
+          "duration_s": 2.04,
+          "easing": "ease_out_cubic"
+        },
+        {
+          "at_s": 3,
+          "timing": "word_anchor_pending",
+          "layer": "information_cards",
+          "action": "linha desenha-se até estoque",
+          "duration_s": 2.04,
+          "easing": "ease_out_cubic"
+        },
+        {
+          "at_s": 6.6,
+          "timing": "editorial",
+          "layer": "semantic_effect",
+          "action": "contador de caixas muda",
+          "duration_s": 2.04,
+          "easing": "ease_in_out"
+        },
+        {
+          "at_s": 9.36,
+          "timing": "editorial",
+          "layer": "camera_or_transition",
+          "action": "linha avança até financeiro",
+          "duration_s": 2.04,
+          "easing": "ease_out_cubic"
+        },
+        {
+          "at_s": 9.36,
+          "timing": "editorial",
+          "layer": "primary_subject",
+          "action": "quadro inteiro se afasta",
+          "duration_s": 2.04,
+          "easing": "ease_out_cubic"
+        }
+      ],
+      "transition": {
+        "to_scene": "scene-006",
+        "type": "camera_pass",
+        "carry_element": "o conjunto vira a coluna 'Depois' da comparação",
+        "duration_s": 0.35
+      },
+      "asset_ids": [
+        "vectors"
+      ],
+      "render_preview_mode": "director_only",
+      "qa": {
+        "no_return_to_prior_scene": true,
+        "no_repeated_full_composition": true,
+        "semantic_relevance": true,
+        "require_real_capture_if_claimed": true
+      }
+    },
+    {
+      "scene_id": "scene-006",
+      "index": 6,
+      "narration": "O ERPNext pode interessar a negócios que cresceram além das planilhas. O código é gratuito para instalação própria, mas servidor, manutenção, treinamento e adaptação continuam exigindo planejamento.",
+      "source_title": "QUANDO FAZ SENTIDO?",
+      "timeline": {
+        "start_frame": 1620,
+        "duration_frames": 360,
+        "at_s": 54,
+        "duration_s": 12
+      },
+      "visual": {
+        "composition_id": "C06-before_after_erp",
+        "template_kind": "before_after_erp",
+        "intent": "Comparação antes e depois com aviso de implantação",
+        "composition": "À esquerda planilhas desordenadas; à direita painel integrado conceitual; um rodapé lembra servidor e treinamento",
+        "primary_metaphor": "À esquerda planilhas desordenadas; à direita painel integrado conceitual; um rodapé lembra servidor e treinamento",
+        "title": "Vale planejar",
+        "palette": "offwhite / lavender / sky / sage / ink; personagem PB quando existir",
+        "layout": "16:9 · 1920x1080; safe area 6%; grid assimétrico editorial",
+        "layers": [
+          {
+            "id": "background",
+            "role": "canvas",
+            "description": "Fundo quase branco com pequenas texturas e profundidade sutil, sem flashes"
+          },
+          {
+            "id": "primary_subject",
+            "role": "hero",
+            "description": "À esquerda planilhas desordenadas; à direita painel integrado conceitual; um rodapé lembra servidor e treinamento"
+          },
+          {
+            "id": "information_cards",
+            "role": "supports",
+            "description": "colunas comparativas, chips de custo operacional, setas de reorganização"
+          },
+          {
+            "id": "semantic_effect",
+            "role": "annotation",
+            "description": "Entradas com significado editorial; destacar palavras e relações de maneira contextual"
+          },
+          {
+            "id": "typography",
+            "role": "text",
+            "description": "Vale planejar — título curto legível, sem barras de capítulo repetidas"
+          }
+        ],
+        "avoid": "não repetir composição anterior; não usar overlays de tela cheia que ocultem narração; não inventar UI"
+      },
+      "audio_sync": {
+        "mode": "word_anchor_to_align",
+        "timestamps_confirmed": false,
+        "keywords": [
+          "planilhas",
+          "servidor",
+          "treinamento"
+        ],
+        "voice": "Piper pt-BR; conferir alinhamento depois da gravação"
+      },
+      "motion_beats": [
+        {
+          "at_s": 0.1,
+          "timing": "editorial",
+          "layer": "primary_subject",
+          "action": "planilhas se espalham",
+          "duration_s": 2.04,
+          "easing": "ease_out_cubic"
+        },
+        {
+          "at_s": 3,
+          "timing": "word_anchor_pending",
+          "layer": "information_cards",
+          "action": "divisória desliza",
+          "duration_s": 2.04,
+          "easing": "ease_out_cubic"
+        },
+        {
+          "at_s": 6.6,
+          "timing": "editorial",
+          "layer": "semantic_effect",
+          "action": "campos organizados encaixam",
+          "duration_s": 2.04,
+          "easing": "ease_in_out"
+        },
+        {
+          "at_s": 9.36,
+          "timing": "editorial",
+          "layer": "camera_or_transition",
+          "action": "selo 'infraestrutura necessária' entra sem alarmismo",
+          "duration_s": 2.04,
+          "easing": "ease_out_cubic"
+        }
+      ],
+      "transition": {
+        "to_scene": "scene-007",
+        "type": "match_morph",
+        "carry_element": "um contato cai da planilha remanescente e abre problema comercial",
+        "duration_s": 0.35
+      },
+      "asset_ids": [
+        "vectors"
+      ],
+      "render_preview_mode": "director_only",
+      "qa": {
+        "no_return_to_prior_scene": true,
+        "no_repeated_full_composition": true,
+        "semantic_relevance": true,
+        "require_real_capture_if_claimed": true
+      }
+    },
+    {
+      "scene_id": "scene-007",
+      "index": 7,
+      "narration": "Segundo problema: alguém pede um orçamento, o vendedor anota o contato e depois ninguém lembra de retornar. O cliente se perde antes de virar venda. Esse é um problema de organização comercial.",
+      "source_title": "LEADS ESQUECIDOS",
+      "timeline": {
+        "start_frame": 1980,
+        "duration_frames": 360,
+        "at_s": 66,
+        "duration_s": 12
+      },
+      "visual": {
+        "composition_id": "C07-lost_lead_person",
+        "template_kind": "lost_lead_person",
+        "intent": "Vendedor PB rodeado por balões de mensagem esquecidos",
+        "composition": "Telefone, orçamento e alertas de clientes sobrepostos ao redor de vendedor PB, com uma conversa ficando sem resposta",
+        "primary_metaphor": "Telefone, orçamento e alertas de clientes sobrepostos ao redor de vendedor PB, com uma conversa ficando sem resposta",
+        "title": "Cliente esquecido",
+        "palette": "offwhite / lavender / sky / sage / ink; personagem PB quando existir",
+        "layout": "16:9 · 1920x1080; safe area 6%; grid assimétrico editorial",
+        "layers": [
+          {
+            "id": "background",
+            "role": "canvas",
+            "description": "Fundo quase branco com pequenas texturas e profundidade sutil, sem flashes"
+          },
+          {
+            "id": "primary_subject",
+            "role": "hero",
+            "description": "Telefone, orçamento e alertas de clientes sobrepostos ao redor de vendedor PB, com uma conversa ficando sem resposta"
+          },
+          {
+            "id": "information_cards",
+            "role": "supports",
+            "description": "pessoa PB, bolhas de chat, relógio, notificação não respondida"
+          },
+          {
+            "id": "semantic_effect",
+            "role": "annotation",
+            "description": "Entradas com significado editorial; destacar palavras e relações de maneira contextual"
+          },
+          {
+            "id": "typography",
+            "role": "text",
+            "description": "Cliente esquecido — título curto legível, sem barras de capítulo repetidas"
+          }
+        ],
+        "avoid": "não repetir composição anterior; não usar overlays de tela cheia que ocultem narração; não inventar UI"
+      },
+      "audio_sync": {
+        "mode": "word_anchor_to_align",
+        "timestamps_confirmed": false,
+        "keywords": [
+          "orçamento",
+          "cliente",
+          "venda"
+        ],
+        "voice": "Piper pt-BR; conferir alinhamento depois da gravação"
+      },
+      "motion_beats": [
+        {
+          "at_s": 0.1,
+          "timing": "editorial",
+          "layer": "primary_subject",
+          "action": "uma solicitação chega",
+          "duration_s": 2.04,
+          "easing": "ease_out_cubic"
+        },
+        {
+          "at_s": 3,
+          "timing": "word_anchor_pending",
+          "layer": "information_cards",
+          "action": "outra a empurra",
+          "duration_s": 2.04,
+          "easing": "ease_out_cubic"
+        },
+        {
+          "at_s": 6.6,
+          "timing": "editorial",
+          "layer": "semantic_effect",
+          "action": "o marcador 'sem retorno' cresce",
+          "duration_s": 2.04,
+          "easing": "ease_in_out"
+        },
+        {
+          "at_s": 9.36,
+          "timing": "editorial",
+          "layer": "camera_or_transition",
+          "action": "zoom no contato perdido",
+          "duration_s": 2.04,
+          "easing": "ease_out_cubic"
+        }
+      ],
+      "transition": {
+        "to_scene": "scene-008",
+        "type": "parallax_push",
+        "carry_element": "contato perdido atravessa a tela e vira cartão CRM",
+        "duration_s": 0.35
+      },
+      "asset_ids": [
+        "cutout_sales",
+        "vectors"
+      ],
+      "render_preview_mode": "director_only",
+      "qa": {
+        "no_return_to_prior_scene": true,
+        "no_repeated_full_composition": true,
+        "semantic_relevance": true,
+        "require_real_capture_if_claimed": true
+      }
+    },
+    {
+      "scene_id": "scene-008",
+      "index": 8,
+      "narration": "O Twenty é um CRM de código aberto com contatos, empresas e oportunidades de negócio. A ideia é organizar o relacionamento com clientes e visualizar melhor o processo comercial, sem depender de planilhas soltas.",
+      "source_title": "TWENTY: CRM OPEN SOURCE",
+      "timeline": {
+        "start_frame": 2340,
+        "duration_frames": 360,
+        "at_s": 78,
+        "duration_s": 12
+      },
+      "visual": {
+        "composition_id": "C08-crm_orbit_explainer",
+        "template_kind": "crm_orbit_explainer",
+        "intent": "Composição Talkcraft de pessoa PB, CRM central e oito ícones orbitando",
+        "composition": "CRM como centro sem simular interface do Twenty: pessoas, calendário, envelope, gráfico e empresa ao redor; screenshot autêntico menor em uma aba",
+        "primary_metaphor": "CRM como centro sem simular interface do Twenty: pessoas, calendário, envelope, gráfico e empresa ao redor; screenshot autêntico menor em uma aba",
+        "title": "Twenty CRM",
+        "palette": "offwhite / lavender / sky / sage / ink; personagem PB quando existir",
+        "layout": "16:9 · 1920x1080; safe area 6%; grid assimétrico editorial",
+        "layers": [
+          {
+            "id": "background",
+            "role": "canvas",
+            "description": "Fundo quase branco com pequenas texturas e profundidade sutil, sem flashes"
+          },
+          {
+            "id": "primary_subject",
+            "role": "hero",
+            "description": "CRM como centro sem simular interface do Twenty: pessoas, calendário, envelope, gráfico e empresa ao redor; screenshot autêntico menor em uma aba"
+          },
+          {
+            "id": "information_cards",
+            "role": "supports",
+            "description": "CRM em grande, orbitas pontilhadas, foto PB, microcaptura real"
+          },
+          {
+            "id": "semantic_effect",
+            "role": "annotation",
+            "description": "Entradas com significado editorial; destacar palavras e relações de maneira contextual"
+          },
+          {
+            "id": "typography",
+            "role": "text",
+            "description": "Twenty CRM — título curto legível, sem barras de capítulo repetidas"
+          }
+        ],
+        "avoid": "não repetir composição anterior; não usar overlays de tela cheia que ocultem narração; não inventar UI"
+      },
+      "audio_sync": {
+        "mode": "word_anchor_to_align",
+        "timestamps_confirmed": false,
+        "keywords": [
+          "CRM",
+          "contatos",
+          "oportunidades"
+        ],
+        "voice": "Piper pt-BR; conferir alinhamento depois da gravação"
+      },
+      "motion_beats": [
+        {
+          "at_s": 0.1,
+          "timing": "editorial",
+          "layer": "primary_subject",
+          "action": "painel CRM revela título",
+          "duration_s": 2.04,
+          "easing": "ease_out_cubic"
+        },
+        {
+          "at_s": 3,
+          "timing": "word_anchor_pending",
+          "layer": "information_cards",
+          "action": "ícones entram em órbitas diferentes",
+          "duration_s": 2.04,
+          "easing": "ease_out_cubic"
+        },
+        {
+          "at_s": 6.6,
+          "timing": "editorial",
+          "layer": "semantic_effect",
+          "action": "linhas ligam conceitos",
+          "duration_s": 2.04,
+          "easing": "ease_in_out"
+        },
+        {
+          "at_s": 9.36,
+          "timing": "editorial",
+          "layer": "camera_or_transition",
+          "action": "captura real do Twenty aparece como evidência no canto",
+          "duration_s": 2.04,
+          "easing": "ease_out_cubic"
+        }
+      ],
+      "transition": {
+        "to_scene": "scene-009",
+        "type": "follow_flow",
+        "carry_element": "um dos círculos vira estágio 'Contato' no funil",
+        "duration_s": 0.35
+      },
+      "asset_ids": [
+        "capture_twenty",
+        "cutout_sales",
+        "vectors"
+      ],
+      "render_preview_mode": "director_only",
+      "qa": {
+        "no_return_to_prior_scene": true,
+        "no_repeated_full_composition": true,
+        "semantic_relevance": true,
+        "require_real_capture_if_claimed": true
+      }
+    },
+    {
+      "scene_id": "scene-009",
+      "index": 9,
+      "narration": "Um fluxo simples começa no contato, passa por uma proposta e pode terminar na venda. Quando cada oportunidade tem uma etapa visível, fica mais fácil acompanhar os próximos passos e responsabilidades da equipe.",
+      "source_title": "VISUALIZE O FUNIL",
+      "timeline": {
+        "start_frame": 2700,
+        "duration_frames": 360,
+        "at_s": 90,
+        "duration_s": 12
+      },
+      "visual": {
+        "composition_id": "C09-sales_funnel",
+        "template_kind": "sales_funnel",
+        "intent": "Kanban ilustrativo de três etapas, um cliente se deslocando",
+        "composition": "Colunas Contato, Proposta e Venda com um card de pessoa que atravessa as três etapas",
+        "primary_metaphor": "Colunas Contato, Proposta e Venda com um card de pessoa que atravessa as três etapas",
+        "title": "Do contato à venda",
+        "palette": "offwhite / lavender / sky / sage / ink; personagem PB quando existir",
+        "layout": "16:9 · 1920x1080; safe area 6%; grid assimétrico editorial",
+        "layers": [
+          {
+            "id": "background",
+            "role": "canvas",
+            "description": "Fundo quase branco com pequenas texturas e profundidade sutil, sem flashes"
+          },
+          {
+            "id": "primary_subject",
+            "role": "hero",
+            "description": "Colunas Contato, Proposta e Venda com um card de pessoa que atravessa as três etapas"
+          },
+          {
+            "id": "information_cards",
+            "role": "supports",
+            "description": "cards, trilho de etapas, seta curva, indicador de progresso"
+          },
+          {
+            "id": "semantic_effect",
+            "role": "annotation",
+            "description": "Entradas com significado editorial; destacar palavras e relações de maneira contextual"
+          },
+          {
+            "id": "typography",
+            "role": "text",
+            "description": "Do contato à venda — título curto legível, sem barras de capítulo repetidas"
+          }
+        ],
+        "avoid": "não repetir composição anterior; não usar overlays de tela cheia que ocultem narração; não inventar UI"
+      },
+      "audio_sync": {
+        "mode": "word_anchor_to_align",
+        "timestamps_confirmed": false,
+        "keywords": [
+          "contato",
+          "proposta",
+          "venda"
+        ],
+        "voice": "Piper pt-BR; conferir alinhamento depois da gravação"
+      },
+      "motion_beats": [
+        {
+          "at_s": 0.1,
+          "timing": "editorial",
+          "layer": "primary_subject",
+          "action": "Contato recebe o card",
+          "duration_s": 2.04,
+          "easing": "ease_out_cubic"
+        },
+        {
+          "at_s": 3,
+          "timing": "word_anchor_pending",
+          "layer": "information_cards",
+          "action": "trilho anima para Proposta",
+          "duration_s": 2.04,
+          "easing": "ease_out_cubic"
+        },
+        {
+          "at_s": 6.6,
+          "timing": "editorial",
+          "layer": "semantic_effect",
+          "action": "proposta muda de estado",
+          "duration_s": 2.04,
+          "easing": "ease_in_out"
+        },
+        {
+          "at_s": 9.36,
+          "timing": "editorial",
+          "layer": "camera_or_transition",
+          "action": "card desliza para Venda",
+          "duration_s": 2.04,
+          "easing": "ease_out_cubic"
+        },
+        {
+          "at_s": 9.36,
+          "timing": "editorial",
+          "layer": "primary_subject",
+          "action": "progressão permanece visível",
+          "duration_s": 2.04,
+          "easing": "ease_out_cubic"
+        }
+      ],
+      "transition": {
+        "to_scene": "scene-010",
+        "type": "mask_reveal",
+        "carry_element": "card de venda vira pasta de histórico na cena seguinte",
+        "duration_s": 0.35
+      },
+      "asset_ids": [
+        "vectors"
+      ],
+      "render_preview_mode": "director_only",
+      "qa": {
+        "no_return_to_prior_scene": true,
+        "no_repeated_full_composition": true,
+        "semantic_relevance": true,
+        "require_real_capture_if_claimed": true
+      }
+    },
+    {
+      "scene_id": "scene-010",
+      "index": 10,
+      "narration": "Nenhum CRM substitui o trabalho comercial. O ganho está em manter histórico, tarefas e informações acessíveis. Para self-hosting, confira a edição comunitária, os recursos disponíveis e os requisitos de operação.",
+      "source_title": "CRM NÃO VENDE SOZINHO",
+      "timeline": {
+        "start_frame": 3060,
+        "duration_frames": 360,
+        "at_s": 102,
+        "duration_s": 12
+      },
+      "visual": {
+        "composition_id": "C10-crm_human",
+        "template_kind": "crm_human",
+        "intent": "Ser humano continua no centro: CRM não substitui vendedor",
+        "composition": "Uma vendedora PB ocupa 40% à direita; à esquerda timeline de histórico e tarefas, sem repetir o CRM orbitante",
+        "primary_metaphor": "Uma vendedora PB ocupa 40% à direita; à esquerda timeline de histórico e tarefas, sem repetir o CRM orbitante",
+        "title": "Gente + método",
+        "palette": "offwhite / lavender / sky / sage / ink; personagem PB quando existir",
+        "layout": "16:9 · 1920x1080; safe area 6%; grid assimétrico editorial",
+        "layers": [
+          {
+            "id": "background",
+            "role": "canvas",
+            "description": "Fundo quase branco com pequenas texturas e profundidade sutil, sem flashes"
+          },
+          {
+            "id": "primary_subject",
+            "role": "hero",
+            "description": "Uma vendedora PB ocupa 40% à direita; à esquerda timeline de histórico e tarefas, sem repetir o CRM orbitante"
+          },
+          {
+            "id": "information_cards",
+            "role": "supports",
+            "description": "pessoa PB, coluna histórica, pequenos checks, nota de edição comunitária"
+          },
+          {
+            "id": "semantic_effect",
+            "role": "annotation",
+            "description": "Entradas com significado editorial; destacar palavras e relações de maneira contextual"
+          },
+          {
+            "id": "typography",
+            "role": "text",
+            "description": "Gente + método — título curto legível, sem barras de capítulo repetidas"
+          }
+        ],
+        "avoid": "não repetir composição anterior; não usar overlays de tela cheia que ocultem narração; não inventar UI"
+      },
+      "audio_sync": {
+        "mode": "word_anchor_to_align",
+        "timestamps_confirmed": false,
+        "keywords": [
+          "CRM",
+          "histórico",
+          "tarefas"
+        ],
+        "voice": "Piper pt-BR; conferir alinhamento depois da gravação"
+      },
+      "motion_beats": [
+        {
+          "at_s": 0.1,
+          "timing": "editorial",
+          "layer": "primary_subject",
+          "action": "pessoa aparece",
+          "duration_s": 2.04,
+          "easing": "ease_out_cubic"
+        },
+        {
+          "at_s": 3,
+          "timing": "word_anchor_pending",
+          "layer": "information_cards",
+          "action": "histórico cresce linha a linha",
+          "duration_s": 2.04,
+          "easing": "ease_out_cubic"
+        },
+        {
+          "at_s": 6.6,
+          "timing": "editorial",
+          "layer": "semantic_effect",
+          "action": "tarefa próxima fica destacada",
+          "duration_s": 2.04,
+          "easing": "ease_in_out"
+        },
+        {
+          "at_s": 9.36,
+          "timing": "editorial",
+          "layer": "camera_or_transition",
+          "action": "etiqueta 'uso próprio exige operação' surge",
+          "duration_s": 2.04,
+          "easing": "ease_out_cubic"
+        }
+      ],
+      "transition": {
+        "to_scene": "scene-011",
+        "type": "camera_pass",
+        "carry_element": "ícone de contato do histórico vira primeira mensagem no atendimento",
+        "duration_s": 0.35
+      },
+      "asset_ids": [
+        "cutout_sales",
+        "vectors"
+      ],
+      "render_preview_mode": "director_only",
+      "qa": {
+        "no_return_to_prior_scene": true,
+        "no_repeated_full_composition": true,
+        "semantic_relevance": true,
+        "require_real_capture_if_claimed": true
+      }
+    },
+    {
+      "scene_id": "scene-011",
+      "index": 11,
+      "narration": "Terceiro: sua equipe responde clientes por canais diferentes e ninguém sabe quem ficou responsável por cada conversa. O resultado pode ser demora, resposta repetida e até atendimento perdido.",
+      "source_title": "MENSAGENS ESPALHADAS",
+      "timeline": {
+        "start_frame": 3420,
+        "duration_frames": 360,
+        "at_s": 114,
+        "duration_s": 12
+      },
+      "visual": {
+        "composition_id": "C11-support_overflow",
+        "template_kind": "support_overflow",
+        "intent": "Agente PB cercado por chats de canais misturados",
+        "composition": "Balões em várias cores lotam a tela; um balão se perde atrás; mantém legíveis as palavras 'cliente' e 'responsável'",
+        "primary_metaphor": "Balões em várias cores lotam a tela; um balão se perde atrás; mantém legíveis as palavras 'cliente' e 'responsável'",
+        "title": "Caixa de entrada dispersa",
+        "palette": "offwhite / lavender / sky / sage / ink; personagem PB quando existir",
+        "layout": "16:9 · 1920x1080; safe area 6%; grid assimétrico editorial",
+        "layers": [
+          {
+            "id": "background",
+            "role": "canvas",
+            "description": "Fundo quase branco com pequenas texturas e profundidade sutil, sem flashes"
+          },
+          {
+            "id": "primary_subject",
+            "role": "hero",
+            "description": "Balões em várias cores lotam a tela; um balão se perde atrás; mantém legíveis as palavras 'cliente' e 'responsável'"
+          },
+          {
+            "id": "information_cards",
+            "role": "supports",
+            "description": "pessoa PB com headset, bolhas de canais, tags de prioridade, ponteiros"
+          },
+          {
+            "id": "semantic_effect",
+            "role": "annotation",
+            "description": "Entradas com significado editorial; destacar palavras e relações de maneira contextual"
+          },
+          {
+            "id": "typography",
+            "role": "text",
+            "description": "Caixa de entrada dispersa — título curto legível, sem barras de capítulo repetidas"
+          }
+        ],
+        "avoid": "não repetir composição anterior; não usar overlays de tela cheia que ocultem narração; não inventar UI"
+      },
+      "audio_sync": {
+        "mode": "word_anchor_to_align",
+        "timestamps_confirmed": false,
+        "keywords": [
+          "clientes",
+          "conversa",
+          "atendimento"
+        ],
+        "voice": "Piper pt-BR; conferir alinhamento depois da gravação"
+      },
+      "motion_beats": [
+        {
+          "at_s": 0.1,
+          "timing": "editorial",
+          "layer": "primary_subject",
+          "action": "chats chegam em ondas",
+          "duration_s": 2.04,
+          "easing": "ease_out_cubic"
+        },
+        {
+          "at_s": 3,
+          "timing": "word_anchor_pending",
+          "layer": "information_cards",
+          "action": "alguns se sobrepõem",
+          "duration_s": 2.04,
+          "easing": "ease_out_cubic"
+        },
+        {
+          "at_s": 6.6,
+          "timing": "editorial",
+          "layer": "semantic_effect",
+          "action": "balão urgente muda de prioridade",
+          "duration_s": 2.04,
+          "easing": "ease_in_out"
+        },
+        {
+          "at_s": 9.36,
+          "timing": "editorial",
+          "layer": "camera_or_transition",
+          "action": "todos se reúnem em uma caixa de entrada",
+          "duration_s": 2.04,
+          "easing": "ease_out_cubic"
+        }
+      ],
+      "transition": {
+        "to_scene": "scene-012",
+        "type": "match_morph",
+        "carry_element": "a caixa se expande revelando a interface verdadeira Chatwoot",
+        "duration_s": 0.35
+      },
+      "asset_ids": [
+        "cutout_support",
+        "vectors"
+      ],
+      "render_preview_mode": "director_only",
+      "qa": {
+        "no_return_to_prior_scene": true,
+        "no_repeated_full_composition": true,
+        "semantic_relevance": true,
+        "require_real_capture_if_claimed": true
+      }
+    },
+    {
+      "scene_id": "scene-012",
+      "index": 12,
+      "narration": "O Chatwoot oferece uma caixa de entrada para atendimento ao cliente, com conversas, agentes e recursos de organização. Existem integrações com diferentes canais, dependendo da configuração e da edição utilizada.",
+      "source_title": "CHATWOOT: CENTRAL DE ATENDIMENTO",
+      "timeline": {
+        "start_frame": 3780,
+        "duration_frames": 360,
+        "at_s": 126,
+        "duration_s": 12
+      },
+      "visual": {
+        "composition_id": "C12-chatwoot_real_screen",
+        "template_kind": "chatwoot_real_screen",
+        "intent": "Captura real do Chatwoot acompanhada de atribuição contextual",
+        "composition": "Screenshot real, foco na lista de conversas; pequenos cards didáticos atribuição e agente no lado esquerdo",
+        "primary_metaphor": "Screenshot real, foco na lista de conversas; pequenos cards didáticos atribuição e agente no lado esquerdo",
+        "title": "Chatwoot",
+        "palette": "offwhite / lavender / sky / sage / ink; personagem PB quando existir",
+        "layout": "16:9 · 1920x1080; safe area 6%; grid assimétrico editorial",
+        "layers": [
+          {
+            "id": "background",
+            "role": "canvas",
+            "description": "Fundo quase branco com pequenas texturas e profundidade sutil, sem flashes"
+          },
+          {
+            "id": "primary_subject",
+            "role": "hero",
+            "description": "Screenshot real, foco na lista de conversas; pequenos cards didáticos atribuição e agente no lado esquerdo"
+          },
+          {
+            "id": "information_cards",
+            "role": "supports",
+            "description": "screenshot real do projeto, callouts, ícones de mensagens, borda lilás"
+          },
+          {
+            "id": "semantic_effect",
+            "role": "annotation",
+            "description": "Entradas com significado editorial; destacar palavras e relações de maneira contextual"
+          },
+          {
+            "id": "typography",
+            "role": "text",
+            "description": "Chatwoot — título curto legível, sem barras de capítulo repetidas"
+          }
+        ],
+        "avoid": "não repetir composição anterior; não usar overlays de tela cheia que ocultem narração; não inventar UI"
+      },
+      "audio_sync": {
+        "mode": "word_anchor_to_align",
+        "timestamps_confirmed": false,
+        "keywords": [
+          "Chatwoot",
+          "agentes",
+          "canais"
+        ],
+        "voice": "Piper pt-BR; conferir alinhamento depois da gravação"
+      },
+      "motion_beats": [
+        {
+          "at_s": 0.1,
+          "timing": "editorial",
+          "layer": "primary_subject",
+          "action": "captura revela no mockup",
+          "duration_s": 2.04,
+          "easing": "ease_out_cubic"
+        },
+        {
+          "at_s": 3,
+          "timing": "word_anchor_pending",
+          "layer": "information_cards",
+          "action": "uma conversa recebe highlight verificável",
+          "duration_s": 2.04,
+          "easing": "ease_out_cubic"
+        },
+        {
+          "at_s": 6.6,
+          "timing": "editorial",
+          "layer": "semantic_effect",
+          "action": "card responsável conecta-se por seta",
+          "duration_s": 2.04,
+          "easing": "ease_in_out"
+        },
+        {
+          "at_s": 9.36,
+          "timing": "editorial",
+          "layer": "camera_or_transition",
+          "action": "câmera move sutilmente para chat",
+          "duration_s": 2.04,
+          "easing": "ease_out_cubic"
+        }
+      ],
+      "transition": {
+        "to_scene": "scene-013",
+        "type": "parallax_push",
+        "carry_element": "balão destacado sai do mockup e vai à linha de atendimento",
+        "duration_s": 0.35
+      },
+      "asset_ids": [
+        "capture_chatwoot",
+        "vectors"
+      ],
+      "render_preview_mode": "director_only",
+      "qa": {
+        "no_return_to_prior_scene": true,
+        "no_repeated_full_composition": true,
+        "semantic_relevance": true,
+        "require_real_capture_if_claimed": true
+      }
+    },
+    {
+      "scene_id": "scene-013",
+      "index": 13,
+      "narration": "A ideia é acompanhar uma conversa, atribuir um responsável e manter o contexto até a solução. Isso ajuda equipes que atendem muitos clientes e precisam dividir o trabalho com clareza.",
+      "source_title": "ATENDIMENTO EM EQUIPE",
+      "timeline": {
+        "start_frame": 4140,
+        "duration_frames": 360,
+        "at_s": 138,
+        "duration_s": 12
+      },
+      "visual": {
+        "composition_id": "C13-customer_support_flow",
+        "template_kind": "customer_support_flow",
+        "intent": "Diagrama cliente → agente → resposta sem trocar de tela",
+        "composition": "Três avatares originais e mensagens se conectam dentro da mesma composição; marca de resolução ao final",
+        "primary_metaphor": "Três avatares originais e mensagens se conectam dentro da mesma composição; marca de resolução ao final",
+        "title": "Uma conversa, uma equipe",
+        "palette": "offwhite / lavender / sky / sage / ink; personagem PB quando existir",
+        "layout": "16:9 · 1920x1080; safe area 6%; grid assimétrico editorial",
+        "layers": [
+          {
+            "id": "background",
+            "role": "canvas",
+            "description": "Fundo quase branco com pequenas texturas e profundidade sutil, sem flashes"
+          },
+          {
+            "id": "primary_subject",
+            "role": "hero",
+            "description": "Três avatares originais e mensagens se conectam dentro da mesma composição; marca de resolução ao final"
+          },
+          {
+            "id": "information_cards",
+            "role": "supports",
+            "description": "mensagens, avatares, setas de atribuição, selo de solução"
+          },
+          {
+            "id": "semantic_effect",
+            "role": "annotation",
+            "description": "Entradas com significado editorial; destacar palavras e relações de maneira contextual"
+          },
+          {
+            "id": "typography",
+            "role": "text",
+            "description": "Uma conversa, uma equipe — título curto legível, sem barras de capítulo repetidas"
+          }
+        ],
+        "avoid": "não repetir composição anterior; não usar overlays de tela cheia que ocultem narração; não inventar UI"
+      },
+      "audio_sync": {
+        "mode": "word_anchor_to_align",
+        "timestamps_confirmed": false,
+        "keywords": [
+          "conversa",
+          "responsável",
+          "solução"
+        ],
+        "voice": "Piper pt-BR; conferir alinhamento depois da gravação"
+      },
+      "motion_beats": [
+        {
+          "at_s": 0.1,
+          "timing": "editorial",
+          "layer": "primary_subject",
+          "action": "cliente envia mensagem",
+          "duration_s": 2.04,
+          "easing": "ease_out_cubic"
+        },
+        {
+          "at_s": 3,
+          "timing": "word_anchor_pending",
+          "layer": "information_cards",
+          "action": "agente recebe card",
+          "duration_s": 2.04,
+          "easing": "ease_out_cubic"
+        },
+        {
+          "at_s": 6.6,
+          "timing": "editorial",
+          "layer": "semantic_effect",
+          "action": "resposta desliza ao cliente",
+          "duration_s": 2.04,
+          "easing": "ease_in_out"
+        },
+        {
+          "at_s": 9.36,
+          "timing": "editorial",
+          "layer": "camera_or_transition",
+          "action": "resolução aparece como badge",
+          "duration_s": 2.04,
+          "easing": "ease_out_cubic"
+        }
+      ],
+      "transition": {
+        "to_scene": "scene-014",
+        "type": "follow_flow",
+        "carry_element": "badge de canal se separa e abre alerta sobre integrações",
+        "duration_s": 0.35
+      },
+      "asset_ids": [
+        "vectors"
+      ],
+      "render_preview_mode": "director_only",
+      "qa": {
+        "no_return_to_prior_scene": true,
+        "no_repeated_full_composition": true,
+        "semantic_relevance": true,
+        "require_real_capture_if_claimed": true
+      }
+    },
+    {
+      "scene_id": "scene-014",
+      "index": 14,
+      "narration": "O software pode ser instalado por conta própria. Mas conectar canais como WhatsApp pode exigir contas oficiais, regras específicas e custos externos. Gratuidade do código não significa custo zero em toda integração.",
+      "source_title": "ATENÇÃO AOS CANAIS",
+      "timeline": {
+        "start_frame": 4500,
+        "duration_frames": 360,
+        "at_s": 150,
+        "duration_s": 12
+      },
+      "visual": {
+        "composition_id": "C14-channels_caveat",
+        "template_kind": "channels_caveat",
+        "intent": "Diagrama comparativo: código gratuito vs integrações externas",
+        "composition": "Um lado 'código do sistema' outro 'serviços de canais'; conector pontilhado indica que podem existir regras/custos",
+        "primary_metaphor": "Um lado 'código do sistema' outro 'serviços de canais'; conector pontilhado indica que podem existir regras/custos",
+        "title": "Nem todo canal é grátis",
+        "palette": "offwhite / lavender / sky / sage / ink; personagem PB quando existir",
+        "layout": "16:9 · 1920x1080; safe area 6%; grid assimétrico editorial",
+        "layers": [
+          {
+            "id": "background",
+            "role": "canvas",
+            "description": "Fundo quase branco com pequenas texturas e profundidade sutil, sem flashes"
+          },
+          {
+            "id": "primary_subject",
+            "role": "hero",
+            "description": "Um lado 'código do sistema' outro 'serviços de canais'; conector pontilhado indica que podem existir regras/custos"
+          },
+          {
+            "id": "information_cards",
+            "role": "supports",
+            "description": "blocos de integração, aviso âmbar discreto, WhatsApp textual, chave visual"
+          },
+          {
+            "id": "semantic_effect",
+            "role": "annotation",
+            "description": "Entradas com significado editorial; destacar palavras e relações de maneira contextual"
+          },
+          {
+            "id": "typography",
+            "role": "text",
+            "description": "Nem todo canal é grátis — título curto legível, sem barras de capítulo repetidas"
+          }
+        ],
+        "avoid": "não repetir composição anterior; não usar overlays de tela cheia que ocultem narração; não inventar UI"
+      },
+      "audio_sync": {
+        "mode": "word_anchor_to_align",
+        "timestamps_confirmed": false,
+        "keywords": [
+          "WhatsApp",
+          "custos",
+          "integração"
+        ],
+        "voice": "Piper pt-BR; conferir alinhamento depois da gravação"
+      },
+      "motion_beats": [
+        {
+          "at_s": 0.1,
+          "timing": "editorial",
+          "layer": "primary_subject",
+          "action": "selo código aberto surge",
+          "duration_s": 2.04,
+          "easing": "ease_out_cubic"
+        },
+        {
+          "at_s": 3,
+          "timing": "word_anchor_pending",
+          "layer": "information_cards",
+          "action": "lado canais desliza",
+          "duration_s": 2.04,
+          "easing": "ease_out_cubic"
+        },
+        {
+          "at_s": 6.6,
+          "timing": "editorial",
+          "layer": "semantic_effect",
+          "action": "conector pontilhado mostra dependência",
+          "duration_s": 2.04,
+          "easing": "ease_in_out"
+        },
+        {
+          "at_s": 9.36,
+          "timing": "editorial",
+          "layer": "camera_or_transition",
+          "action": "ressalva entra em faixa inferior",
+          "duration_s": 2.04,
+          "easing": "ease_out_cubic"
+        }
+      ],
+      "transition": {
+        "to_scene": "scene-015",
+        "type": "mask_reveal",
+        "carry_element": "a linha de conector vira trilho de tarefas",
+        "duration_s": 0.35
+      },
+      "asset_ids": [
+        "vectors"
+      ],
+      "render_preview_mode": "director_only",
+      "qa": {
+        "no_return_to_prior_scene": true,
+        "no_repeated_full_composition": true,
+        "semantic_relevance": true,
+        "require_real_capture_if_claimed": true
+      }
+    },
+    {
+      "scene_id": "scene-015",
+      "index": 15,
+      "narration": "Quarto problema: reuniões terminam, tarefas aparecem, mas ninguém sabe o prazo, o responsável ou o andamento. Quando tudo fica numa conversa, acompanhar projetos se torna mais difícil.",
+      "source_title": "TAREFAS SEM DONO",
+      "timeline": {
+        "start_frame": 4860,
+        "duration_frames": 360,
+        "at_s": 162,
+        "duration_s": 12
+      },
+      "visual": {
+        "composition_id": "C15-task_overload_person",
+        "template_kind": "task_overload_person",
+        "intent": "Gerente PB cercado por post-its sem responsável e prazos",
+        "composition": "Colagem de tarefas voando, relógios e interrogações; contraste com quadro Kanban ao fundo",
+        "primary_metaphor": "Colagem de tarefas voando, relógios e interrogações; contraste com quadro Kanban ao fundo",
+        "title": "Quem faz o quê?",
+        "palette": "offwhite / lavender / sky / sage / ink; personagem PB quando existir",
+        "layout": "16:9 · 1920x1080; safe area 6%; grid assimétrico editorial",
+        "layers": [
+          {
+            "id": "background",
+            "role": "canvas",
+            "description": "Fundo quase branco com pequenas texturas e profundidade sutil, sem flashes"
+          },
+          {
+            "id": "primary_subject",
+            "role": "hero",
+            "description": "Colagem de tarefas voando, relógios e interrogações; contraste com quadro Kanban ao fundo"
+          },
+          {
+            "id": "information_cards",
+            "role": "supports",
+            "description": "pessoa PB, post-its, relógio, avatares sem nome"
+          },
+          {
+            "id": "semantic_effect",
+            "role": "annotation",
+            "description": "Entradas com significado editorial; destacar palavras e relações de maneira contextual"
+          },
+          {
+            "id": "typography",
+            "role": "text",
+            "description": "Quem faz o quê? — título curto legível, sem barras de capítulo repetidas"
+          }
+        ],
+        "avoid": "não repetir composição anterior; não usar overlays de tela cheia que ocultem narração; não inventar UI"
+      },
+      "audio_sync": {
+        "mode": "word_anchor_to_align",
+        "timestamps_confirmed": false,
+        "keywords": [
+          "tarefas",
+          "prazo",
+          "responsável"
+        ],
+        "voice": "Piper pt-BR; conferir alinhamento depois da gravação"
+      },
+      "motion_beats": [
+        {
+          "at_s": 0.1,
+          "timing": "editorial",
+          "layer": "primary_subject",
+          "action": "post-its aparecem em alturas diferentes",
+          "duration_s": 2.04,
+          "easing": "ease_out_cubic"
+        },
+        {
+          "at_s": 3,
+          "timing": "word_anchor_pending",
+          "layer": "information_cards",
+          "action": "relógio bate",
+          "duration_s": 2.04,
+          "easing": "ease_out_cubic"
+        },
+        {
+          "at_s": 6.6,
+          "timing": "editorial",
+          "layer": "semantic_effect",
+          "action": "cartões perdem o alinhamento",
+          "duration_s": 2.04,
+          "easing": "ease_in_out"
+        },
+        {
+          "at_s": 9.36,
+          "timing": "editorial",
+          "layer": "camera_or_transition",
+          "action": "os cartões começam a se agrupar em colunas",
+          "duration_s": 2.04,
+          "easing": "ease_out_cubic"
+        }
+      ],
+      "transition": {
+        "to_scene": "scene-016",
+        "type": "camera_pass",
+        "carry_element": "grupo de post-its se reorganiza em browser Plane",
+        "duration_s": 0.35
+      },
+      "asset_ids": [
+        "cutout_manager",
+        "vectors"
+      ],
+      "render_preview_mode": "director_only",
+      "qa": {
+        "no_return_to_prior_scene": true,
+        "no_repeated_full_composition": true,
+        "semantic_relevance": true,
+        "require_real_capture_if_claimed": true
+      }
+    },
+    {
+      "scene_id": "scene-016",
+      "index": 16,
+      "narration": "O Plane é uma plataforma open source de gerenciamento de projetos. Permite organizar trabalhos em tarefas e acompanhar o progresso por diferentes visualizações, conforme os recursos da edição escolhida.",
+      "source_title": "PLANE: PROJETOS E TAREFAS",
+      "timeline": {
+        "start_frame": 5220,
+        "duration_frames": 360,
+        "at_s": 174,
+        "duration_s": 12
+      },
+      "visual": {
+        "composition_id": "C16-plane_real_screen",
+        "template_kind": "plane_real_screen",
+        "intent": "Captura verdadeira do Plane com callouts de projeto",
+        "composition": "Browser real em perspectiva; campos reais da interface destacados, sem fabricar features",
+        "primary_metaphor": "Browser real em perspectiva; campos reais da interface destacados, sem fabricar features",
+        "title": "Plane",
+        "palette": "offwhite / lavender / sky / sage / ink; personagem PB quando existir",
+        "layout": "16:9 · 1920x1080; safe area 6%; grid assimétrico editorial",
+        "layers": [
+          {
+            "id": "background",
+            "role": "canvas",
+            "description": "Fundo quase branco com pequenas texturas e profundidade sutil, sem flashes"
+          },
+          {
+            "id": "primary_subject",
+            "role": "hero",
+            "description": "Browser real em perspectiva; campos reais da interface destacados, sem fabricar features"
+          },
+          {
+            "id": "information_cards",
+            "role": "supports",
+            "description": "screenshot real, lupa, marcador projeto, seta de navegação"
+          },
+          {
+            "id": "semantic_effect",
+            "role": "annotation",
+            "description": "Entradas com significado editorial; destacar palavras e relações de maneira contextual"
+          },
+          {
+            "id": "typography",
+            "role": "text",
+            "description": "Plane — título curto legível, sem barras de capítulo repetidas"
+          }
+        ],
+        "avoid": "não repetir composição anterior; não usar overlays de tela cheia que ocultem narração; não inventar UI"
+      },
+      "audio_sync": {
+        "mode": "word_anchor_to_align",
+        "timestamps_confirmed": false,
+        "keywords": [
+          "Plane",
+          "projetos",
+          "progresso"
+        ],
+        "voice": "Piper pt-BR; conferir alinhamento depois da gravação"
+      },
+      "motion_beats": [
+        {
+          "at_s": 0.1,
+          "timing": "editorial",
+          "layer": "primary_subject",
+          "action": "navegador cresce",
+          "duration_s": 2.04,
+          "easing": "ease_out_cubic"
+        },
+        {
+          "at_s": 3,
+          "timing": "word_anchor_pending",
+          "layer": "information_cards",
+          "action": "callouts apontam somente para áreas verificadas",
+          "duration_s": 2.04,
+          "easing": "ease_out_cubic"
+        },
+        {
+          "at_s": 6.6,
+          "timing": "editorial",
+          "layer": "semantic_effect",
+          "action": "zoom acompanha uma lista real",
+          "duration_s": 2.04,
+          "easing": "ease_in_out"
+        },
+        {
+          "at_s": 9.36,
+          "timing": "editorial",
+          "layer": "camera_or_transition",
+          "action": "câmera afasta para ver o quadro",
+          "duration_s": 2.04,
+          "easing": "ease_out_cubic"
+        }
+      ],
+      "transition": {
+        "to_scene": "scene-017",
+        "type": "match_morph",
+        "carry_element": "cartões da captura ganham vida na cena seguinte",
+        "duration_s": 0.35
+      },
+      "asset_ids": [
+        "capture_plane",
+        "vectors"
+      ],
+      "render_preview_mode": "director_only",
+      "qa": {
+        "no_return_to_prior_scene": true,
+        "no_repeated_full_composition": true,
+        "semantic_relevance": true,
+        "require_real_capture_if_claimed": true
+      }
+    },
+    {
+      "scene_id": "scene-017",
+      "index": 17,
+      "narration": "Pense num quadro com colunas como a fazer, em andamento e concluído. A movimentação dos cartões deixa visível o progresso. É especialmente útil quando várias pessoas trabalham no mesmo projeto.",
+      "source_title": "O KANBAN EM MOVIMENTO",
+      "timeline": {
+        "start_frame": 5580,
+        "duration_frames": 360,
+        "at_s": 186,
+        "duration_s": 12
+      },
+      "visual": {
+        "composition_id": "C17-kanban_movement",
+        "template_kind": "kanban_movement",
+        "intent": "Kanban com cartões em movimento visível e progresso canônico conceitual",
+        "composition": "Três colunas A fazer, Em andamento, Concluído; um cartão move entre elas enquanto outros ficam estáveis",
+        "primary_metaphor": "Três colunas A fazer, Em andamento, Concluído; um cartão move entre elas enquanto outros ficam estáveis",
+        "title": "Kanban visual",
+        "palette": "offwhite / lavender / sky / sage / ink; personagem PB quando existir",
+        "layout": "16:9 · 1920x1080; safe area 6%; grid assimétrico editorial",
+        "layers": [
+          {
+            "id": "background",
+            "role": "canvas",
+            "description": "Fundo quase branco com pequenas texturas e profundidade sutil, sem flashes"
+          },
+          {
+            "id": "primary_subject",
+            "role": "hero",
+            "description": "Três colunas A fazer, Em andamento, Concluído; um cartão move entre elas enquanto outros ficam estáveis"
+          },
+          {
+            "id": "information_cards",
+            "role": "supports",
+            "description": "colunas, cartões, ícones de pessoa, selo concluído"
+          },
+          {
+            "id": "semantic_effect",
+            "role": "annotation",
+            "description": "Entradas com significado editorial; destacar palavras e relações de maneira contextual"
+          },
+          {
+            "id": "typography",
+            "role": "text",
+            "description": "Kanban visual — título curto legível, sem barras de capítulo repetidas"
+          }
+        ],
+        "avoid": "não repetir composição anterior; não usar overlays de tela cheia que ocultem narração; não inventar UI"
+      },
+      "audio_sync": {
+        "mode": "word_anchor_to_align",
+        "timestamps_confirmed": false,
+        "keywords": [
+          "a fazer",
+          "em andamento",
+          "concluído"
+        ],
+        "voice": "Piper pt-BR; conferir alinhamento depois da gravação"
+      },
+      "motion_beats": [
+        {
+          "at_s": 0.1,
+          "timing": "editorial",
+          "layer": "primary_subject",
+          "action": "cartão nasce em A fazer",
+          "duration_s": 2.04,
+          "easing": "ease_out_cubic"
+        },
+        {
+          "at_s": 3,
+          "timing": "word_anchor_pending",
+          "layer": "information_cards",
+          "action": "desliza para Em andamento",
+          "duration_s": 2.04,
+          "easing": "ease_out_cubic"
+        },
+        {
+          "at_s": 6.6,
+          "timing": "editorial",
+          "layer": "semantic_effect",
+          "action": "check de avanço acende",
+          "duration_s": 2.04,
+          "easing": "ease_in_out"
+        },
+        {
+          "at_s": 9.36,
+          "timing": "editorial",
+          "layer": "camera_or_transition",
+          "action": "cartão termina em Concluído",
+          "duration_s": 2.04,
+          "easing": "ease_out_cubic"
+        }
+      ],
+      "transition": {
+        "to_scene": "scene-018",
+        "type": "parallax_push",
+        "carry_element": "check concluído vira checklist de processo humano",
+        "duration_s": 0.35
+      },
+      "asset_ids": [
+        "vectors"
+      ],
+      "render_preview_mode": "director_only",
+      "qa": {
+        "no_return_to_prior_scene": true,
+        "no_repeated_full_composition": true,
+        "semantic_relevance": true,
+        "require_real_capture_if_claimed": true
+      }
+    },
+    {
+      "scene_id": "scene-018",
+      "index": 18,
+      "narration": "Um bom painel não resolve prioridades confusas. O Plane é uma base para estruturar a execução, mas a equipe ainda precisa combinar regras de uso, responsáveis e rotina de atualização.",
+      "source_title": "PROCESSO ANTES DA FERRAMENTA",
+      "timeline": {
+        "start_frame": 5940,
+        "duration_frames": 360,
+        "at_s": 198,
+        "duration_s": 12
+      },
+      "visual": {
+        "composition_id": "C18-process_over_tool",
+        "template_kind": "process_over_tool",
+        "intent": "Gestão humana e quadro organizado em perspectiva editorial",
+        "composition": "Uma equipe PB com notas de responsabilidade; quadro de tarefas simplificado atrás, diferente do Kanban anterior",
+        "primary_metaphor": "Uma equipe PB com notas de responsabilidade; quadro de tarefas simplificado atrás, diferente do Kanban anterior",
+        "title": "A ferramenta não decide",
+        "palette": "offwhite / lavender / sky / sage / ink; personagem PB quando existir",
+        "layout": "16:9 · 1920x1080; safe area 6%; grid assimétrico editorial",
+        "layers": [
+          {
+            "id": "background",
+            "role": "canvas",
+            "description": "Fundo quase branco com pequenas texturas e profundidade sutil, sem flashes"
+          },
+          {
+            "id": "primary_subject",
+            "role": "hero",
+            "description": "Uma equipe PB com notas de responsabilidade; quadro de tarefas simplificado atrás, diferente do Kanban anterior"
+          },
+          {
+            "id": "information_cards",
+            "role": "supports",
+            "description": "pessoa PB, cartões de dono/prazo, checklist, linha de responsabilidade"
+          },
+          {
+            "id": "semantic_effect",
+            "role": "annotation",
+            "description": "Entradas com significado editorial; destacar palavras e relações de maneira contextual"
+          },
+          {
+            "id": "typography",
+            "role": "text",
+            "description": "A ferramenta não decide — título curto legível, sem barras de capítulo repetidas"
+          }
+        ],
+        "avoid": "não repetir composição anterior; não usar overlays de tela cheia que ocultem narração; não inventar UI"
+      },
+      "audio_sync": {
+        "mode": "word_anchor_to_align",
+        "timestamps_confirmed": false,
+        "keywords": [
+          "prioridades",
+          "equipe",
+          "responsáveis"
+        ],
+        "voice": "Piper pt-BR; conferir alinhamento depois da gravação"
+      },
+      "motion_beats": [
+        {
+          "at_s": 0.1,
+          "timing": "editorial",
+          "layer": "primary_subject",
+          "action": "perfil equipe aparece",
+          "duration_s": 2.04,
+          "easing": "ease_out_cubic"
+        },
+        {
+          "at_s": 3,
+          "timing": "word_anchor_pending",
+          "layer": "information_cards",
+          "action": "selos de responsabilidade prendem-se às tarefas",
+          "duration_s": 2.04,
+          "easing": "ease_out_cubic"
+        },
+        {
+          "at_s": 6.6,
+          "timing": "editorial",
+          "layer": "semantic_effect",
+          "action": "check de rotina surge",
+          "duration_s": 2.04,
+          "easing": "ease_in_out"
+        },
+        {
+          "at_s": 9.36,
+          "timing": "editorial",
+          "layer": "camera_or_transition",
+          "action": "câmera sai para um ícone de arquivo",
+          "duration_s": 2.04,
+          "easing": "ease_out_cubic"
+        }
+      ],
+      "transition": {
+        "to_scene": "scene-019",
+        "type": "follow_flow",
+        "carry_element": "ícone de arquivo cai sobre pilha de documentos",
+        "duration_s": 0.35
+      },
+      "asset_ids": [
+        "cutout_manager",
+        "vectors"
+      ],
+      "render_preview_mode": "director_only",
+      "qa": {
+        "no_return_to_prior_scene": true,
+        "no_repeated_full_composition": true,
+        "semantic_relevance": true,
+        "require_real_capture_if_claimed": true
+      }
+    },
+    {
+      "scene_id": "scene-019",
+      "index": 19,
+      "narration": "Quinto: contratos, notas e documentos ficam espalhados por pastas e anexos. Encontrar uma informação pode significar abrir arquivo por arquivo. E o problema cresce com o volume de documentos.",
+      "source_title": "ONDE FOI PARAR O CONTRATO?",
+      "timeline": {
+        "start_frame": 6300,
+        "duration_frames": 360,
+        "at_s": 210,
+        "duration_s": 12
+      },
+      "visual": {
+        "composition_id": "C19-paper_overload_collage",
+        "template_kind": "paper_overload_collage",
+        "intent": "Pilha de documentos fan-out com pessoa PB e arquivos dispersos",
+        "composition": "Papéis reais ilustrativos se espalham em arcos; notas, contratos e anexos; expressão de procura e pergunta central",
+        "primary_metaphor": "Papéis reais ilustrativos se espalham em arcos; notas, contratos e anexos; expressão de procura e pergunta central",
+        "title": "Cadê o contrato?",
+        "palette": "offwhite / lavender / sky / sage / ink; personagem PB quando existir",
+        "layout": "16:9 · 1920x1080; safe area 6%; grid assimétrico editorial",
+        "layers": [
+          {
+            "id": "background",
+            "role": "canvas",
+            "description": "Fundo quase branco com pequenas texturas e profundidade sutil, sem flashes"
+          },
+          {
+            "id": "primary_subject",
+            "role": "hero",
+            "description": "Papéis reais ilustrativos se espalham em arcos; notas, contratos e anexos; expressão de procura e pergunta central"
+          },
+          {
+            "id": "information_cards",
+            "role": "supports",
+            "description": "pessoa PB, 5 folhas vetoriais, pilha, lupa, balão interrogativo"
+          },
+          {
+            "id": "semantic_effect",
+            "role": "annotation",
+            "description": "Entradas com significado editorial; destacar palavras e relações de maneira contextual"
+          },
+          {
+            "id": "typography",
+            "role": "text",
+            "description": "Cadê o contrato? — título curto legível, sem barras de capítulo repetidas"
+          }
+        ],
+        "avoid": "não repetir composição anterior; não usar overlays de tela cheia que ocultem narração; não inventar UI"
+      },
+      "audio_sync": {
+        "mode": "word_anchor_to_align",
+        "timestamps_confirmed": false,
+        "keywords": [
+          "contratos",
+          "notas",
+          "anexos"
+        ],
+        "voice": "Piper pt-BR; conferir alinhamento depois da gravação"
+      },
+      "motion_beats": [
+        {
+          "at_s": 0.1,
+          "timing": "editorial",
+          "layer": "primary_subject",
+          "action": "documentos entram flutuando",
+          "duration_s": 2.04,
+          "easing": "ease_out_cubic"
+        },
+        {
+          "at_s": 3,
+          "timing": "word_anchor_pending",
+          "layer": "information_cards",
+          "action": "pilha se abre em leque pelo Talkcraft",
+          "duration_s": 2.04,
+          "easing": "ease_out_cubic"
+        },
+        {
+          "at_s": 6.6,
+          "timing": "editorial",
+          "layer": "semantic_effect",
+          "action": "lupa busca entre arquivos",
+          "duration_s": 2.04,
+          "easing": "ease_in_out"
+        },
+        {
+          "at_s": 9.36,
+          "timing": "editorial",
+          "layer": "camera_or_transition",
+          "action": "documentos se agrupam num ícone indexado",
+          "duration_s": 2.04,
+          "easing": "ease_out_cubic"
+        }
+      ],
+      "transition": {
+        "to_scene": "scene-020",
+        "type": "mask_reveal",
+        "carry_element": "um documento da pilha atravessa transição e entra no Paperless",
+        "duration_s": 0.35
+      },
+      "asset_ids": [
+        "cutout_manager",
+        "vectors"
+      ],
+      "render_preview_mode": "director_only",
+      "qa": {
+        "no_return_to_prior_scene": true,
+        "no_repeated_full_composition": true,
+        "semantic_relevance": true,
+        "require_real_capture_if_claimed": true
+      }
+    },
+    {
+      "scene_id": "scene-020",
+      "index": 20,
+      "narration": "O Paperless-ngx é um sistema open source de gestão de documentos. Ele ajuda a importar arquivos, organizar metadados e tornar documentos pesquisáveis, inclusive com reconhecimento de texto em cenários compatíveis.",
+      "source_title": "PAPERLESS-NGX: DOCUMENTOS",
+      "timeline": {
+        "start_frame": 6660,
+        "duration_frames": 360,
+        "at_s": 222,
+        "duration_s": 12
+      },
+      "visual": {
+        "composition_id": "C20-paperless_real_screen",
+        "template_kind": "paperless_real_screen",
+        "intent": "Captura verdadeira Paperless-ngx com mini fluxo de busca",
+        "composition": "Screenshot real do Paperless-ngx em browser leve; lupa e rótulos OCR/Busca sobrepostos como explicação, não itens da UI falsos",
+        "primary_metaphor": "Screenshot real do Paperless-ngx em browser leve; lupa e rótulos OCR/Busca sobrepostos como explicação, não itens da UI falsos",
+        "title": "Paperless-ngx",
+        "palette": "offwhite / lavender / sky / sage / ink; personagem PB quando existir",
+        "layout": "16:9 · 1920x1080; safe area 6%; grid assimétrico editorial",
+        "layers": [
+          {
+            "id": "background",
+            "role": "canvas",
+            "description": "Fundo quase branco com pequenas texturas e profundidade sutil, sem flashes"
+          },
+          {
+            "id": "primary_subject",
+            "role": "hero",
+            "description": "Screenshot real do Paperless-ngx em browser leve; lupa e rótulos OCR/Busca sobrepostos como explicação, não itens da UI falsos"
+          },
+          {
+            "id": "information_cards",
+            "role": "supports",
+            "description": "screenshot real, lupa, etiqueta OCR, realce de metadados"
+          },
+          {
+            "id": "semantic_effect",
+            "role": "annotation",
+            "description": "Entradas com significado editorial; destacar palavras e relações de maneira contextual"
+          },
+          {
+            "id": "typography",
+            "role": "text",
+            "description": "Paperless-ngx — título curto legível, sem barras de capítulo repetidas"
+          }
+        ],
+        "avoid": "não repetir composição anterior; não usar overlays de tela cheia que ocultem narração; não inventar UI"
+      },
+      "audio_sync": {
+        "mode": "word_anchor_to_align",
+        "timestamps_confirmed": false,
+        "keywords": [
+          "Paperless-ngx",
+          "metadados",
+          "reconhecimento"
+        ],
+        "voice": "Piper pt-BR; conferir alinhamento depois da gravação"
+      },
+      "motion_beats": [
+        {
+          "at_s": 0.1,
+          "timing": "editorial",
+          "layer": "primary_subject",
+          "action": "monitor aparece",
+          "duration_s": 2.04,
+          "easing": "ease_out_cubic"
+        },
+        {
+          "at_s": 3,
+          "timing": "word_anchor_pending",
+          "layer": "information_cards",
+          "action": "screenshot real recebe zoom",
+          "duration_s": 2.04,
+          "easing": "ease_out_cubic"
+        },
+        {
+          "at_s": 6.6,
+          "timing": "editorial",
+          "layer": "semantic_effect",
+          "action": "lupa desliza por região verificada",
+          "duration_s": 2.04,
+          "easing": "ease_in_out"
+        },
+        {
+          "at_s": 9.36,
+          "timing": "editorial",
+          "layer": "camera_or_transition",
+          "action": "cards 'importar' e 'pesquisar' entram ao lado",
+          "duration_s": 2.04,
+          "easing": "ease_out_cubic"
+        }
+      ],
+      "transition": {
+        "to_scene": "scene-021",
+        "type": "camera_pass",
+        "carry_element": "campo de busca em destaque se estende para pipeline de PDF",
+        "duration_s": 0.35
+      },
+      "asset_ids": [
+        "capture_paperless",
+        "vectors"
+      ],
+      "render_preview_mode": "director_only",
+      "qa": {
+        "no_return_to_prior_scene": true,
+        "no_repeated_full_composition": true,
+        "semantic_relevance": true,
+        "require_real_capture_if_claimed": true
+      }
+    },
+    {
+      "scene_id": "scene-021",
+      "index": 21,
+      "narration": "O fluxo visual é simples: entra um documento, o sistema processa o conteúdo e a equipe consegue encontrá-lo por filtros ou busca. Menos tempo procurando arquivos, mais organização para o dia a dia.",
+      "source_title": "DO PDF À PESQUISA",
+      "timeline": {
+        "start_frame": 7020,
+        "duration_frames": 360,
+        "at_s": 234,
+        "duration_s": 12
+      },
+      "visual": {
+        "composition_id": "C21-pdf_search_flow",
+        "template_kind": "pdf_search_flow",
+        "intent": "PDF → leitura/OCR → indexação → busca como diagrama realista",
+        "composition": "Folha PDF, lente OCR e campo de pesquisa conectados por linha fluida; texto pesquisado ganha realce",
+        "primary_metaphor": "Folha PDF, lente OCR e campo de pesquisa conectados por linha fluida; texto pesquisado ganha realce",
+        "title": "Encontrar em segundos",
+        "palette": "offwhite / lavender / sky / sage / ink; personagem PB quando existir",
+        "layout": "16:9 · 1920x1080; safe area 6%; grid assimétrico editorial",
+        "layers": [
+          {
+            "id": "background",
+            "role": "canvas",
+            "description": "Fundo quase branco com pequenas texturas e profundidade sutil, sem flashes"
+          },
+          {
+            "id": "primary_subject",
+            "role": "hero",
+            "description": "Folha PDF, lente OCR e campo de pesquisa conectados por linha fluida; texto pesquisado ganha realce"
+          },
+          {
+            "id": "information_cards",
+            "role": "supports",
+            "description": "PDF original, microtexto, processador conceitual OCR, campo de pesquisa"
+          },
+          {
+            "id": "semantic_effect",
+            "role": "annotation",
+            "description": "Entradas com significado editorial; destacar palavras e relações de maneira contextual"
+          },
+          {
+            "id": "typography",
+            "role": "text",
+            "description": "Encontrar em segundos — título curto legível, sem barras de capítulo repetidas"
+          }
+        ],
+        "avoid": "não repetir composição anterior; não usar overlays de tela cheia que ocultem narração; não inventar UI"
+      },
+      "audio_sync": {
+        "mode": "word_anchor_to_align",
+        "timestamps_confirmed": false,
+        "keywords": [
+          "documento",
+          "busca",
+          "filtros"
+        ],
+        "voice": "Piper pt-BR; conferir alinhamento depois da gravação"
+      },
+      "motion_beats": [
+        {
+          "at_s": 0.1,
+          "timing": "editorial",
+          "layer": "primary_subject",
+          "action": "PDF entra com pequeno giro",
+          "duration_s": 2.04,
+          "easing": "ease_out_cubic"
+        },
+        {
+          "at_s": 3,
+          "timing": "word_anchor_pending",
+          "layer": "information_cards",
+          "action": "scanner lê linhas",
+          "duration_s": 2.04,
+          "easing": "ease_out_cubic"
+        },
+        {
+          "at_s": 6.6,
+          "timing": "editorial",
+          "layer": "semantic_effect",
+          "action": "etiqueta de indexação acende",
+          "duration_s": 2.04,
+          "easing": "ease_in_out"
+        },
+        {
+          "at_s": 9.36,
+          "timing": "editorial",
+          "layer": "camera_or_transition",
+          "action": "busca localiza palavra destacada",
+          "duration_s": 2.04,
+          "easing": "ease_out_cubic"
+        }
+      ],
+      "transition": {
+        "to_scene": "scene-022",
+        "type": "match_morph",
+        "carry_element": "o campo de busca se fecha numa gaveta com cadeado",
+        "duration_s": 0.35
+      },
+      "asset_ids": [
+        "vectors"
+      ],
+      "render_preview_mode": "director_only",
+      "qa": {
+        "no_return_to_prior_scene": true,
+        "no_repeated_full_composition": true,
+        "semantic_relevance": true,
+        "require_real_capture_if_claimed": true
+      }
+    },
+    {
+      "scene_id": "scene-022",
+      "index": 22,
+      "narration": "Documentos empresariais podem ser sensíveis. Por isso, implantação exige controle de acesso, backups, atualização e política de retenção. É uma ferramenta, não uma dispensa das responsabilidades de proteção de dados.",
+      "source_title": "SEGURANÇA E BACKUP",
+      "timeline": {
+        "start_frame": 7380,
+        "duration_frames": 360,
+        "at_s": 246,
+        "duration_s": 12
+      },
+      "visual": {
+        "composition_id": "C22-privacy_security",
+        "template_kind": "privacy_security",
+        "intent": "Controle de acesso e backup em composição de camadas",
+        "composition": "Lock 2.5D diante de três discos de backup; checklist de atualização, retenção e permissões, sem citar serviços pagos",
+        "primary_metaphor": "Lock 2.5D diante de três discos de backup; checklist de atualização, retenção e permissões, sem citar serviços pagos",
+        "title": "Dados exigem cuidado",
+        "palette": "offwhite / lavender / sky / sage / ink; personagem PB quando existir",
+        "layout": "16:9 · 1920x1080; safe area 6%; grid assimétrico editorial",
+        "layers": [
+          {
+            "id": "background",
+            "role": "canvas",
+            "description": "Fundo quase branco com pequenas texturas e profundidade sutil, sem flashes"
+          },
+          {
+            "id": "primary_subject",
+            "role": "hero",
+            "description": "Lock 2.5D diante de três discos de backup; checklist de atualização, retenção e permissões, sem citar serviços pagos"
+          },
+          {
+            "id": "information_cards",
+            "role": "supports",
+            "description": "cadeado, chave de usuário, backup, checks de retenção"
+          },
+          {
+            "id": "semantic_effect",
+            "role": "annotation",
+            "description": "Entradas com significado editorial; destacar palavras e relações de maneira contextual"
+          },
+          {
+            "id": "typography",
+            "role": "text",
+            "description": "Dados exigem cuidado — título curto legível, sem barras de capítulo repetidas"
+          }
+        ],
+        "avoid": "não repetir composição anterior; não usar overlays de tela cheia que ocultem narração; não inventar UI"
+      },
+      "audio_sync": {
+        "mode": "word_anchor_to_align",
+        "timestamps_confirmed": false,
+        "keywords": [
+          "controle de acesso",
+          "backups",
+          "proteção de dados"
+        ],
+        "voice": "Piper pt-BR; conferir alinhamento depois da gravação"
+      },
+      "motion_beats": [
+        {
+          "at_s": 0.1,
+          "timing": "editorial",
+          "layer": "primary_subject",
+          "action": "cadeado se monta",
+          "duration_s": 2.04,
+          "easing": "ease_out_cubic"
+        },
+        {
+          "at_s": 3,
+          "timing": "word_anchor_pending",
+          "layer": "information_cards",
+          "action": "permissões entram como chips",
+          "duration_s": 2.04,
+          "easing": "ease_out_cubic"
+        },
+        {
+          "at_s": 6.6,
+          "timing": "editorial",
+          "layer": "semantic_effect",
+          "action": "backup duplica arquivos",
+          "duration_s": 2.04,
+          "easing": "ease_in_out"
+        },
+        {
+          "at_s": 9.36,
+          "timing": "editorial",
+          "layer": "camera_or_transition",
+          "action": "três checks aparecem no tempo da narração",
+          "duration_s": 2.04,
+          "easing": "ease_out_cubic"
+        }
+      ],
+      "transition": {
+        "to_scene": "scene-023",
+        "type": "parallax_push",
+        "carry_element": "escudo recua e revela mosaico com cinco sistemas",
+        "duration_s": 0.35
+      },
+      "asset_ids": [
+        "vectors"
+      ],
+      "render_preview_mode": "director_only",
+      "qa": {
+        "no_return_to_prior_scene": true,
+        "no_repeated_full_composition": true,
+        "semantic_relevance": true,
+        "require_real_capture_if_claimed": true
+      }
+    },
+    {
+      "scene_id": "scene-023",
+      "index": 23,
+      "narration": "Resumindo: ERPNext organiza operações. Twenty acompanha clientes e vendas. Chatwoot centraliza atendimento. Plane ajuda a equipe a executar projetos. E Paperless organiza os documentos.",
+      "source_title": "CINCO PROBLEMAS. CINCO FERRAMENTAS.",
+      "timeline": {
+        "start_frame": 7740,
+        "duration_frames": 420,
+        "at_s": 258,
+        "duration_s": 14
+      },
+      "visual": {
+        "composition_id": "C23-five_tools_summary",
+        "template_kind": "five_tools_summary",
+        "intent": "Mapa-resumo radial cinco sistemas e problemas resolvidos",
+        "composition": "Cinco ilhas coloridas conectadas a um núcleo 'empresa'; sem repetir nenhum slide individual",
+        "primary_metaphor": "Cinco ilhas coloridas conectadas a um núcleo 'empresa'; sem repetir nenhum slide individual",
+        "title": "Cinco problemas, cinco soluções",
+        "palette": "offwhite / lavender / sky / sage / ink; personagem PB quando existir",
+        "layout": "16:9 · 1920x1080; safe area 6%; grid assimétrico editorial",
+        "layers": [
+          {
+            "id": "background",
+            "role": "canvas",
+            "description": "Fundo quase branco com pequenas texturas e profundidade sutil, sem flashes"
+          },
+          {
+            "id": "primary_subject",
+            "role": "hero",
+            "description": "Cinco ilhas coloridas conectadas a um núcleo 'empresa'; sem repetir nenhum slide individual"
+          },
+          {
+            "id": "information_cards",
+            "role": "supports",
+            "description": "ícones conceituais dos cinco sistemas, núcleo empresa, conectores, frases curtas"
+          },
+          {
+            "id": "semantic_effect",
+            "role": "annotation",
+            "description": "Entradas com significado editorial; destacar palavras e relações de maneira contextual"
+          },
+          {
+            "id": "typography",
+            "role": "text",
+            "description": "Cinco problemas, cinco soluções — título curto legível, sem barras de capítulo repetidas"
+          }
+        ],
+        "avoid": "não repetir composição anterior; não usar overlays de tela cheia que ocultem narração; não inventar UI"
+      },
+      "audio_sync": {
+        "mode": "word_anchor_to_align",
+        "timestamps_confirmed": false,
+        "keywords": [
+          "ERPNext",
+          "Twenty",
+          "Chatwoot"
+        ],
+        "voice": "Piper pt-BR; conferir alinhamento depois da gravação"
+      },
+      "motion_beats": [
+        {
+          "at_s": 0.1,
+          "timing": "editorial",
+          "layer": "primary_subject",
+          "action": "núcleo Empresa aparece",
+          "duration_s": 2.38,
+          "easing": "ease_out_cubic"
+        },
+        {
+          "at_s": 3.5,
+          "timing": "word_anchor_pending",
+          "layer": "information_cards",
+          "action": "ERPNext encaixa",
+          "duration_s": 2.38,
+          "easing": "ease_out_cubic"
+        },
+        {
+          "at_s": 7.7,
+          "timing": "editorial",
+          "layer": "semantic_effect",
+          "action": "Twenty e Chatwoot conectam",
+          "duration_s": 2.38,
+          "easing": "ease_in_out"
+        },
+        {
+          "at_s": 10.92,
+          "timing": "editorial",
+          "layer": "camera_or_transition",
+          "action": "Plane e Paperless completam",
+          "duration_s": 2.38,
+          "easing": "ease_out_cubic"
+        },
+        {
+          "at_s": 10.92,
+          "timing": "editorial",
+          "layer": "primary_subject",
+          "action": "câmera afasta",
+          "duration_s": 2.38,
+          "easing": "ease_out_cubic"
+        }
+      ],
+      "transition": {
+        "to_scene": "scene-024",
+        "type": "follow_flow",
+        "carry_element": "as cinco ilhas encolhem e se tornam cinco linhas numa tabela de custos",
+        "duration_s": 0.35
+      },
+      "asset_ids": [
+        "vectors"
+      ],
+      "render_preview_mode": "director_only",
+      "qa": {
+        "no_return_to_prior_scene": true,
+        "no_repeated_full_composition": true,
+        "semantic_relevance": true,
+        "require_real_capture_if_claimed": true
+      }
+    },
+    {
+      "scene_id": "scene-024",
+      "index": 24,
+      "narration": "Todos esses projetos têm código público e opções de uso próprio, mas você precisa avaliar licença, edição, hospedagem, manutenção e segurança. Também existem ofertas comerciais opcionais. Não instale em produção sem testar.",
+      "source_title": "GRATUITO NÃO SIGNIFICA SEM CUSTOS",
+      "timeline": {
+        "start_frame": 8160,
+        "duration_frames": 420,
+        "at_s": 272,
+        "duration_s": 14
+      },
+      "visual": {
+        "composition_id": "C24-free_not_costless",
+        "template_kind": "free_not_costless",
+        "intent": "Comparativo simples licença de software vs operação",
+        "composition": "Colunas Código livre / Hospedagem e manutenção; ícones autênticos sem preços inventados; linguagem educativa",
+        "primary_metaphor": "Colunas Código livre / Hospedagem e manutenção; ícones autênticos sem preços inventados; linguagem educativa",
+        "title": "Código ≠ implantação grátis",
+        "palette": "offwhite / lavender / sky / sage / ink; personagem PB quando existir",
+        "layout": "16:9 · 1920x1080; safe area 6%; grid assimétrico editorial",
+        "layers": [
+          {
+            "id": "background",
+            "role": "canvas",
+            "description": "Fundo quase branco com pequenas texturas e profundidade sutil, sem flashes"
+          },
+          {
+            "id": "primary_subject",
+            "role": "hero",
+            "description": "Colunas Código livre / Hospedagem e manutenção; ícones autênticos sem preços inventados; linguagem educativa"
+          },
+          {
+            "id": "information_cards",
+            "role": "supports",
+            "description": "duas colunas de custos, ícone servidor, manutenção, escudo, nota sem valores"
+          },
+          {
+            "id": "semantic_effect",
+            "role": "annotation",
+            "description": "Entradas com significado editorial; destacar palavras e relações de maneira contextual"
+          },
+          {
+            "id": "typography",
+            "role": "text",
+            "description": "Código ≠ implantação grátis — título curto legível, sem barras de capítulo repetidas"
+          }
+        ],
+        "avoid": "não repetir composição anterior; não usar overlays de tela cheia que ocultem narração; não inventar UI"
+      },
+      "audio_sync": {
+        "mode": "word_anchor_to_align",
+        "timestamps_confirmed": false,
+        "keywords": [
+          "código público",
+          "hospedagem",
+          "segurança"
+        ],
+        "voice": "Piper pt-BR; conferir alinhamento depois da gravação"
+      },
+      "motion_beats": [
+        {
+          "at_s": 0.1,
+          "timing": "editorial",
+          "layer": "primary_subject",
+          "action": "selo 'código público' fica fixo",
+          "duration_s": 2.38,
+          "easing": "ease_out_cubic"
+        },
+        {
+          "at_s": 3.5,
+          "timing": "word_anchor_pending",
+          "layer": "information_cards",
+          "action": "blocos de operação entram",
+          "duration_s": 2.38,
+          "easing": "ease_out_cubic"
+        },
+        {
+          "at_s": 7.7,
+          "timing": "editorial",
+          "layer": "semantic_effect",
+          "action": "hospedagem, manutenção e segurança recebem ênfase",
+          "duration_s": 2.38,
+          "easing": "ease_in_out"
+        },
+        {
+          "at_s": 10.92,
+          "timing": "editorial",
+          "layer": "camera_or_transition",
+          "action": "equilíbrio final",
+          "duration_s": 2.38,
+          "easing": "ease_out_cubic"
+        }
+      ],
+      "transition": {
+        "to_scene": "scene-025",
+        "type": "mask_reveal",
+        "carry_element": "cinco URLs entram por baixo da tabela e viram CTA",
+        "duration_s": 0.35
+      },
+      "asset_ids": [
+        "vectors"
+      ],
+      "render_preview_mode": "director_only",
+      "qa": {
+        "no_return_to_prior_scene": true,
+        "no_repeated_full_composition": true,
+        "semantic_relevance": true,
+        "require_real_capture_if_claimed": true
+      }
+    },
+    {
+      "scene_id": "scene-025",
+      "index": 25,
+      "narration": "Os cinco links estão na descrição. Salve este vídeo para consultar depois e me conta nos comentários qual desses sistemas seria mais útil na sua empresa. Aqui a ideia é usar tecnologia com inteligência.",
+      "source_title": "ACESSE OS REPOSITÓRIOS",
+      "timeline": {
+        "start_frame": 8580,
+        "duration_frames": 420,
+        "at_s": 286,
+        "duration_s": 14
+      },
+      "visual": {
+        "composition_id": "C25-outro_links",
+        "template_kind": "outro_links",
+        "intent": "Tela final com cinco repositórios e chamada para compartilhar conhecimento",
+        "composition": "Lista de nomes com URL curtas, GitHub no centro e CTA discreto; sem propaganda da ArtiSys",
+        "primary_metaphor": "Lista de nomes com URL curtas, GitHub no centro e CTA discreto; sem propaganda da ArtiSys",
+        "title": "Conhecimento gratuito",
+        "palette": "offwhite / lavender / sky / sage / ink; personagem PB quando existir",
+        "layout": "16:9 · 1920x1080; safe area 6%; grid assimétrico editorial",
+        "layers": [
+          {
+            "id": "background",
+            "role": "canvas",
+            "description": "Fundo quase branco com pequenas texturas e profundidade sutil, sem flashes"
+          },
+          {
+            "id": "primary_subject",
+            "role": "hero",
+            "description": "Lista de nomes com URL curtas, GitHub no centro e CTA discreto; sem propaganda da ArtiSys"
+          },
+          {
+            "id": "information_cards",
+            "role": "supports",
+            "description": "cinco linhas de repositórios, GitHub, salvar, compartilhar"
+          },
+          {
+            "id": "semantic_effect",
+            "role": "annotation",
+            "description": "Entradas com significado editorial; destacar palavras e relações de maneira contextual"
+          },
+          {
+            "id": "typography",
+            "role": "text",
+            "description": "Conhecimento gratuito — título curto legível, sem barras de capítulo repetidas"
+          }
+        ],
+        "avoid": "não repetir composição anterior; não usar overlays de tela cheia que ocultem narração; não inventar UI"
+      },
+      "audio_sync": {
+        "mode": "word_anchor_to_align",
+        "timestamps_confirmed": false,
+        "keywords": [
+          "links",
+          "Salve",
+          "comentários"
+        ],
+        "voice": "Piper pt-BR; conferir alinhamento depois da gravação"
+      },
+      "motion_beats": [
+        {
+          "at_s": 0.1,
+          "timing": "editorial",
+          "layer": "primary_subject",
+          "action": "ícone GitHub se desenha",
+          "duration_s": 2.38,
+          "easing": "ease_out_cubic"
+        },
+        {
+          "at_s": 3.5,
+          "timing": "word_anchor_pending",
+          "layer": "information_cards",
+          "action": "cinco links aparecem sequencialmente",
+          "duration_s": 2.38,
+          "easing": "ease_out_cubic"
+        },
+        {
+          "at_s": 7.7,
+          "timing": "editorial",
+          "layer": "semantic_effect",
+          "action": "CTA 'Links na descrição' entra",
+          "duration_s": 2.38,
+          "easing": "ease_in_out"
+        },
+        {
+          "at_s": 10.92,
+          "timing": "editorial",
+          "layer": "camera_or_transition",
+          "action": "tudo desacelera até fim",
+          "duration_s": 2.38,
+          "easing": "ease_out_cubic"
+        }
+      ],
+      "transition": {
+        "to_scene": null,
+        "type": "camera_pass",
+        "carry_element": "fim em fade curto de fundo claro",
+        "duration_s": 0.35
+      },
+      "asset_ids": [
+        "vectors"
+      ],
+      "render_preview_mode": "director_only",
+      "qa": {
+        "no_return_to_prior_scene": true,
+        "no_repeated_full_composition": true,
+        "semantic_relevance": true,
+        "require_real_capture_if_claimed": true
+      }
+    }
+  ]
+}
