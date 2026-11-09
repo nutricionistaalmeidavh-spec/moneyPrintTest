@@ -66,32 +66,32 @@ def validate_request(raw: dict) -> dict:
     if not isinstance(raw, dict):
         raise RequestError("O pedido deve ser JSON objeto")
     extra = set(raw) - {"topic", "script", "terms", "duration_seconds",
-                        "aspect", "visual_mode", "repo_urls", "cinematic"}
+                        "aspect", "visual_mode", "repo_urls", "cinematic", "sections", "media_clips"}
     if extra:
         raise RequestError(f"Campos proibidos: {sorted(extra)}")
     topic = raw.get("topic")
     if not isinstance(topic, str) or not 1 <= len(topic.strip()) <= 280 or "\x00" in topic:
         raise RequestError("topic deve ter de 1 a 280 caracteres")
     mode = raw.get("visual_mode", "auto")
-    if mode not in ("auto", "stock", "local", "pexels", "pixabay", "github"):
+    if mode not in ("auto", "stock", "local", "pexels", "pixabay", "github", "github_cinematic"):
         raise RequestError("visual_mode inválido")
     script = raw.get("script", "")
-    max_script_size = 9000 if mode == "github" else 2400
+    max_script_size = 9000 if mode in ("github", "github_cinematic") else 2400
     if not isinstance(script, str) or len(script) > max_script_size or "\x00" in script:
         raise RequestError("script inválido")
     terms = clean_terms(raw.get("terms", []))
     duration = raw.get("duration_seconds", 40)
-    max_duration = 360 if mode == "github" else 90
+    max_duration = 360 if mode in ("github", "github_cinematic") else 90
     if type(duration) is not int or not 15 <= duration <= max_duration:
         raise RequestError(f"duration_seconds deve estar entre 15 e {max_duration}")
     aspect = raw.get("aspect", "9:16")
     if aspect not in ("9:16", "16:9", "1:1"):
         raise RequestError("aspect inválido")
-    cinematic = raw.get("cinematic", False)
-    if type(cinematic) is not bool or (cinematic and mode != "github"):
+    cinematic = raw.get("cinematic", mode == "github_cinematic")
+    if type(cinematic) is not bool or (cinematic and mode not in ("github", "github_cinematic")):
         raise RequestError("cinematic é booleano e exige visual_mode github")
     repo_urls = []
-    if mode == "github":
+    if mode in ("github", "github_cinematic"):
         if __package__:
             from .browser_capture import CaptureError, validate_repo_urls
         else:
@@ -101,15 +101,41 @@ def validate_request(raw: dict) -> dict:
         except CaptureError as exc:
             raise RequestError(str(exc)) from exc
     elif "repo_urls" in raw:
-        raise RequestError("repo_urls só pode ser usado no visual_mode github")
+        raise RequestError("repo_urls só pode ser usado nos modos GitHub")
+    sections = []
+    if mode == "github_cinematic":
+        try:
+            from scripts.ai_director import validate_sections
+            sections = validate_sections(raw.get("sections"), repo_urls)
+        except (ValueError, TypeError) as exc:
+            raise RequestError(str(exc)) from exc
+    elif "sections" in raw:
+        raise RequestError("sections exige visual_mode github_cinematic")
+    media_clips = raw.get("media_clips", [])
+    if not isinstance(media_clips, list) or len(media_clips) > 30:
+        raise RequestError("media_clips deve ser lista de até 30 arquivos opcionais")
+    import pathlib
+    verified_clips = []
+    for item in media_clips:
+        if not isinstance(item, dict) or set(item) != {"repo_index", "path"}:
+            raise RequestError("media_clips deve ter repo_index e path")
+        i, p = item["repo_index"], item["path"]
+        if type(i) is not int or not 1 <= i <= len(repo_urls):
+            raise RequestError("Índice do repo inválido em media_clips")
+        if not isinstance(p, str) or not re.fullmatch(r"assets/[A-Za-z0-9_./-]{1,160}", p):
+            raise RequestError("Caminho de mídia deve estar em assets/")
+        if ".." in pathlib.PurePosixPath(p).parts or pathlib.PurePosixPath(p).suffix.lower() not in (".mp4", ".mov", ".webm", ".gif"):
+            raise RequestError("Tipo ou caminho de mídia inválido")
+        verified_clips.append({"repo_index":i, "path":p})
     return {"topic": topic.strip(), "script": script.strip(), "terms": terms,
             "duration_seconds": duration, "aspect": aspect,
             "visual_mode": mode, "repo_urls": repo_urls,
-            "cinematic": cinematic}
+            "cinematic": cinematic, "sections": sections,
+            "media_clips": verified_clips}
 
 
 def select_visual_mode(mode: str, env: dict) -> str:
-    if mode == "github":
+    if mode in ("github", "github_cinematic"):
         return "github"
     if mode == "local":
         return "local"
@@ -357,6 +383,10 @@ def render_one(path: Path, output: Path, runtime: Path, env: dict):
     dest.mkdir(parents=True, exist_ok=True)
     source = select_visual_mode(data["visual_mode"], env)
     script, terms = data["script"], data["terms"]
+    if data.get("sections") and not script:
+        script = " ".join(item["narration"] for item in data["sections"])
+    if data.get("sections") and not terms:
+        terms = [item["title"] for item in data["sections"][:8]]
     started_ollama = False
     try:
         if not script or not terms:
@@ -366,7 +396,7 @@ def render_one(path: Path, output: Path, runtime: Path, env: dict):
                 script = generated.get("script", "")
             if not terms:
                 terms = normalize_generated_terms(generated.get("terms"), data["topic"])
-        script_limit = 9000 if data["visual_mode"] == "github" else 2400
+        script_limit = 9000 if data["visual_mode"] in ("github", "github_cinematic") else 2400
         if not isinstance(script, str) or not script.strip() or len(script) > script_limit or not terms:
             raise RequestError("Roteiro ou termos não produzidos pelo modelo local")
         script = script.strip()
