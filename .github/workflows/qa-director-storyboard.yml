@@ -49,3 +49,14 @@ jobs:
           assert board["production_status"]=="awaiting_visual_approval"
           print("25 quadros prontos para revisão antes da renderização")
           PY
+
+      - name: Disponibilizar storyboard visual e JSON para revisão
+        if: success()
+        uses: actions/upload-artifact@v4
+        with:
+          name: moneyprint-storyboard-5-sistemas
+          path: |
+            storyboards/5-sistemas-direcao-visual-preview.html
+            storyboards/5-sistemas-director-v1.json
+          if-no-files-found: error
+          retention-days: 30
