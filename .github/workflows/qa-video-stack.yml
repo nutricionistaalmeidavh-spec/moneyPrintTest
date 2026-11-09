@@ -1,0 +1,79 @@
+name: QA P0-P2 — cortes, áudio e motion local
+on:
+  pull_request:
+    paths:
+      - "scripts/video_stack.py"
+      - "scripts/motion_design.py"
+      - "scripts/motion_pipeline.py"
+      - "scripts/render_request.py"
+      - "scripts/cinematic_render.py"
+      - "tests/test_video_stack.py"
+      - "tests/test_motion_pipeline.py"
+      - "motion/**"
+      - ".github/workflows/qa-video-stack.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  smoke:
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+      - name: Open source dependencies
+        run: |
+          sudo apt-get update -qq
+          sudo apt-get install -y ffmpeg fonts-dejavu-core
+          python -m pip install "Pillow==11.3.0" "scenedetect==0.7.3"
+      - name: Unit tests
+        run: python -m unittest discover -s tests -v
+      - name: Create synthetic video and hook (no external assets)
+        run: |
+          mkdir -p qa assets/qa
+          ffmpeg -hide_banner -loglevel error -y \
+            -f lavfi -i 'testsrc2=s=320x180:r=30:d=1.6' \
+            -f lavfi -i 'sine=frequency=420:sample_rate=48000:duration=1.6' \
+            -map 0:v:0 -map 1:a:0 -c:v libx264 -pix_fmt yuv420p \
+            -c:a aac -shortest qa/source.mp4
+          ffmpeg -hide_banner -loglevel error -y \
+            -f lavfi -i 'testsrc2=s=320x180:r=30:d=1.0' \
+            -an -c:v libx264 -pix_fmt yuv420p assets/qa/hook.mp4
+      - name: Render hard-cut + original audio + animated universe
+        run: |
+          python - <<'PY'
+          import json
+          from pathlib import Path
+          from scripts.video_stack import render_stack
+          result = render_stack(Path('qa/source.mp4'),Path('qa/output.mp4'),options={
+            'hook_asset':'assets/qa/hook.mp4',
+            'hook_seconds':0.50,
+            'universe_seconds':0.35,
+            'universe_title':'OPEN SOURCE',
+            'aspect':'16:9',
+            'scene_index':True,
+          })
+          print(json.dumps(result,indent=2,ensure_ascii=False))
+          assert result['audio_preserved']
+          assert result['duration_seconds']>2.2
+          assert result['width']==1920 and result['height']==1080
+          assert result['transition']=='hard_cut'
+          assert Path(result['output']).stat().st_size > 8000
+          Path('qa/result.json').write_text(json.dumps(result,indent=2))
+          PY
+      - name: Verify codecs and actual duration
+        run: |
+          ffprobe -v error -show_entries stream=codec_name,codec_type,width,height \
+            -show_entries format=duration -of json qa/output.mp4 | tee qa/ffprobe.json
+      - name: Artifacts for review
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: moneyprint-p0-p2-smoke
+          path: qa/
+          retention-days: 7
+          if-no-files-found: warn
