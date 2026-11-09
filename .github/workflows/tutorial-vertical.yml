@@ -1,0 +1,89 @@
+name: MoneyPrint — tutorial vertical (mídia revisada)
+on:
+  workflow_dispatch:
+    inputs:
+      source_file:
+        description: "Gravação já anonimizada em assets/approved/, ex: github_safe.mp4"
+        required: true
+        type: string
+      hook_file:
+        description: "Gancho de uso autorizado em assets/approved/, ex: hook_authorized.mp4"
+        required: true
+        type: string
+      recipe:
+        description: "Receita em tutorials/"
+        required: true
+        default: github_primeiro_repositorio.json
+        type: string
+
+permissions:
+  contents: read
+
+jobs:
+  render_tutorial:
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+      - name: Python 3.11
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - name: Instalar ferramentas gratuitas
+        run: |
+          python -m pip install "Pillow==11.3.0"
+          if ! command -v ffmpeg >/dev/null || ! command -v ffprobe >/dev/null; then
+            sudo apt-get update -qq
+            sudo apt-get install -y ffmpeg fonts-dejavu-core
+          fi
+      - name: Validar entradas e proteção da fonte
+        env:
+          SOURCE: ${{ inputs.source_file }}
+          HOOK: ${{ inputs.hook_file }}
+          RECIPE: ${{ inputs.recipe }}
+        run: |
+          python - <<'PY'
+          import os,re
+          from pathlib import Path
+          for key in ("SOURCE","HOOK"):
+              filename=os.environ[key]
+              if not re.fullmatch(r"[A-Za-z0-9][A-Za-z0-9_.-]{0,90}\.mp4", filename):
+                  raise SystemExit("Nome de mídia inválido")
+              if not (Path("assets/approved")/filename).is_file():
+                  raise SystemExit("Arquivo aprovado não encontrado; nunca versione a gravação bruta")
+          recipe=os.environ["RECIPE"]
+          if not re.fullmatch(r"[A-Za-z0-9][A-Za-z0-9_.-]{0,90}\.json",recipe):
+              raise SystemExit("Receita inválida")
+          if not (Path("tutorials")/recipe).is_file():
+              raise SystemExit("Receita não encontrada")
+          PY
+      - name: Baixar animação de galáxias NASA (domínio público, sem API)
+        run: |
+          mkdir -p /tmp/moneyprint-media
+          curl --fail --location --retry 3 --max-time 180 \
+            'https://svs.gsfc.nasa.gov/vis/a010000/a014900/a014950/14950_Galaxies_FlyThrough_1080.mp4' \
+            --output /tmp/moneyprint-media/universe.mp4
+          ffprobe -v error /tmp/moneyprint-media/universe.mp4
+      - name: Testes do editor
+        run: python -m unittest discover -s tests -v
+      - name: Renderizar vídeo sem contador e sem legendas de ações
+        env:
+          SOURCE: ${{ inputs.source_file }}
+          HOOK: ${{ inputs.hook_file }}
+          RECIPE: ${{ inputs.recipe }}
+        run: |
+          mkdir -p outputs
+          python scripts/tutorial_editor.py \
+            --source "assets/approved/$SOURCE" \
+            --hook-source "assets/approved/$HOOK" \
+            --universe-gif /tmp/moneyprint-media/universe.mp4 \
+            --recipe "tutorials/$RECIPE" \
+            --output outputs/tutorial_vertical.mp4
+      - name: Disponibilizar MP4 somente para revisão
+        uses: actions/upload-artifact@v4
+        with:
+          name: moneyprint-tutorial-${{ github.run_id }}
+          path: outputs/tutorial_vertical.mp4
+          if-no-files-found: error
+          retention-days: 7

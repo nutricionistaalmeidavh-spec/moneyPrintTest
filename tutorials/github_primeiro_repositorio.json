@@ -1,0 +1,93 @@
+{
+  "title": "Como criar um repositório no GitHub",
+  "format": "9:16",
+  "source_resolution": [
+    512,
+    1108
+  ],
+  "hook": [
+    "VOCÊ SABE CRIAR",
+    "UM REPOSITÓRIO",
+    "NO GITHUB?"
+  ],
+  "outro": [
+    "PRONTO!",
+    "SEU REPOSITÓRIO ESTÁ CRIADO",
+    "Salve este tutorial"
+  ],
+  "privacy_masks": [
+    {
+      "start": 4,
+      "end": 58.5,
+      "x": 161,
+      "y": 200,
+      "width": 332,
+      "height": 61,
+      "reason": "identificador da conta/owner"
+    }
+  ],
+  "clips": [
+    {
+      "start": 7,
+      "end": 10.6,
+      "speed": 1.45
+    },
+    {
+      "start": 47,
+      "end": 50.5,
+      "speed": 1.5
+    },
+    {
+      "start": 59,
+      "end": 62.4,
+      "speed": 1.4
+    },
+    {
+      "start": 66.9,
+      "end": 69.3,
+      "speed": 1.2
+    },
+    {
+      "start": 78,
+      "end": 82.3,
+      "speed": 1.55
+    },
+    {
+      "start": 95,
+      "end": 98.3,
+      "speed": 1.4
+    },
+    {
+      "start": 108,
+      "end": 111.8,
+      "speed": 1.5
+    },
+    {
+      "start": 145,
+      "end": 148.4,
+      "speed": 1.5
+    },
+    {
+      "start": 166,
+      "end": 170,
+      "speed": 1.55
+    }
+  ],
+  "show_step_labels": false,
+  "hook_duration_seconds": 3,
+  "opening_style": "universe",
+  "hook_source_resolution": [
+    512,
+    1108
+  ],
+  "hook_crop": [
+    16,
+    130,
+    405,
+    720
+  ],
+  "hook_source_start": 0.03,
+  "hook_source_end": 0.83,
+  "universe_seconds": 2.2,
+  "hook_source_rights": "reference_only_verify_before_publication"
+}
