@@ -66,7 +66,7 @@ def validate_request(raw: dict) -> dict:
     if not isinstance(raw, dict):
         raise RequestError("O pedido deve ser JSON objeto")
     extra = set(raw) - {"topic", "script", "terms", "duration_seconds",
-                        "aspect", "visual_mode", "repo_urls", "cinematic", "sections", "media_clips"}
+                        "aspect", "visual_mode", "repo_urls", "cinematic", "sections", "media_clips", "include_verified_news"}
     if extra:
         raise RequestError(f"Campos proibidos: {sorted(extra)}")
     topic = raw.get("topic")
@@ -114,6 +114,9 @@ def validate_request(raw: dict) -> dict:
             raise RequestError(str(exc)) from exc
     elif "sections" in raw:
         raise RequestError("sections exige visual_mode github_cinematic")
+    include_verified_news = raw.get("include_verified_news", False)
+    if type(include_verified_news) is not bool or (include_verified_news and not cinematic):
+        raise RequestError("include_verified_news é booleano e exige cinematic")
     media_clips = raw.get("media_clips", [])
     if not isinstance(media_clips, list):
         raise RequestError("media_clips deve ser uma lista de arquivos opcionais")
@@ -134,7 +137,7 @@ def validate_request(raw: dict) -> dict:
             "duration_seconds": duration, "aspect": aspect,
             "visual_mode": mode, "repo_urls": repo_urls,
             "cinematic": cinematic, "sections": sections,
-            "media_clips": verified_clips}
+            "media_clips": verified_clips, "include_verified_news": include_verified_news}
 
 
 def select_visual_mode(mode: str, env: dict) -> str:
@@ -499,11 +502,9 @@ def render_one(path: Path, output: Path, runtime: Path, env: dict):
                         "-c:v", "libx264", "-preset", "veryfast", "-crf", "24",
                         "-pix_fmt", "yuv420p", str(converted)], check=True, timeout=120)
                     candidate = converted
-                brolls[idx] = candidate
-                media_sources[str(idx)] = "user_supplied"
+                brolls.setdefault(idx, []).append(candidate)
+                media_sources.setdefault(str(idx), []).append("user_supplied")
             for idx, repo_url in enumerate(data["repo_urls"], 1):
-                if idx in brolls:
-                    continue
                 try:
                     if __package__:
                         from .ai_director import official_repo_gif
@@ -513,27 +514,45 @@ def render_one(path: Path, output: Path, runtime: Path, env: dict):
                 except (ImportError, OSError, ValueError):
                     gif_demo = None
                 if gif_demo:
-                    brolls[idx] = Path(gif_demo)
-                    media_sources[str(idx)] = "official_readme_gif"
-                    continue
+                    brolls.setdefault(idx, []).append(Path(gif_demo))
+                    media_sources.setdefault(str(idx), []).append("official_readme_gif")
                 tag = metadata_for_repo(repo_url)["category"]
                 terms = BROLL_TERMS.get(tag, BROLL_TERMS["general"])
+                if data.get("sections") and data["sections"][idx - 1].get("broll_query"):
+                    terms = [data["sections"][idx - 1]["broll_query"]] + terms
                 clips, records = find_free_videos(
                     terms, dest / "stock" / f"repo_{idx:02d}", max_results=1)
                 if clips:
-                    brolls[idx] = Path(clips[0])
-                    media_sources[str(idx)] = "wikimedia"
+                    brolls.setdefault(idx, []).append(Path(clips[0]))
+                    media_sources.setdefault(str(idx), []).append("wikimedia")
                     credits.extend(records)
             (dest / "fontes_cinematicas.json").write_text(
                 json.dumps(media_sources, ensure_ascii=False, indent=2), encoding="utf-8")
             if credits:
                 (dest / "creditos_broll.txt").write_text(
                     source_credits(credits), encoding="utf-8")
+            verified_news = {}
+            if data.get("include_verified_news"):
+                try:
+                    if __package__:
+                        from .ai_director import fetch_news_headline
+                    else:
+                        from ai_director import fetch_news_headline
+                    for idx, url in enumerate(data["repo_urls"], 1):
+                        item = fetch_news_headline(url)
+                        if item is not None:
+                            verified_news[idx] = item
+                except (ImportError, OSError, ValueError):
+                    print("Aviso: sem notícias verificadas, omitindo cards.", flush=True)
+            (dest / "noticias_verificadas.json").write_text(
+                json.dumps(verified_news, ensure_ascii=False, indent=2),
+                encoding="utf-8")
             for i in range(1, min(4, len(videos)) + 1):
                 original = dest / f"video_{i}.mp4"
                 render_cinematic(
                     original, dest / f"video_{i}_cinematic.mp4",
-                    data["repo_urls"], broll_paths=brolls)
+                    data["repo_urls"], broll_paths=brolls,
+                    news_records=verified_news)
         (dest / "resultado.json").write_text(
             json.dumps({"status": "success", "topic": data["topic"], "visual_source": material_source,
                         "upstream": "harry0703/MoneyPrinterTurbo mpt==1.3.9"},
