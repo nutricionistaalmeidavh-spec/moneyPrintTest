@@ -83,3 +83,20 @@ test("Studio V3 imports 300-second projects with layouts and keeps render protec
   assert.equal(denied.status,400);
   assert.equal((await call("/api/studio/projects/import","POST",{project:old})).status,401);
 });
+
+test("Studio preserves meaningful flow steps and bullets after save",async()=>{
+ const {session,csrf}=await auth();
+ const scene={id:"scene-001",track_id:"video",title:"Fluxograma",text:"Pedido, estoque e financeiro.",
+   kind:"text",asset_id:null,start_frame:0,duration_frames:450,animation:"cut",framing:"contain",
+   layout:"flow",flow_steps:["Pedido","Estoque","Financeiro"],bullets:["Venda","Compra","Relatórios"],
+   caption:"Fluxo de operação"};
+ const obj={schema_version:3,id:"draft",revision:1,topic:"ERPNext",script:scene.text,
+   fps:30,aspect:"16:9",total_frames:450,tracks:[{id:"video",kind:"video"}],assets:[],scenes:[scene]};
+ const created=await call("/api/studio/projects/import","POST",{project:obj},session,csrf);
+ assert.equal(created.status,201);
+ const p=(await created.json()).project;
+ const edited=await call("/api/studio/projects/"+p.id+"/save","POST",
+   {revision:p.revision,scenes:[{...scene,flow_steps:["Contato","Proposta","Venda"]}]},session,csrf);
+ assert.equal(edited.status,200);
+ assert.deepEqual((await edited.json()).project.scenes[0].flow_steps,["Contato","Proposta","Venda"]);
+});
