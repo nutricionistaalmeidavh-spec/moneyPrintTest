@@ -35,12 +35,49 @@ const ink = '#192643';
 const violet = '#6c57d5';
 const pastel = '#f8faff';
 
+const fontStack = '"Inter", "Arial", "DejaVu Sans", Helvetica, sans-serif';
+
+const FlowIllustration:React.FC<{scene:Scene}> = ({scene})=>{
+ const frame=useCurrentFrame();
+ const {fps}=useVideoConfig();
+ const key=(scene.title+' '+scene.text).toLowerCase();
+ const labels=key.includes('planilha')||key.includes('erp')?['PLANILHAS','PEDIDOS','FINANCEIRO']:
+   key.includes('crm')||key.includes('cliente')||key.includes('lead')?['CLIENTE','PROPOSTA','VENDA']:
+   key.includes('atendimento')||key.includes('mensag')?['MENSAGEM','EQUIPE','RESPOSTA']:
+   key.includes('kanban')||key.includes('tarefa')||key.includes('plane')?['A FAZER','FAZENDO','CONCLUÍDO']:
+   key.includes('document')||key.includes('paperless')||key.includes('contrato')?['DOCUMENTO','INDEXAÇÃO','BUSCA']:
+   ['ENTRADA','ORGANIZAÇÃO','RESULTADO'];
+ const colors=['#7358df','#3b97d5','#2aab9c'];
+ return <div style={{position:'absolute',left:120,top:557,right:120,
+   display:'flex',justifyContent:'space-between',alignItems:'center',gap:32}}>
+   {labels.map((label,i)=>{
+     const p=spring({frame:Math.max(0,frame-(i*11+7)),fps,config:{damping:20,stiffness:125}});
+     const pulse=1+Math.sin(frame*.036+i*.7)*.009;
+     return <React.Fragment key={label}>
+       <div style={{flex:1,minHeight:255,background:'#ffffff',borderRadius:28,
+         border:'2px solid #e7eaf6',boxShadow:'0 24px 54px rgba(61,83,135,.10)',
+         padding:'35px 34px',opacity:frame<(i*11+7)?0:p,
+         transform:'translateY('+(62*(1-p))+'px) scale('+pulse+')'}}>
+         <div style={{width:67,height:67,borderRadius:20,
+           background:colors[i],color:'#fff',fontWeight:800,fontSize:34,
+           display:'flex',alignItems:'center',justifyContent:'center'}}>{i+1}</div>
+         <div style={{marginTop:40,fontSize:31,fontWeight:800,color:ink}}>{label}</div>
+         <div style={{height:7,width:(90+i*35),borderRadius:10,
+           marginTop:20,background:colors[i],opacity:.35}}/>
+       </div>
+       {i<2&&<div style={{fontSize:48,color:'#a9b2d0',
+         transform:'translateX('+Math.round(Math.sin(frame*.08+i)*7)+'px)'}}>→</div>}
+     </React.Fragment>;
+   })}
+ </div>;
+};
+
 const TextReveal: React.FC<{text: string; fontSize: number; delay?: number; color?: string}> =
   ({text, fontSize, delay=0, color=ink}) => {
     const frame=useCurrentFrame();
     const {fps}=useVideoConfig();
     const p=spring({frame:Math.max(0,frame-delay),fps,config:{damping:23,mass:.85,stiffness:160}});
-    return <div style={{fontSize,fontWeight:800,letterSpacing:-1.9,lineHeight:1.12,
+    return <div style={{fontSize,fontWeight:800,letterSpacing:-1.9,lineHeight:1.12,fontFamily:fontStack,
       opacity:frame<delay?0:p,
       transform:'translateY('+(38*(1-p))+'px)',color}}>{text}</div>;
   };
@@ -103,7 +140,7 @@ const SceneView:React.FC<{scene:Scene}> = ({scene})=>{
   const subtitle=scene.text.length>180?scene.text.slice(0,176).trim()+'…':scene.text;
   const titleFont=scene.title.length>35?59:76;
   return <CameraRig path={cameraPath} durationSec={secs}>
-    <AbsoluteFill style={{background:pastel,overflow:'hidden'}}>
+    <AbsoluteFill style={{background:pastel,overflow:'hidden',fontFamily:fontStack}}>
       <Plane depth={.55}>
         <AbsoluteFill style={{background:
           'radial-gradient(ellipse at 88% 10%,#e7e0ff 0%,transparent 42%),radial-gradient(ellipse at 4% 90%,#e1f4ff 0%,transparent 42%)'}}/>
@@ -131,6 +168,7 @@ const SceneView:React.FC<{scene:Scene}> = ({scene})=>{
             objectFit:'cover',objectPosition:'top',borderRadius:15}}/>
         </div>
       </Plane>}
+      {!scene.image&&<Plane depth={1.2}><FlowIllustration scene={scene}/></Plane>}
       {cues.map(c=>{
         const rawFrom=Math.round(c.at*fps)-scene.startFrame;
         const from=Math.max(0,Math.min(scene.durationFrames-1,rawFrom));
@@ -146,7 +184,7 @@ const SceneView:React.FC<{scene:Scene}> = ({scene})=>{
 };
 
 const Movie:React.FC=()=>{
-  return <AbsoluteFill style={{background:'#f8faff'}}>
+  return <AbsoluteFill style={{background:'#f8faff',fontFamily:fontStack}}>
     {movie.scenes.map(scene=><Sequence key={scene.id} from={scene.startFrame}
       durationInFrames={scene.durationFrames} name={scene.id}>
       <SceneView scene={scene}/>
