@@ -1,0 +1,79 @@
+name: MoneyPrint Shorts — selecionar gancho existente
+
+on:
+  workflow_dispatch:
+    inputs:
+      category:
+        description: "Tipo do corte viral"
+        required: true
+        default: "all"
+        type: choice
+        options: [all, crash, funny, sports, water]
+  workflow_call:
+    inputs:
+      category:
+        required: false
+        type: string
+        default: "all"
+
+permissions:
+  contents: write # Necessario para ler releases RASCUNHO de repositorio publico
+
+jobs:
+  prepare-hook:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    env:
+      GH_TOKEN: ${{ github.token }}
+      REPO: ${{ github.repository }}
+      RELEASE_TAG: shorts-hooks-v1
+      CATEGORY: ${{ inputs.category || 'all' }}
+      SEED: ${{ github.run_number }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+      - name: Instalar FFprobe se necessario
+        run: |
+          if ! command -v ffprobe >/dev/null; then
+            sudo apt-get update -qq
+            sudo apt-get install -y -qq ffmpeg
+          fi
+      - name: Baixar apenas o catalogo do release interno
+        run: |
+          mkdir -p prepared-short-hook
+          gh release download "$RELEASE_TAG" --repo "$REPO" --pattern 'CATALOGO.json' --dir prepared-short-hook
+      - name: Selecionar corte por categoria com rodizio entre execucoes
+        run: |
+          python -m scripts.shorts_hooks --catalog prepared-short-hook/CATALOGO.json \
+            --category "$CATEGORY" --seed "$SEED" --output prepared-short-hook/selecao.json
+      - name: Baixar apenas o MP4 escolhido, conferir SHA256 e duracao
+        shell: bash
+        run: |
+          set -euo pipefail
+          filename=$(python -c 'import json; print(json.load(open("prepared-short-hook/selecao.json"))["arquivo"])')
+          gh release download "$RELEASE_TAG" --repo "$REPO" --pattern "$filename" --dir prepared-short-hook
+          python - <<'PY'
+          import hashlib, json, pathlib, subprocess
+          from scripts.shorts_hooks import validate_catalog
+          root = pathlib.Path("prepared-short-hook")
+          row = json.loads((root/"selecao.json").read_text(encoding="utf-8"))
+          catalog = validate_catalog(json.loads((root/"CATALOGO.json").read_text(encoding="utf-8")))
+          assert row in catalog, "MP4 escolhido fora do catálogo"
+          source = root / row["arquivo"]
+          assert source.is_file(), "MP4 nao baixado"
+          digest = hashlib.sha256(source.read_bytes()).hexdigest()
+          assert digest == row["sha256"], "Integridade SHA256 nao confere"
+          subprocess.run(["ffprobe", "-v", "error", "-select_streams", "v:0", "-show_entries",
+                          "stream=codec_name", "-of", "default=noprint_wrappers=1", str(source)],
+                         check=True, capture_output=True)
+          source.rename(root/"gancho.mp4")
+          print("GANCHO PRONTO:", row["arquivo"], "duracao:",row["duracao_segundos"], "categoria:", row["categoria"])
+          PY
+      - name: Arquivo preparado para o pipeline de Shorts, SEM renderizacao
+        uses: actions/upload-artifact@v4
+        with:
+          name: shorts-gancho-${{ github.run_id }}
+          path: prepared-short-hook/
+          retention-days: 7

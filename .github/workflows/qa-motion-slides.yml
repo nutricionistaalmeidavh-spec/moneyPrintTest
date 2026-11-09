@@ -1,0 +1,95 @@
+name: QA motion slides v2 — fluxo + GIF + mockup
+on:
+  pull_request:
+    paths:
+      - "scripts/animated_slides.py"
+      - "scripts/repo_stills.py"
+      - "scripts/motion_pipeline.py"
+      - "scripts/render_request.py"
+      - "tests/test_animated_slides.py"
+      - ".github/workflows/qa-motion-slides.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  animation:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+      - name: Instalar FFmpeg e fontes livres
+        run: |
+          sudo apt-get update -qq
+          sudo apt-get install -y ffmpeg fonts-lato fonts-dejavu-core
+          python -m pip install "Pillow==11.3.0"
+      - name: Testes unitários completos
+        run: python -m unittest discover -s tests -v
+      - name: Instalar Chromium e capturar screenshots reais do GitHub
+        run: |
+          python -m pip install "playwright==1.56.0"
+          python -m playwright install --with-deps chromium
+          python - <<'PY'
+          from pathlib import Path
+          from PIL import Image
+          from scripts.repo_stills import capture_repo_stills
+          shots = capture_repo_stills(
+              ["https://github.com/appwrite/appwrite"],
+              Path("qa-motion/real-github"))
+          assert len(shots) == 1 and len(shots[0]) >= 2, shots
+          for screenshot in shots[0]:
+              with Image.open(screenshot) as image:
+                  assert image.size == (1440,900)
+          print("Capturas reais:", shots[0])
+          PY
+      - name: Gerar prévia REAL de slide animado com mídia em mockup
+        run: |
+          python - <<'PY'
+          import subprocess, json
+          from pathlib import Path
+          from scripts.animated_slides import render_animated_section
+          root=Path("qa-motion")
+          root.mkdir(exist_ok=True)
+          subprocess.run(["ffmpeg","-hide_banner","-loglevel","error","-y",
+              "-f","lavfi","-i","testsrc2=size=720x450:rate=24:duration=6",
+              "-an","-c:v","libx264","-pix_fmt","yuv420p",
+              str(root/"demo.mp4")],check=True,timeout=80)
+          subprocess.run(["ffmpeg","-hide_banner","-loglevel","error","-y",
+              "-f","lavfi","-i","sine=frequency=220:duration=12",
+              "-c:a","pcm_s16le",str(root/"voice.wav")],
+              check=True,timeout=45)
+          section={"repo_url":"https://github.com/appwrite/appwrite",
+                   "title":"Appwrite","narration":"Exemplo visual de fluxo e software."}
+          info=render_animated_section(
+              section,1,8,root/"voice.wav",12.0,root,
+              media=[{"kind":"official_demo","path":str(root/"demo.mp4")}],
+              screenshots=[str(p) for p in (root/"real-github"/"repo_01").glob("*.png")],
+              size=(960,540))
+          report=json.loads(subprocess.check_output([
+             "ffprobe","-v","error","-show_entries",
+             "stream=codec_type,width,height:format=duration",
+             "-of","json",str(root/"chapter.mp4")],text=True))
+          assert any(s.get("codec_type")=="video" and s.get("width")==960
+                     and s.get("height")==540 for s in report["streams"]),report
+          assert any(s.get("codec_type")=="audio" for s in report["streams"]),report
+          assert float(report["format"]["duration"])>11.7,report
+          assert any(s["kind"]=="flow" for s in info["shots"]),info
+          assert any(s["video"] for s in info["shots"]),info
+          print(json.dumps(report))
+          PY
+      - name: Arquivar prévia para revisão visual
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: qa-moneyprint-motion-v2
+          path: |
+            qa-motion/chapter.mp4
+            qa-motion/slides.json
+            qa-motion/slide_*.png
+            qa-motion/real-github/repo_01/*.png
+          retention-days: 4
+          if-no-files-found: warn

@@ -32,45 +32,43 @@ Pedido com roteiro e termos definidos pelo ChatGPT (evita carregar LLM no runner
 }
 ```
 
-### Novo vídeo cinematográfico: diretor de IA open source
+### Formato editorial V2: slides animados como base
 
-Para criar **um vídeo novo**, diferente do vídeo de referência, use
-`"visual_mode": "github_cinematic"` com `repo_urls` e `sections`.
-Os oito repositórios são **gravados novamente, em páginas públicas reais**, pelo
-Chromium/Playwright no GitHub Actions. O arquivo MOV de referência não é lido
-nem incorporado na renderização.
+Para vídeos com repositórios, use `"visual_mode": "github_cinematic"`.
+O renderizador `scripts/motion_pipeline.py` faz a produção nova sem reutilizar
+o MOV antigo. O **slide animado é a linguagem principal**, não uma gravação
+de tela:
 
-A produção usa exclusivamente ferramentas locais gratuitas:
+1. Abertura limpa e argumento do projeto.
+2. Fluxograma com três etapas reveladas progressivamente.
+3. Screenshots originais do README em mockup de navegador com movimento de câmera.
+4. Vídeos contextuais e GIFs oficiais em inserções **curtas** dentro do mockup,
+   quando houver material real disponível.
+5. Aplicação prática e passagem direta ao próximo repositório.
 
-- **Ollama/Qwen local** como diretor editorial: decide ordem e duração dos takes,
-  sugere buscas de b-roll contextual e só recebe IDs de mídias previamente
-  recuperadas. Se estiver indisponível, uma edição determinística utiliza o
-  mesmo material e o resultado registra esse fallback.
-- **Chromium** para navegação e captura de páginas reais dos repositórios.
-- **Wikimedia Commons** para vídeo contextual de usos cotidianos (ex.: restaurante,
-  atendimento, escritório ou obras). Créditos são preservados.
-- **README oficial** para GIFs e capturas de tela originais quando disponíveis.
-- **Google News RSS** para possíveis manchetes com link, veículo e data
-  conferidos. Sem fonte verificável, a notícia **não aparece** no vídeo;
-  o modelo jamais inventa uma manchete.
-- **Piper** para locução em português por seção, **FFmpeg/Pillow** para edição
-  1920×1080, motion, cortes e tipografia leve Lato/Inter. Acompanha SRT
-  editável com sincronização estimada, logs editoriais, fontes e licenças.
+**Sem flashes brancos nem crossfade longo**: o editor usa cortes secos entre
+quadros escuros com suave movimento de câmera gerado no FFmpeg. Playwright
+captura imagens nítidas da página inicial e do README em posições relevantes,
+sem gravar scroll travado. Nada do vídeo de referência é reaproveitado como imagem.
 
-**Não há filtros editoriais para vídeos:** takes e fontes de vídeo podem variar,
-inclusive clipes escolhidos pelo criador em `assets/` por
-`media_clips`. Verifique direitos de uso dos vídeos de terceiros e os
-créditos antes de publicar. O sistema **não inventa notícias** nem seleciona
-arquivos inexistentes.
+Ferramentas gratuitas: Chromium/Playwright, FFmpeg, Pillow, Piper,
+fontes Lato/DejaVu e Wikimedia Commons. GIFs e screenshots só são considerados
+quando procedem do projeto oficial; mídia de terceiros recebe créditos e
+licenças quando necessário. Clipes de vídeo fornecidos pelo criador também
+podem ser usados. **Não há trava editorial para vídeos.** A única regra
+editorial rígida de conteúdo é **não inventar notícia**: headlines só entram
+com fonte, data e URL verificáveis, ou são omitidas.
 
-O nome do vídeo, os repositórios, o roteiro de cada seção e os termos de
-contexto são controlados pelo JSON. Veja `docs/examples/artisys-oito-repositorios-cinematic.json`
-para a edição inédita dos oito projetos.
+O sistema salva MP4 1920×1080, arquivo de roteiro, SRT estimado editável,
+`storyboard_animado.json`, créditos e proveniência. O modo
+tradicional `github` e os demais modos MoneyPrinterTurbo continuam disponíveis.
+Para o exemplo de oito projetos, consulte
+`docs/examples/artisys-oito-repositorios-cinematic.json`.
 
-A execução é pelo GitHub Actions e gera artifact para revisão, **sem
-autopublicação**. Runners GitHub gratuitos para repositórios públicos seguem
-os limites de uso do provedor; a mesma stack pode ser executada em
-runner self-hosted próprio, sem APIs pagas.
+A execução roda no GitHub Actions (ou runner próprio) e disponibiliza artifact
+para revisão, sem publicar automaticamente em redes sociais e sem dependência
+de serviços pagos. O Ollama permanece disponível nos modos legados, mas a
+edição visual V2 é determinística para garantir consistência de apresentação.
 
 ### Gravar as páginas do GitHub como no computador (sem celular)
 
