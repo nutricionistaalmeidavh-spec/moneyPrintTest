@@ -57,6 +57,14 @@ class MotionPipelineContracts(unittest.TestCase):
                 self.assertEqual(result,original)
                 base.assert_called_once()
 
+    def test_srt_shift_preserves_narration_alignment_after_intro(self):
+        from scripts.motion_pipeline import shift_srt_cues
+        source = "1\\n00:00:00,000 --> 00:00:01,250\\nOPEN SOURCE\\n\\n"
+        expected = "1\\n00:00:02,400 --> 00:00:03,650\\nOPEN SOURCE\\n\\n"
+        self.assertEqual(shift_srt_cues(source, 2.4), expected)
+        with self.assertRaises(ValueError):
+            shift_srt_cues(source, -1)
+
     def test_openscreen_cli_is_opt_in_and_no_shell(self):
         with tempfile.TemporaryDirectory() as tmp:
             output=Path(tmp)/"out.mp4"
