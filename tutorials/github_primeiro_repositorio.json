@@ -81,5 +81,22 @@
       "speed": 1.55,
       "caption": "REPOSITÓRIO PRONTO"
     }
-  ]
+  ],
+  "hook_duration_seconds": 3,
+  "opening_style": "universe_gif",
+  "universe_seconds": 2.3,
+  "hook_source_resolution": [
+    512,
+    1108
+  ],
+  "hook_crop": [
+    16,
+    130,
+    405,
+    720
+  ],
+  "hook_source_start": 0.03,
+  "hook_source_end": 0.73,
+  "hook_source_rights": "review_before_publication",
+  "show_step_labels": false
 }
