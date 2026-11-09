@@ -30,7 +30,7 @@ jobs:
       GH_TOKEN: ${{ github.token }}
       REPO: ${{ github.repository }}
       RELEASE_TAG: shorts-hooks-v1
-      CATEGORY: ${{ inputs.category }}
+      CATEGORY: ${{ inputs.category || 'all' }}
       SEED: ${{ github.run_number }}
     steps:
       - uses: actions/checkout@v4
