@@ -12,40 +12,43 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 15
     steps:
-      - name: Baixar e validar 10 MP4s gratuitos
+      - name: Baixar e validar os 10 MP4s
         shell: bash
         run: |
           set -euo pipefail
           mkdir -p ganchos
-          HOOKS=(motorcycle-crash bike-crash-in-hole extreme-bike-crash head-on-crash pool-jump-fail wall-climber face-plant skate-slip truck-flip bad-drop-in)
+          HOOKS=(flip-on-head bike-crash slip-run sack-whack lil-whip watermelon-split lil-zipline powder-boom trail-flipper look-at-you)
           [ "${#HOOKS[@]}" -eq 10 ]
           : > ganchos/RELATORIO.txt
           successes=0
           for slug in "${HOOKS[@]}"; do
-            url="https://viralhookup.com/api/download/${slug}"
+            url="https://viralhooks.org/hooks/${slug}.mp4"
             dst="ganchos/${slug}.mp4"
             echo "Baixando ${url}"
-            if curl --fail --location --silent --show-error --retry 2 --retry-delay 2 --connect-timeout 12 --max-time 80 -A "Mozilla/5.0" -o "$dst" "$url" && ffprobe -v error -select_streams v:0 -show_entries stream=codec_name,width,height -of default=noprint_wrappers=1 "$dst" >/tmp/probe.txt 2>/dev/null; then
+            if curl --fail --location --silent --show-error --retry 2 --retry-delay 1 --connect-timeout 12 --max-time 80 -A "Mozilla/5.0" -o "$dst" "$url" && ffprobe -v error -select_streams v:0 -show_entries stream=codec_name,width,height -of default=noprint_wrappers=1 "$dst" >/tmp/probe.txt 2>/dev/null; then
               duration=$(ffprobe -v error -show_entries format=duration -of default=nk=1:nw=1 "$dst")
               bytes=$(stat -c%s "$dst")
               echo "OK ${slug} | ${duration}s | ${bytes} bytes | ${url}" >> ganchos/RELATORIO.txt
               successes=$((successes+1))
             else
               echo "FALHOU ${slug} | ${url}" >> ganchos/RELATORIO.txt
+              if [ -f "$dst" ]; then
+                echo "Resposta invalida: $(file -b "$dst")"
+              fi
               rm -f "$dst"
             fi
           done
           echo "MP4s validos: $successes/10"
-          if [ -s ganchos/motorcycle-crash.mp4 ]; then
-            ffmpeg -nostdin -hide_banner -loglevel error -y -i ganchos/motorcycle-crash.mp4 -t 2.7 -an -vf "fps=30,scale=1080:1920:force_original_aspect_ratio=increase,crop=1080:1920,format=yuv420p" -c:v libx264 -crf 20 -preset veryfast -movflags +faststart ganchos/ESCOLHIDO_motociclista_corte_seco_2s7.mp4
-            echo "ESCOLHIDO: motorcycle-crash, 2.7 s, sem transicao/legenda" >> ganchos/RELATORIO.txt
+          if [ -s ganchos/bike-crash.mp4 ]; then
+            ffmpeg -nostdin -hide_banner -loglevel error -y -i ganchos/bike-crash.mp4 -t 2.7 -an -vf "fps=30,scale=1080:1920:force_original_aspect_ratio=increase,crop=1080:1920,format=yuv420p" -c:v libx264 -crf 20 -preset veryfast -movflags +faststart ganchos/ESCOLHIDO_queda_bicicleta_corte_seco_2s7.mp4
+            echo "ESCOLHIDO: bike-crash, 2.7 s, sem transicao/legenda" >> ganchos/RELATORIO.txt
           else
             echo "ESCOLHIDO: nao baixado; selecao pendente de validacao visual" >> ganchos/RELATORIO.txt
           fi
-          echo "Fonte: https://viralhookup.com/; verificar direitos comerciais antes de publicar." >> ganchos/RELATORIO.txt
+          echo "Fonte: https://viralhooks.org/; verificar direitos comerciais antes de publicar." >> ganchos/RELATORIO.txt
           cat ganchos/RELATORIO.txt
-          test "$successes" -ge 1
-      - name: Disponibilizar clipes como artefato ZIP
+          test "$successes" -eq 10
+      - name: Disponibilizar MP4s no artefato ZIP
         if: always()
         uses: actions/upload-artifact@v4
         with:
