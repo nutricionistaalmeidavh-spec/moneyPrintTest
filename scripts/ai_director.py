@@ -123,6 +123,8 @@ def fetch_news_headline(repo: str) -> dict | None:
                 "published_at": dt.isoformat()
             })
             if candidate:
+                candidate["verified_via"] = "google_news_rss"
+                candidate["rss_source"] = NEWS_RSS + query
                 return candidate
     except (OSError, ValueError, ET.ParseError, TypeError) as exc:
         print("Aviso: notícias não verificadas; ignorando:", type(exc).__name__, flush=True)
