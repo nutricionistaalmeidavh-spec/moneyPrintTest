@@ -32,7 +32,7 @@ def build_plan(project: dict) -> dict:
     if fps not in (24, 25, 30, 60) or project.get("aspect") not in {"16:9", "9:16", "1:1"}:
         raise RenderError("FPS/proporção inválidos")
     visual_style=project.get("visual_style","classic")
-    if visual_style not in {"classic","light_motion"}:
+    if visual_style not in {"classic","light_motion","talkcraft_edu"}:
         raise RenderError("Estilo visual desconhecido")
     scenes = project.get("scenes")
     if not isinstance(scenes, list) or not 1 <= len(scenes) <= 120:
@@ -246,6 +246,8 @@ def render_project(project: dict, root: Path, output_dir: Path, *, voice: str="n
         src=(root/a["path"]).resolve()
         if not src.is_relative_to((root/"assets").resolve()) or not src.is_file():
             raise RenderError("Mídia ausente ou fora de assets/: "+a["path"])
+    if plan["visual_style"]=="talkcraft_edu":
+        raise RenderError("Video Talkcraft requer o workflow separado talkcraft-render.yml")
     output_dir.mkdir(parents=True, exist_ok=True)
     scratch=output_dir/"studio_frames"
     scratch.mkdir(parents=True, exist_ok=True)

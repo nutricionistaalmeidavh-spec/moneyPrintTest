@@ -41,7 +41,7 @@ def _short_heading(text: str, fallback: str) -> str:
 
 
 def cinematic_request_to_studio_project(req: dict) -> dict:
-    if req.get("visual_mode")!="github_cinematic" or req.get("visual_style")!="light_motion":
+    if req.get("visual_mode")!="github_cinematic" or req.get("visual_style") not in {"light_motion","talkcraft_edu"}:
         raise ValueError("O adaptador exige pedido cinematográfico com estilo claro")
     sections=req.get("sections") or []
     if not sections or len(sections)!=len(req.get("repo_urls",[])):
@@ -77,7 +77,7 @@ def cinematic_request_to_studio_project(req: dict) -> dict:
        "topic":req["topic"],
        "script":"\n".join(s["narration"] for s in sections),
        "fps":fps,"aspect":req["aspect"],
-       "visual_style":"light_motion","total_frames":cursor,
+       "visual_style":req["visual_style"],"total_frames":cursor,
        "tracks":[{"id":"video","kind":"video"},{"id":"voice","kind":"audio"},
                  {"id":"effects","kind":"audio"},{"id":"graphics","kind":"overlay"}],
        "assets":[],"scenes":scenes,

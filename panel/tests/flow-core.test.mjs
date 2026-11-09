@@ -112,3 +112,17 @@ test("cinematic visual builder includes light animated Studio V3 engine in real 
   flow.settings.visual_style="paid_renderer";
   assert.throws(()=>compileFlow(flow),/Estética/);
 });
+
+test("visual builder accepts original Talkcraft only with explicit cinematic intent",()=>{
+ const flow=makeTemplate("cinematic");
+ flow.settings.topic="Cinco sistemas gratuitos do GitHub";
+ flow.settings.duration_seconds=300;
+ flow.settings.visual_style="talkcraft_edu";
+ flow.settings.repo_urls=["https://github.com/frappe/erpnext"];
+ flow.settings.sections=[{repo_url:flow.settings.repo_urls[0],
+   title:"ERPNext",narration:"Um ERP open source pode integrar estoque e vendas e organizar a empresa."}];
+ const compiled=compileFlow(flow);
+ assert.equal(compiled.visual_style,"talkcraft_edu");
+ assert.equal(compiled.duration_seconds,300);
+ assert.equal(compiled.visual_mode,"github_cinematic");
+});

@@ -76,9 +76,9 @@ def validate_request(raw: dict) -> dict:
     if mode not in ("auto", "stock", "local", "pexels", "pixabay", "github", "github_cinematic"):
         raise RequestError("visual_mode inválido")
     visual_style=raw.get("visual_style","classic")
-    if visual_style not in ("classic","light_motion"):
+    if visual_style not in ("classic","light_motion","talkcraft_edu"):
         raise RequestError("Estilo visual não suportado")
-    if visual_style=="light_motion" and mode!="github_cinematic":
+    if visual_style in ("light_motion","talkcraft_edu") and mode!="github_cinematic":
         raise RequestError("Motion claro exige slides cinematográficos")
     script = raw.get("script", "")
     max_script_size = 9000 if mode in ("github", "github_cinematic") else 2400
@@ -402,6 +402,8 @@ def render_one(path: Path, output: Path, runtime: Path, env: dict):
     data = load_request(path)
     dest = output / path.stem
     dest.mkdir(parents=True, exist_ok=True)
+    if data.get("visual_style")=="talkcraft_edu":
+        raise RequestError("Motor Talkcraft educacional exige talkcraft-render.yml e runtime original")
     if data["visual_mode"]=="github_cinematic" and data["visual_style"]=="light_motion":
         from scripts.cinematic_studio_adapter import cinematic_request_to_studio_project
         from scripts.studio_render import render_project

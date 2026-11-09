@@ -1,0 +1,148 @@
+name: MoneyPrint — Video Talkcraft original (educacional)
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'projects/5-sistemas-talkcraft-educacional.json'
+  pull_request:
+    paths:
+      - "scripts/talkcraft_*.py"
+      - "scripts/studio_render.py"
+      - "motion/talkcraft/**"
+      - "tests/test_talkcraft_bridge.py"
+      - "tests/fixtures/talkcraft-edu-smoke.json"
+      - ".github/workflows/talkcraft-render.yml"
+      - "panel/**"
+  workflow_dispatch:
+    inputs:
+      project_path:
+        description: "Projeto Studio V3 em studio-requests/ ou projects/"
+        required: false
+        type: string
+      request_path:
+        description: "Alternativa: pedido cinematográfico em requests/"
+        required: false
+        type: string
+      smoke:
+        description: "Renderizar os primeiros 3 segundos (QA)"
+        required: false
+        default: false
+        type: boolean
+permissions:
+  contents: read
+jobs:
+  video-talkcraft:
+    runs-on: ubuntu-latest
+    timeout-minutes: 120
+    env:
+      TALKCRAFT_SHA: "501708856fbfdf596e27dba3200e12cf95da57be"
+      PROJ: "${{ inputs.project_path }}"
+      REQUEST: "${{ inputs.request_path }}"
+      SMOKE: "${{ github.event_name == 'pull_request' || inputs.smoke == true }}"
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+      - name: Validar projeto e testes sem dependências externas
+        run: |
+          python -m unittest discover -s tests -p "test_talkcraft_bridge.py" -v
+          python - <<'PY'
+          import json, os, re
+          from pathlib import Path
+          from scripts.studio_render import build_plan
+          from scripts.cinematic_studio_adapter import cinematic_request_to_studio_project
+          from scripts.render_request import load_request
+          req=os.environ.get("REQUEST","").strip()
+          proj=os.environ.get("PROJ","").strip()
+          if req and proj:
+              raise SystemExit("Informe project_path OU request_path")
+          if req:
+              if not re.fullmatch(r"requests/[a-zA-Z0-9_.-]{1,100}\.json",req):
+                  raise SystemExit("Pedido fora da pasta permitida")
+              request=load_request(Path(req))
+              if request.get("visual_style")!="talkcraft_edu":
+                  raise SystemExit("Talkcraft não foi selecionado")
+              data=cinematic_request_to_studio_project(request)
+              target=Path("outputs/talkcraft-input.json")
+              target.parent.mkdir(parents=True,exist_ok=True)
+              target.write_text(json.dumps(data,ensure_ascii=False,indent=2))
+          else:
+              path=proj or ("projects/5-sistemas-talkcraft-educacional.json" if os.environ.get("GITHUB_EVENT_NAME")=="push" else "tests/fixtures/talkcraft-edu-smoke.json")
+              if not re.fullmatch(r"(?:projects|studio-requests|tests/fixtures)/[a-zA-Z0-9_.-]{1,100}\.json",path):
+                  raise SystemExit("Projeto fora da pasta permitida")
+              target=Path(path)
+          if not target.is_file() or target.stat().st_size>64000:
+              raise SystemExit("Projeto ausente ou inválido")
+          plan=build_plan(json.loads(target.read_text(encoding="utf-8")))
+          if plan["visual_style"]!="talkcraft_edu":
+              raise SystemExit("Projeto não optou pelo motor Talkcraft")
+          with open(os.environ["GITHUB_ENV"],"a") as out:
+              out.write("STUDIO_PROJECT="+str(target)+"\n")
+          print("SHOTBOOK:",len(plan["scenes"]),"cenas",plan["total_frames"],"frames")
+          PY
+      - name: Instalar Talkcraft ORIGINAL em commit fixo
+        run: |
+          git clone --quiet --no-checkout --depth=1 https://github.com/Vincentwei1021/video-talkcraft.git /tmp/video-talkcraft
+          git -C /tmp/video-talkcraft fetch -q --depth=1 origin "$TALKCRAFT_SHA"
+          git -C /tmp/video-talkcraft checkout --detach -q "$TALKCRAFT_SHA"
+          test "$(git -C /tmp/video-talkcraft rev-parse HEAD)" = "$TALKCRAFT_SHA"
+          bash /tmp/video-talkcraft/runtime/check-runtime.sh
+          if [ ! -e /tmp/video-talkcraft/node_modules ]; then
+            ln -s /tmp/video-talkcraft/runtime/node_modules /tmp/video-talkcraft/node_modules
+          fi
+      - name: Instalar ferramentas gratuitas
+        run: |
+          sudo apt-get update -qq
+          sudo apt-get install -y ffmpeg fonts-lato fonts-dejavu-core
+          python -m pip install Pillow==11.3.0
+          if [ "$SMOKE" != "true" ]; then
+            python -m pip install piper-tts==1.8.0 faster-whisper==1.2.1 playwright==1.56.0
+            python -m playwright install --with-deps chromium
+          fi
+      - name: Voz local Piper (produção)
+        if: env.SMOKE != 'true'
+        run: |
+          python - <<'PY'
+          from pathlib import Path
+          from scripts.render_request import download_piper
+          print(download_piper(Path("/tmp/moneyprint-voice")))
+          PY
+      - name: Renderizar Talkcraft real com narrador pt-BR
+        run: |
+          extra=()
+          if [ "$SMOKE" = "true" ]; then
+            extra+=(--smoke)
+          else
+            extra+=(--voice-model /tmp/moneyprint-voice/pt_BR-faber-medium.onnx)
+            extra+=(--capture-github)
+          fi
+          python -m scripts.talkcraft_render --project "$STUDIO_PROJECT" \
+            --upstream /tmp/video-talkcraft \
+            --output "outputs/talkcraft-${{ github.run_id }}" ""${extra[@]}""
+      - name: QA de frames, áudio e não publicação
+        run: |
+          python - <<'PY'
+          from pathlib import Path
+          import json
+          root=Path("outputs/talkcraft-${{ github.run_id }}")
+          report=json.loads((root/"diagnostico.json").read_text())
+          manifest=json.loads((root/"talkcraft_manifest.json").read_text())
+          assert report["engine"]=="original_video_talkcraft"
+          assert report["autopublish"] is False
+          assert report["upstream_sha"]=="501708856fbfdf596e27dba3200e12cf95da57be"
+          assert manifest["license_notice"].startswith("PolyForm Noncommercial")
+          assert report["frames"]==(min(90,manifest["totalFrames"]) if "${{ env.SMOKE }}"=="true" else manifest["totalFrames"])
+          print("QA original Talkcraft:",report)
+          PY
+      - name: Exportar arquivos para revisão
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: moneyprint-talkcraft-${{ github.run_id }}
+          path: outputs/
+          if-no-files-found: warn
+          retention-days: 7

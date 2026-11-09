@@ -158,7 +158,7 @@ export function compileFlow(flow){
   const request={topic,duration_seconds:duration,aspect,visual_mode:mode};
   if(cinematic){
     const style=String(s.visual_style||"classic");
-    if(!["classic","light_motion"].includes(style))throw Error("Estética cinematográfica inválida");
+    if(!["classic","light_motion","talkcraft_edu"].includes(style))throw Error("Estética cinematográfica inválida");
     request.visual_style=style;
   }
   const script=String(s.script||"").trim();

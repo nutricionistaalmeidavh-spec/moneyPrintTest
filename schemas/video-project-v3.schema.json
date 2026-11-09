@@ -195,7 +195,8 @@
       "type": "string",
       "enum": [
         "classic",
-        "light_motion"
+        "light_motion",
+        "talkcraft_edu"
       ],
       "description": "Optional visual style; classic remains backward-compatible."
     }
