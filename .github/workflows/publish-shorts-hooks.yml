@@ -1,0 +1,84 @@
+name: MoneyPrint — armazenar 110 ganchos para Shorts
+on:
+  push:
+    branches: [feat/shorts-hooks-library]
+    paths: [".github/workflows/publish-shorts-hooks.yml"]
+  workflow_dispatch:
+
+permissions:
+  actions: read
+  contents: write
+
+concurrency:
+  group: shorts-hooks-release-v1
+  cancel-in-progress: false
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    timeout-minutes: 55
+    env:
+      GH_TOKEN: ${{ github.token }}
+      REPO: ${{ github.repository }}
+      RELEASE_TAG: shorts-hooks-v1
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+      - name: FFprobe para conferir videos sem editar
+        run: |
+          if ! command -v ffprobe >/dev/null; then
+            sudo apt-get update -qq
+            sudo apt-get install -y -qq ffmpeg
+          fi
+      - name: Testar validador e seletor
+        run: |
+          python -m compileall -q scripts/shorts_hooks.py scripts/publish_shorts_hooks.py tests/test_shorts_hooks.py
+          python -m unittest discover -s tests -p test_shorts_hooks.py -v
+      - name: Recuperar os MP4s dos dois lotes anteriores
+        run: |
+          mkdir -p /tmp/hooks100 /tmp/hooks10
+          gh run download 42552302424 --repo "$REPO" -n moneyprint-100-cortes-virais-adicionais -D /tmp/hooks100
+          gh run download 42551566375 --repo "$REPO" -n moneyprint-10-ganchos -D /tmp/hooks10
+          test "$(find /tmp/hooks100 -maxdepth 1 -name '*.mp4' | wc -l)" -eq 100
+          test "$(find /tmp/hooks10 -maxdepth 1 -name '*.mp4' | wc -l)" -ge 10
+      - name: Preparar catalogo 110/110 com SHA256
+        run: python -m scripts.publish_shorts_hooks --batch-100 /tmp/hooks100 --batch-10 /tmp/hooks10 --out /tmp/shorts-release
+      - name: Guardar MP4s em release RASCUNHO do proprio repositorio
+        run: |
+          if gh release view "$RELEASE_TAG" --repo "$REPO" >/dev/null 2>&1; then
+            echo "Release ja existe. Nao substituira arquivos automaticamente."
+          else
+            mapfile -d '' ASSETS < <(find /tmp/shorts-release -maxdepth 1 -type f -print0 | sort -z)
+            test "${#ASSETS[@]}" -eq 112
+            gh release create "$RELEASE_TAG" "${ASSETS[@]}" --repo "$REPO" --target main --draft \
+              --title "MoneyPrint Shorts — biblioteca privada de 110 ganchos" \
+              --notes "Biblioteca de trabalho interna; 110 MP4s do ViralHook, catálogo com SHA256 e fontes. Direitos de redistribuição comercial ainda não verificados. Rascunho para não publicar os clipes de terceiros. Não gera nenhum vídeo."
+          fi
+      - name: Verificar que todos os assets foram armazenados
+        run: |
+          gh release view "$RELEASE_TAG" --repo "$REPO" --json isDraft,assets \
+            --jq '"rascunho=" + (.isDraft|tostring) + " ativos=" + (.assets|length|tostring)'
+          count=$(gh release view "$RELEASE_TAG" --repo "$REPO" --json assets --jq '.assets|length')
+          test "$count" -eq 112
+          mkdir -p /tmp/catalog-check
+          gh release download "$RELEASE_TAG" --repo "$REPO" --pattern CATALOGO.json --dir /tmp/catalog-check
+          python - <<'PY'
+          import json
+          from scripts.shorts_hooks import validate_catalog
+          p='/tmp/catalog-check/CATALOGO.json'
+          clips=validate_catalog(json.load(open(p, encoding='utf-8')))
+          assert len(clips)==110, len(clips)
+          print("CATALOGO.json de release validado: 110 MP4s")
+          PY
+      - name: Relatorio de preparacao (somente texto)
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: auditoria-library-shorts
+          path: |
+            /tmp/shorts-release/CATALOGO.json
+            /tmp/shorts-release/ORIGEM_E_DIREITOS.txt
+          retention-days: 7
+          if-no-files-found: warn
