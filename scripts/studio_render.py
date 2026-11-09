@@ -84,6 +84,23 @@ def build_plan(project: dict) -> dict:
             "duration_seconds": cursor / fps, "scenes": prepared, "assets": indexed}
 
 
+def browser_demo_filter(width: int, height: int, fps: int) -> str:
+    """Place official moving README demos INSIDE the authentic browser card."""
+    inset=max(10,round(width*.005))
+    caption=max(14,round(height*.03))
+    x=int(width*.53)+inset
+    y=int(height*.25)+caption
+    bw=max(100,int(width*.41)-2*inset)
+    bh=max(100,int(height*.56)-caption-inset)
+    return (
+        f"[0:v]scale={width}:{height},format=yuv420p[base];"
+        f"[1:v]scale={bw}:{bh}:force_original_aspect_ratio=decrease,"
+        f"pad={bw}:{bh}:(ow-iw)/2:(oh-ih)/2:color=0x172536,"
+        f"fps={fps},format=yuv420p[demo];"
+        f"[base][demo]overlay={x}:{y}:shortest=1,format=yuv420p[v]"
+    )
+
+
 def word_cues(text: str, start: float, duration: float) -> list[dict]:
     """Plan visual word cues: estimates, not a claim of true forced alignment."""
     words = re.findall(r"\S+", text)
@@ -229,6 +246,8 @@ def render_project(project: dict, root: Path, output_dir: Path, *, voice: str="n
     scratch=output_dir/"studio_frames"
     scratch.mkdir(parents=True, exist_ok=True)
     github_stills = {}
+    official_images = {}
+    official_demos = {}
     all_repos = list(dict.fromkeys(s.get("repo_url") for s in plan["scenes"] if s.get("repo_url")))
     if all_repos and capture_github:
         from scripts.repo_stills import capture_repo_stills
@@ -237,6 +256,17 @@ def render_project(project: dict, root: Path, output_dir: Path, *, voice: str="n
             github_stills = {url: [Path(p) for p in paths] for url,paths in zip(all_repos,captures)}
         except Exception as exc:
             raise RenderError("Falha na captura real do GitHub: "+type(exc).__name__) from exc
+        # Official screenshots and demo GIFs are optional, always sourced from the
+        # repository README with the downloader's allowlist. Never fabricate UI.
+        from scripts.ai_director import official_repo_image, official_repo_gif
+        for number, url in enumerate(all_repos, 1):
+            folder = scratch/"official"/f"repo_{number:02d}"
+            still = official_repo_image(url, folder/"image")
+            demo = official_repo_gif(url, folder/"demo")
+            if still:
+                official_images[url] = Path(still)
+            if demo:
+                official_demos[url] = Path(demo)
     playlist=[]
     all_cues=[]
     warnings=[]
@@ -254,10 +284,20 @@ def render_project(project: dict, root: Path, output_dir: Path, *, voice: str="n
         # Video assets are used as moving background, stills inside a browser-like card.
         image_asset=asset if asset and asset.suffix.lower() in IMAGE_EXT else None
         repo_url=scene.get("repo_url")
+        if repo_url and not image_asset and official_images.get(repo_url):
+            image_asset=official_images[repo_url]
+            credits.append({"scene":scene["id"],"source_url":repo_url,
+                            "attribution":"Imagem do README oficial do projeto", "type":"official_readme_image",
+                            "usage":"Captura para demonstração editorial; conferir direitos de redistribuição"})
         if repo_url and not image_asset and github_stills.get(repo_url):
             image_asset=github_stills[repo_url][(index-1)%len(github_stills[repo_url])]
             credits.append({"scene":scene["id"],"source_url":repo_url,
                             "attribution":"Captura Playwright de repositório público", "type":"github_screenshot"})
+        demo=official_demos.get(repo_url) if repo_url and scene["layout"]=="browser" and not asset else None
+        if demo:
+            credits.append({"scene":scene["id"],"source_url":repo_url,
+                            "attribution":"GIF demonstrativo do README oficial", "type":"official_readme_demo",
+                            "usage":"Trecho demonstrativo, direitos a conferir antes de republicar"})
         _slide(scene,art,width,height,image_asset)
         narration=None
         tempo=1.0
@@ -278,6 +318,11 @@ def render_project(project: dict, root: Path, output_dir: Path, *, voice: str="n
                 f"crop={width}:{height},fps={fps},format=yuv420p[video];"
                 f"[1:v]format=rgba,colorchannelmixer=aa=0.22[overlay];"
                 f"[video][overlay]overlay=0:0:shortest=1,format=yuv420p[v]")
+        elif demo:
+            base=["ffmpeg","-hide_banner","-loglevel","error","-nostdin","-y",
+                  "-loop","1","-framerate",str(fps),"-i",str(art),
+                  "-stream_loop","-1","-i",str(demo)]
+            vf=browser_demo_filter(width,height,fps)
         else:
             base=["ffmpeg","-hide_banner","-loglevel","error","-nostdin","-y","-loop","1","-framerate",str(fps),"-i",str(art)]
             # Alternate subtle camera moves, retaining hard cuts and an exact frame count.
@@ -302,7 +347,7 @@ def render_project(project: dict, root: Path, output_dir: Path, *, voice: str="n
                 f"format=yuv420p[v]")
         if narration:
             base += ["-i",str(narration)]
-            audio_idx=2 if moving else 1
+            audio_idx=2 if (moving or demo) else 1
             af=f"[{audio_idx}:a]aresample=48000,atempo={tempo:.5f},apad,atrim=0:{duration:.6f}[a]"
         else:
             base += ["-f","lavfi","-i","anullsrc=r=48000:cl=stereo"]
