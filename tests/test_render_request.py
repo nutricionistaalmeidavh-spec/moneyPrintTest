@@ -54,6 +54,19 @@ class RenderTests(unittest.TestCase):
             validate_request({"topic": "x", "visual_mode": "github",
                               "repo_urls": ["https://evil.example/a/b"]})
 
+    def test_cinematic_mode_is_opt_in_and_only_for_github(self):
+        data = validate_request({"topic": "Oito repos", "visual_mode": "github",
+                                 "repo_urls": ["https://github.com/appwrite/appwrite"],
+                                 "cinematic": True, "duration_seconds": 300})
+        self.assertTrue(data["cinematic"])
+        self.assertFalse(validate_request({"topic": "x"})["cinematic"])
+        with self.assertRaises(RequestError):
+            validate_request({"topic": "x", "cinematic": True})
+        with self.assertRaises(RequestError):
+            validate_request({"topic": "x", "visual_mode": "github",
+                              "repo_urls": ["https://github.com/a/b"],
+                              "cinematic": "yes"})
+
     def test_free_stock_and_offline_fallback(self):
         self.assertEqual(select_visual_mode("auto", {}), "wikimedia")
         self.assertEqual(select_visual_mode("stock", {}), "wikimedia")
