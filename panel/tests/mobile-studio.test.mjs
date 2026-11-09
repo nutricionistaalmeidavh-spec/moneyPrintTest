@@ -54,3 +54,22 @@ test("desktop has a full-width canvas and editable side sheet, like the approved
   assert.match(css,/\.inspector\.open\{[^}]*position:fixed/s);
   assert.match(read("builder.html"),/id="autoLayout"/);
 });
+
+
+test("Skill from built-in catalog can be applied by its original catalog object",()=>{
+  const flow=makeTemplate("automatic");
+  const builtin=skillCatalog.find(x=>x.id==="repo-demo");
+  assert.ok(builtin);
+  const changed=applySkill(flow,builtin);
+  assert.ok(changed.nodes.some(n=>n.tool==="github"));
+  assert.ok(changed.nodes.some(n=>n.tool==="slides"));
+  assert.equal(validateFlow(changed).errors.length,0);
+});
+test("Imported skill remains strict: executable code and metadata cannot slip through",()=>{
+  const input={name:"Legenda custom",description:"Adicionar legendas",tools:["captions"]};
+  const normalized=parseSkillManifest(input);
+  const changed=applySkill(makeTemplate("automatic"),normalized);
+  assert.ok(changed.nodes.some(n=>n.tool==="captions"));
+  assert.throws(()=>applySkill(makeTemplate("automatic"),{...input,id:"external",command:"rm"}),/código|não suportad/i);
+  assert.throws(()=>parseSkillManifest({...input,icon:"✳"}),/código|não suportad/i);
+});

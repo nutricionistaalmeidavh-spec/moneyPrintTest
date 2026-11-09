@@ -77,11 +77,25 @@ def run():
             assert not inspector.is_visible()
             page.locator("[data-catalog-tab='skills']").click()
             assert page.locator("#showcaseCatalog [data-apply-skill]").count()>=5
+            # Regression: clicking a packaged skill must attach actual nodes, not
+            # mistake catalog metadata (id, icon, category) for external code.
+            page.locator("#showcaseCatalog [data-apply-skill='repo-demo']").click()
+            assert page.locator("#canvasNodes [data-tool='github']").count()==1
+            assert page.locator("#canvasNodes [data-tool='slides']").count()==1
+            assert "Formato de skill inválido" not in page.locator("#toast").inner_text()
+            # The Skill opens its inspector; close it before choosing another Skill.
+            page.locator("#doneInspector").click()
+            assert not page.locator("#inspector").is_visible()
+
             page.locator("#skillFileInput").set_input_files({
                 "name":"sample-skill.json","mimeType":"application/json",
                 "buffer":b'{"name":"Minha Skill","description":"Combina legendas e pesquisa.","tools":["captions","stock"]}'
             })
             page.locator("#showcaseCatalog").get_by_text("Minha Skill").wait_for(state="visible",timeout=4000)
+            page.locator("#showcaseCatalog [data-apply-skill='custom-0']").click()
+            assert page.locator("#canvasNodes [data-tool='captions']").count()==1
+            assert "Formato de skill inválido" not in page.locator("#toast").inner_text()
+
             page.screenshot(path=str(ART/"mobile-skills.png"),full_page=True)
             assert not failures,failures
             desktop=browser.new_context(viewport={"width":1440,"height":900})
