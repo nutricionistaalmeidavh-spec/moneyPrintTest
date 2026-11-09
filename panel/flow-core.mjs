@@ -39,8 +39,15 @@ export const templates=Object.freeze([
 ]);
 export function makeTemplate(name="automatic"){
   if(!presets[name])throw Error("Template desconhecido");
-  const nodes=presets[name].map((tool,i)=>({id:tool,tool,enabled:true,x:54+i*205,y:110+(i%2)*20}));
-  const edges=nodes.slice(1).map((node,i)=>({from:nodes[i].id,to:node.id}));
+  const lanes={goal:[40,250],script:[250,250],ollama:[465,250],stock:[465,460],github:[485,65],slides:[715,85],piper:[790,460],captions:[1010,460],render:[1210,250],final:[1435,250]};
+  const nodes=presets[name].map((tool,i)=>({id:tool,tool,enabled:true,x:lanes[tool]?.[0]??(60+i*185),y:lanes[tool]?.[1]??250}));
+  let edges=nodes.slice(1).map((node,i)=>({from:nodes[i].id,to:node.id}));
+  if(["automatic","shorts","stock"].includes(name)){
+    edges=[{from:"goal",to:"script"},{from:"script",to:"ollama"},{from:"script",to:"stock"},
+      {from:"ollama",to:"piper"},{from:"stock",to:"render"},
+      ...(name==="shorts"?[{from:"piper",to:"captions"},{from:"captions",to:"render"}]:[{from:"piper",to:"render"}]),
+      {from:"render",to:"final"}];
+  }
   return {version:1,id:cryptoRandomId(),name:templates.find(x=>x.id===name)?.title||name,nodes,edges,settings:{
     topic:"",duration_seconds:name==="cinematic"?180:40,aspect:["cinematic","github"].includes(name)?"16:9":"9:16",
     script:"",terms:[],repo_urls:[],sections:[],stock_required:name==="stock",hook_asset:"",
