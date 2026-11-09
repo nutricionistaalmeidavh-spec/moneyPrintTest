@@ -97,3 +97,23 @@ test("studio render endpoint requires an explicit saved revision and GitHub conn
   assert.equal(noToken.status,409);
   assert.match((await noToken.json()).error,/Conecte o GitHub/);
 });
+
+
+test("Studio saves and reopens light animated style without affecting legacy projects",async()=>{
+  const {session,csrf}=await auth();
+  const input={topic:"Cinco sistemas com motion",script:"Entrada. Demonstração de software.",
+    duration_seconds:30,aspect:"16:9",visual_style:"light_motion"};
+  const created=await call("/api/studio/projects","POST",input,session,csrf);
+  assert.equal(created.status,201);
+  const p=(await created.json()).project;
+  assert.equal(p.visual_style,"light_motion");
+  const res=await call("/api/studio/projects/"+p.id+"/save","POST",
+    {revision:1,scenes:p.scenes,visual_style:"classic"},session,csrf);
+  assert.equal(res.status,200);
+  assert.equal((await res.json()).project.visual_style,"classic");
+  const reopened=await call("/api/studio/projects/"+p.id,"GET",null,session);
+  assert.equal((await reopened.json()).project.visual_style,"classic");
+  const invalid=await call("/api/studio/projects","POST",
+    {...input,visual_style:"commercial_api"},session,csrf);
+  assert.equal(invalid.status,400);
+});
