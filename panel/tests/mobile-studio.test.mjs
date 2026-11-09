@@ -39,3 +39,18 @@ test("custom skill manifests compose existing adapters, never arbitrary script e
   assert.throws(()=>parseSkillManifest('{"name":"Código","tools":["docker-exec"],"command":"rm -rf"}'),/não suportad|inválid/i);
   assert.throws(()=>parseSkillManifest('{"name":"Pago","tools":["paid_tts"]}'),/não suportad|indisponível/i);
 });
+
+test("automatic template offers real parallel visual branches",()=>{
+  const flow=makeTemplate("automatic");
+  const outgoing=flow.edges.filter(e=>e.from==="script").map(e=>e.to);
+  assert.ok(outgoing.includes("ollama"),"Script to AI direction");
+  assert.ok(outgoing.includes("stock"),"Script to B-roll");
+  assert.ok(flow.edges.some(e=>e.from==="piper"&&e.to==="render"));
+  assert.equal(validateFlow(flow).errors.length,0);
+});
+test("desktop has a full-width canvas and editable side sheet, like the approved reference",()=>{
+  const css=read("builder.css");
+  assert.match(css,/\.workspace\{display:block!important\}/);
+  assert.match(css,/\.inspector\.open\{[^}]*position:fixed/s);
+  assert.match(read("builder.html"),/id="autoLayout"/);
+});
