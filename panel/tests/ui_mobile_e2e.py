@@ -83,6 +83,9 @@ def run():
             assert page.locator("#canvasNodes [data-tool='github']").count()==1
             assert page.locator("#canvasNodes [data-tool='slides']").count()==1
             assert "Formato de skill inválido" not in page.locator("#toast").inner_text()
+            # The Skill opens its inspector; close it before choosing another Skill.
+            page.locator("#doneInspector").click()
+            assert not page.locator("#inspector").is_visible()
 
             page.locator("#skillFileInput").set_input_files({
                 "name":"sample-skill.json","mimeType":"application/json",
