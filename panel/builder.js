@@ -77,7 +77,7 @@ function resourceCard(x,isSkill){
  const used=isSkill?x.tools.every(id=>flow.nodes.some(n=>n.tool===id)):flow.nodes.some(n=>n.tool===x.id);
  const disabled=isSkill?false:!x.available||used||x.required;
  const action=isSkill?'data-apply-skill="'+escapeHtml(x.id)+'"':'data-add="'+escapeHtml(x.id)+'"';
- return '<article class="showcase-card '+(!isSkill&&!x.available?"unavailable":"")+'">'+
+ return '<article class="showcase-card '+(!isSkill&&!x.available?"unavailable":"")+'" '+(disabled?"":(isSkill?'draggable="true" data-dragskill="'+escapeHtml(x.id)+'"':'draggable="true" data-dragtool="'+escapeHtml(x.id)+'"'))+'>'+
    '<span class="showcase-ico">'+escapeHtml(x.icon||"✳")+'</span><div class="showcase-copy"><strong>'+escapeHtml(isSkill?x.name:x.label)+'</strong>'+
    '<p>'+escapeHtml(x.description||"")+'</p></div><button type="button" '+action+' '+(disabled?"disabled":"")+' aria-label="'+escapeHtml((isSkill?"Aplicar Skill ":"Adicionar ferramenta ")+(isSkill?x.name:x.label))+'" title="'+(used?"Já adicionado":"Adicionar ao fluxo")+'">'+(used?"✓":"+")+'</button></article>'
 }
@@ -303,6 +303,12 @@ $("toolList").addEventListener("click",e=>{
  if(btn&&!btn.disabled)addTool(btn.dataset.add);
 });
 $("showcaseSearch").addEventListener("input",renderToolShowcase);
+$("showcaseCatalog").addEventListener("dragstart",e=>{
+ const item=e.target.closest("[data-dragtool],[data-dragskill]");
+ if(!item||!e.dataTransfer)return;
+ const key=item.dataset.dragtool||("skill:"+item.dataset.dragskill);
+ e.dataTransfer.setData("text/plain",key);e.dataTransfer.effectAllowed="copy";
+});
 $("showcaseCatalog").addEventListener("click",e=>{
  const skill=e.target.closest("[data-apply-skill]");
  if(skill){addSkillFromCatalog(skill.dataset.applySkill);return}
@@ -339,7 +345,7 @@ $("skillFileInput").addEventListener("change",async e=>{
 });
 $("toolList").addEventListener("dragstart",e=>{const el=e.target.closest("[data-dragtool]");if(el&&e.dataTransfer){e.dataTransfer.setData("text/plain",el.dataset.dragtool);e.dataTransfer.effectAllowed="copy"}});
 $("canvasbody").addEventListener("dragover",e=>{if(e.dataTransfer?.types?.includes("text/plain"))e.preventDefault()});
-$("canvasbody").addEventListener("drop",e=>{e.preventDefault();const id=e.dataTransfer?.getData("text/plain");if(id)addTool(id)});
+$("canvasbody").addEventListener("drop",e=>{e.preventDefault();const id=e.dataTransfer?.getData("text/plain");if(!id)return;if(id.startsWith("skill:"))addSkillFromCatalog(id.slice(6));else addTool(id)});
 $("canvasNodes").addEventListener("click",e=>{
   const from=e.target.closest("[data-portout]");const to=e.target.closest("[data-portin]");
   if(from){connecting=from.dataset.portout;toast("Selecione a entrada de outro bloco para conectar.");renderCanvas();return}
