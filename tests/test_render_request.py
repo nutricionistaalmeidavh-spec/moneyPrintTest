@@ -33,7 +33,7 @@ class RenderTests(unittest.TestCase):
             "visual_mode": "github",
             "repo_urls": ["https://github.com/appwrite/appwrite",
                           "https://github.com/payloadcms/payload"],
-            "script": "Demonstração " * 700,
+            "script": "Demonstração " * 550,
         })
         self.assertEqual(request["duration_seconds"], 300)
         self.assertEqual(len(request["repo_urls"]), 2)
