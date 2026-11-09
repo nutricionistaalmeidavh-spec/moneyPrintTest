@@ -239,13 +239,13 @@ def render_stack(source: Path, output: Path, *, options: dict | None = None,
             stages = []
             for idx, clip in enumerate(normalized):
                 inputs.extend(["-i", str(clip)])
-                stages.append(f"[{idx}:v]settb=AVTB,setpts=PTS-STARTPTS[v{idx}]")
+                # Normalized segments already share FPS, pixel format and dimensions.
             accumulated = durations[0]
-            previous = "v0"
+            previous = "0:v"
             for idx in range(1, len(normalized)):
                 out_label = f"x{idx}"
                 stages.append(
-                    f"[{previous}][v{idx}]xfade=transition={transition}:"
+                    f"[{previous}][{idx}:v]xfade=transition={transition}:"
                     f"duration={overlap}:offset={accumulated-overlap:.5f}[{out_label}]"
                 )
                 accumulated += durations[idx] - overlap
