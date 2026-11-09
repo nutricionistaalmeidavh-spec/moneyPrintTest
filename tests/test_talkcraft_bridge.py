@@ -77,6 +77,29 @@ class TalkcraftBridgeTests(unittest.TestCase):
                                 for page in pages))
             self.assertIn("CONTRATO",pages[0].read_text())
 
+    def test_missing_planilha_asr_uses_measured_neighbouring_words_not_fake_exact_time(self):
+        p=example()
+        p["scenes"][0]["text"]="A empresa controla estoque numa planilha, vendas em outra."
+        words=[{"word":"estoque","start":0.6,"end":0.9},
+               {"word":"vendas","start":1.9,"end":2.3}]
+        cues=clip_aligned_cues(p,words)
+        scribbles=[c for c in cues if c["effect"]=="scribble_chaos"]
+        self.assertEqual(len(scribbles),1)
+        self.assertEqual(scribbles[0]["method"],"interpolated_between_measured_pt")
+        self.assertGreater(scribbles[0]["at"],0.9)
+        self.assertLess(scribbles[0]["at"],1.9)
+
+    def test_direct_keyword_timing_keeps_true_measured_timestamp(self):
+        p=example()
+        p["scenes"][0]["text"]="O caos da planilha atrapalha."
+        words=[{"word":"caos","start":0.55,"end":0.9},
+               {"word":"planilha","start":1.2,"end":1.5}]
+        cues=clip_aligned_cues(p,words)
+        ca=[c for c in cues if c["effect"]=="scribble_chaos"]
+        self.assertEqual(len(ca),1)
+        self.assertAlmostEqual(ca[0]["at"],0.55)
+        self.assertEqual(ca[0]["method"],"measured_whisper_pt")
+
     def test_no_fabricated_word_time_when_not_aligned(self):
         self.assertEqual(clip_aligned_cues(example(),[]),[])
 
