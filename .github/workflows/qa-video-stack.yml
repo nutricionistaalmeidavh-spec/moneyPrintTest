@@ -9,6 +9,7 @@ on:
       - "scripts/cinematic_render.py"
       - "tests/test_video_stack.py"
       - "tests/test_motion_pipeline.py"
+      - "scripts/qa_video_stack.py"
       - "motion/**"
       - ".github/workflows/qa-video-stack.yml"
   workflow_dispatch:
@@ -65,6 +66,10 @@ jobs:
           assert Path(result['output']).stat().st_size > 8000
           Path('qa/result.json').write_text(json.dumps(result,indent=2))
           PY
+      - name: QA real hard cut with original hook audio
+        run: python -m scripts.qa_video_stack --output qa/full-render --transition cut
+      - name: QA real xfade with original hook audio
+        run: python -m scripts.qa_video_stack --output qa/full-render --transition fade
       - name: Verify codecs and actual duration
         run: |
           ffprobe -v error -show_entries stream=codec_name,codec_type,width,height \
