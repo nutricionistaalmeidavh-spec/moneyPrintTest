@@ -36,7 +36,7 @@ jobs:
           from scripts.browser_capture import capture_repositories
 
           clips = capture_repositories(["https://github.com/appwrite/appwrite"],
-                                       15, Path("qa-artifacts"))
+                                       15, Path("qa-artifacts"), focus_readme=True)
           assert len(clips) == 1
           video = Path(clips[0])
           assert video.is_file() and video.stat().st_size > 10000
