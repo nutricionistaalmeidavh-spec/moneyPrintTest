@@ -67,7 +67,8 @@ function saveCustomSkills(){
 function addSkillFromCatalog(id){
  const skill=allSkills().find(x=>x.id===id);if(!skill){toast("Skill não encontrada");return}
  try{
-  const updated=applySkill(flow,skill);flow=updated;selected=updated.nodes.some(n=>n.tool==="slides")?"slides":updated.nodes.find(n=>n.tool==="hook")?"hook":"goal";
+  const skillInput=skillCatalog.includes(skill)?skill.id:{name:skill.name,description:skill.description,tools:skill.tools};
+  const updated=applySkill(flow,skillInput);flow=updated;selected=updated.nodes.some(n=>n.tool==="slides")?"slides":updated.nodes.find(n=>n.tool==="hook")?"hook":"goal";
   activeTemplate="";layoutNodes();syncDom();
   toast("Skill aplicada: "+skill.name+". Configure os blocos adicionados antes de executar.");
   if(mobile())openPanel("inspector");
