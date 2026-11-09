@@ -1,13 +1,14 @@
 import {mountStudio} from "./studio-ui.mjs";
 import {
   toolCatalog, templates, makeTemplate, compileFlow, validateFlow, insertTool,
-  removeTool, moveTool, updateNodePosition, connectNodes, removeEdge, cloneFlow
+  removeTool, moveTool, updateNodePosition, connectNodes, removeEdge, cloneFlow,
+  skillCatalog, applySkill, parseSkillManifest
 } from "./flow-core.mjs";
 
 const $=id=>document.getElementById(id);
 const escapeHtml=s=>String(s??"").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
 const selectLabel=tool=>toolCatalog.find(x=>x.id===tool)?.label||tool;
-let csrf="",authenticated=false,githubConnected=false,flow=makeTemplate("automatic"),selected="goal",zoom=.8,connecting=null,activeTemplate="automatic",savedFlows=[];
+let csrf="",authenticated=false,githubConnected=false,flow=makeTemplate("automatic"),selected="goal",zoom=.7,connecting=null,activeTemplate="automatic",savedFlows=[],catalogTab="tools",customSkills=[];
 const repo="https://github.com/nutricionistaalmeidavh-spec/moneyPrintTest";
 const events={};
 let studioModule=null;
@@ -25,9 +26,16 @@ function persist(){try{localStorage.setItem("artisys-flow-draft-v2",JSON.stringi
 function loadDraft(){try{const v=JSON.parse(localStorage.getItem("artisys-flow-draft-v2")||"null");if(v&&v.version===1&&Array.isArray(v.nodes)&&Array.isArray(v.edges)&&v.nodes.length<30){flow=v;activeTemplate=""}}catch{}}
 function mobile(){return matchMedia("(max-width:720px)").matches}
 function openPanel(panel){
-  $("palette").classList.toggle("open",panel==="palette");
-  $("inspector").classList.toggle("open",panel==="inspector");
-  $("scrim").classList.toggle("open",panel==="palette"||panel==="inspector");
+  const visible=panel==="inspector"||(mobile()&&panel==="palette");
+  $("palette").classList.toggle("open",visible&&panel==="palette");
+  $("inspector").classList.toggle("open",visible&&panel==="inspector");
+  $("scrim").classList.toggle("open",visible&&mobile());
+  document.body.classList.toggle("sheet-open",visible&&mobile());
+  if(visible){
+    const inner=$(panel==="palette"?"palette":"inspector").querySelector(".contents");
+    if(inner)inner.scrollTop=0;
+    requestAnimationFrame(()=>$(panel==="palette"?"searchTools":"closeInspector").focus({preventScroll:true}));
+  }
 }
 function showView(view){
   document.querySelectorAll(".view").forEach(x=>x.classList.toggle("hidden",x.id!=="view-"+view));
@@ -40,11 +48,58 @@ function showView(view){
 }
 function closePanels(){openPanel(null)}
 function syncDom(){
-  renderTemplates();renderToolPalette();renderCanvas();renderInspector();renderSummary();persist();
+  renderTemplates();renderToolPalette();renderToolShowcase();renderMobileQuick();renderCanvas();renderInspector();renderSummary();persist();
 }
 function renderTemplates(){
   $("templates").innerHTML=templates.map(t=>'<button class="template '+(t.id===activeTemplate?"selected":"")+'" data-template="'+escapeHtml(t.id)+'" title="'+escapeHtml(t.subtitle)+'"><em>'+escapeHtml(t.icon)+'</em>'+escapeHtml(t.title)+'</button>').join("");
 }
+
+function allSkills(){return [...skillCatalog,...customSkills]}
+function loadCustomSkills(){
+ try{
+  const stored=JSON.parse(localStorage.getItem("artisys-custom-skills-v1")||"[]");
+  customSkills=Array.isArray(stored)?stored.slice(0,20).map((v,i)=>({...parseSkillManifest(v),id:"custom-"+i,icon:"✳",category:"Personalizadas"})):[];
+ }catch{customSkills=[]}
+}
+function saveCustomSkills(){
+ try{localStorage.setItem("artisys-custom-skills-v1",JSON.stringify(customSkills.map(({name,description,tools})=>({name,description,tools}))))}catch{}
+}
+function addSkillFromCatalog(id){
+ const skill=allSkills().find(x=>x.id===id);if(!skill){toast("Skill não encontrada");return}
+ try{
+  const updated=applySkill(flow,skill);flow=updated;selected=updated.nodes.some(n=>n.tool==="slides")?"slides":updated.nodes.find(n=>n.tool==="hook")?"hook":"goal";
+  activeTemplate="";layoutNodes();syncDom();
+  toast("Skill aplicada: "+skill.name+". Configure os blocos adicionados antes de executar.");
+  if(mobile())openPanel("inspector");
+ }catch(e){toast(e.message)}
+}
+function resourceCard(x,isSkill){
+ const used=isSkill?x.tools.every(id=>flow.nodes.some(n=>n.tool===id)):flow.nodes.some(n=>n.tool===x.id);
+ const disabled=isSkill?false:!x.available||used||x.required;
+ const action=isSkill?'data-apply-skill="'+escapeHtml(x.id)+'"':'data-add="'+escapeHtml(x.id)+'"';
+ return '<article class="showcase-card '+(!isSkill&&!x.available?"unavailable":"")+'" '+(disabled?"":(isSkill?'draggable="true" data-dragskill="'+escapeHtml(x.id)+'"':'draggable="true" data-dragtool="'+escapeHtml(x.id)+'"'))+'>'+
+   '<span class="showcase-ico">'+escapeHtml(x.icon||"✳")+'</span><div class="showcase-copy"><strong>'+escapeHtml(isSkill?x.name:x.label)+'</strong>'+
+   '<p>'+escapeHtml(x.description||"")+'</p></div><button type="button" '+action+' '+(disabled?"disabled":"")+' aria-label="'+escapeHtml((isSkill?"Aplicar Skill ":"Adicionar ferramenta ")+(isSkill?x.name:x.label))+'" title="'+(used?"Já adicionado":"Adicionar ao fluxo")+'">'+(used?"✓":"+")+'</button></article>'
+}
+function renderToolShowcase(){
+ const q=String($("showcaseSearch").value||"").trim().toLowerCase();
+ const items=(catalogTab==="skills"?allSkills():toolCatalog).filter(x=>([x.name,x.label,x.description,x.group,x.category]||[]).join(" ").toLowerCase().includes(q));
+ $("showcaseCatalog").innerHTML=items.length?items.map(x=>resourceCard(x,catalogTab==="skills")).join(""):'<p class="empty">Nenhuma ferramenta ou Skill com esse nome</p>';
+ $("skillImportBox").classList.toggle("hidden",catalogTab!=="skills");
+ document.querySelectorAll("[data-catalog-tab]").forEach(btn=>{
+   const active=btn.dataset.catalogTab===catalogTab;
+   btn.classList.toggle("active",active);btn.setAttribute("aria-selected",active?"true":"false");
+ });
+}
+function renderMobileQuick(){
+ const priority=["github","slides","hook","news"];
+ $("quickToolButtons").innerHTML=priority.map(id=>{
+  const x=toolCatalog.find(t=>t.id===id);if(!x)return "";
+  const used=flow.nodes.some(n=>n.tool===id);
+  return '<button type="button" data-quick-tool="'+id+'" '+(used?"disabled":"")+'><b>'+escapeHtml(x.icon)+'</b><span>'+(used?"✓ ":"+ ")+escapeHtml(x.label)+'</span></button>';
+ }).join("");
+}
+
 function renderToolPalette(){
   const q=$("searchTools").value.toLocaleLowerCase("pt-BR").trim();
   const filtered=toolCatalog.filter(t=>(t.label+" "+t.description+" "+t.group).toLocaleLowerCase("pt-BR").includes(q));
@@ -54,9 +109,17 @@ function renderToolPalette(){
     const disabled=!t.available||used||t.required;
     return '<div class="tool '+(!t.available?"unavailable":"")+'" '+(!disabled?'draggable="true" data-dragtool="'+escapeHtml(t.id)+'"':"")+'><span class="toolicon">'+escapeHtml(t.icon)+'</span><div style="min-width:0;flex:1"><strong>'+escapeHtml(t.label)+'</strong><p>'+escapeHtml(t.description)+'</p></div><button class="plus" data-add="'+escapeHtml(t.id)+'" aria-label="Adicionar '+escapeHtml(t.label)+'" title="'+(disabled?(used||t.required?"Já está no fluxo":"Integração não disponível"):"Adicionar ao fluxo")+'" '+(disabled?"disabled":"")+'>+</button></div>'
   }).join("")).join("")||'<p class="empty">Nenhuma ferramenta encontrada</p>';
+  const skills=allSkills().filter(x=>(x.name+" "+x.description+" "+x.category).toLowerCase().includes(q));
+  $("skillsList").innerHTML=skills.map(x=>'<div class="tool"><span class="toolicon">'+escapeHtml(x.icon||"✳")+'</span><div style="min-width:0;flex:1"><strong>'+escapeHtml(x.name)+'</strong><p>'+escapeHtml(x.description)+'</p></div><button class="plus" type="button" data-apply-skill="'+escapeHtml(x.id)+'" aria-label="Adicionar skill '+escapeHtml(x.name)+'">+</button></div>').join("")||'<p class="empty">Nenhuma Skill encontrada</p>';
 }
 function layoutNodes(){
-  flow.nodes.forEach((node,i)=>{node.x=50+i*210;node.y=160+(i%2)*32});
+  const positions={goal:[32,260],script:[242,260],ollama:[452,260],github:[452,60],stock:[452,485],slides:[665,80],news:[890,50],hook:[895,180],motioncanvas:[895,260],captions:[1080,500],piper:[890,475],render:[1190,270],final:[1450,270]};
+  const taken={};
+  flow.nodes.forEach((node,i)=>{
+    const base=positions[node.tool]||[200+i*200,250];
+    const key=base.join(",");const count=taken[key]||0;taken[key]=count+1;
+    node.x=base[0]+count*160;node.y=base[1]+count*120;
+  });
 }
 function renderCanvas(){
   const box=$("canvasNodes");
@@ -177,8 +240,11 @@ function modify(fn,selectedNext){
   try{flow=fn(flow);if(selectedNext!==undefined)selected=selectedNext;activeTemplate="";syncDom()}catch(e){toast(e.message)}
 }
 function addTool(id){
-  modify(f=>{const x=insertTool(f,id);x.name=f.name;return x},id);
-  layoutNodes();syncDom();if(mobile())openPanel("inspector");
+  try{
+    flow=insertTool(flow,id);selected=id;activeTemplate="";layoutNodes();syncDom();
+    toast(selectLabel(id)+" adicionado ao fluxo");
+    if(mobile())openPanel("inspector");
+  }catch(e){toast(e.message)}
 }
 function updateSettings(id,value){
   if(id==="duration_seconds"||id==="hook_seconds"||id==="universe_seconds")value=Number(value);
@@ -217,7 +283,7 @@ function renderSavedMenu(){
 async function initialize(){
   try{
     const me=await api("/api/me");csrf=me.csrf;githubConnected=!!me.github_connected;
-    showAuthenticated(true);loadDraft();syncDom();buildWorkflows();updateConnectionStatus();await fetchSavedFlows();
+    showAuthenticated(true);loadCustomSkills();loadDraft();syncDom();buildWorkflows();updateConnectionStatus();await fetchSavedFlows();
   }catch(e){showAuthenticated(false)}
 }
 function parseImported(content){
@@ -228,19 +294,65 @@ function parseImported(content){
 $("loginForm").addEventListener("submit",async e=>{e.preventDefault();const btn=e.target.querySelector("button");btn.disabled=true;try{await api("/api/login","POST",{password:$("password").value});$("password").value="";await initialize();toast("Acesso autorizado")}catch(err){toast(err.message)}finally{btn.disabled=false}});
 $("logout").addEventListener("click",async()=>{try{await api("/api/logout","POST")}catch{}csrf="";showAuthenticated(false)});
 document.querySelectorAll(".topnav [data-view]").forEach(x=>x.addEventListener("click",()=>showView(x.dataset.view)));
-$("templates").addEventListener("click",e=>{const btn=e.target.closest("[data-template]");if(!btn)return;if(flow.settings.topic&&!confirm("Substituir o fluxo atual pelo template selecionado?"))return;flow=makeTemplate(btn.dataset.template);activeTemplate=btn.dataset.template;selected="goal";syncDom()});
+$("templates").addEventListener("click",e=>{const btn=e.target.closest("[data-template]");if(!btn)return;if(flow.settings.topic&&!confirm("Substituir o fluxo atual pelo template selecionado?"))return;flow=makeTemplate(btn.dataset.template);activeTemplate=btn.dataset.template;selected="goal";layoutNodes();syncDom()});
 $("searchTools").addEventListener("input",renderToolPalette);
-$("toolList").addEventListener("click",e=>{const btn=e.target.closest("[data-add]");if(btn&&!btn.disabled)addTool(btn.dataset.add)});
+$("toolList").addEventListener("click",e=>{
+ const skill=e.target.closest("[data-apply-skill]");
+ if(skill){addSkillFromCatalog(skill.dataset.applySkill);return}
+ const btn=e.target.closest("[data-add]");
+ if(btn&&!btn.disabled)addTool(btn.dataset.add);
+});
+$("showcaseSearch").addEventListener("input",renderToolShowcase);
+$("showcaseCatalog").addEventListener("dragstart",e=>{
+ const item=e.target.closest("[data-dragtool],[data-dragskill]");
+ if(!item||!e.dataTransfer)return;
+ const key=item.dataset.dragtool||("skill:"+item.dataset.dragskill);
+ e.dataTransfer.setData("text/plain",key);e.dataTransfer.effectAllowed="copy";
+});
+$("showcaseCatalog").addEventListener("click",e=>{
+ const skill=e.target.closest("[data-apply-skill]");
+ if(skill){addSkillFromCatalog(skill.dataset.applySkill);return}
+ const btn=e.target.closest("[data-add]");
+ if(btn&&!btn.disabled)addTool(btn.dataset.add);
+});
+document.querySelectorAll("[data-catalog-tab]").forEach(btn=>btn.addEventListener("click",()=>{catalogTab=btn.dataset.catalogTab;renderToolShowcase()}));
+$("quickToolButtons").addEventListener("click",e=>{const btn=e.target.closest("[data-quick-tool]");if(btn&&!btn.disabled)addTool(btn.dataset.quickTool)});
+function showLibrary(){
+ showView("studio");
+ if(mobile()){openPanel("palette");return}
+ $("toolsShowcase").scrollIntoView({behavior:"smooth",block:"center"});
+ $("showcaseSearch").focus({preventScroll:true});
+}
+$("openToolLibrary").addEventListener("click",showLibrary);
+$("mobileAllTools").addEventListener("click",showLibrary);
+$("closePalette").addEventListener("click",closePanels);
+$("closeInspector").addEventListener("click",closePanels);
+$("doneInspector").addEventListener("click",closePanels);
+function importSkill(){const inp=$("skillFileInput");inp.value="";inp.click()}
+$("importSkill").addEventListener("click",importSkill);
+$("importSkillPalette").addEventListener("click",importSkill);
+$("skillFileInput").addEventListener("change",async e=>{
+ const file=e.target.files?.[0];if(!file)return;
+ try{
+   if(file.size>4096)throw Error("Skill JSON muito grande (máximo 4 KB)");
+   const manifest=parseSkillManifest(await file.text());
+   if(customSkills.length>=20)throw Error("Limite de 20 Skills personalizadas");
+   if(customSkills.some(x=>x.name.toLowerCase()===manifest.name.toLowerCase()))throw Error("Já existe Skill com esse nome");
+   customSkills.push({...manifest,id:"custom-"+customSkills.length,icon:"✳",category:"Personalizadas"});
+   saveCustomSkills();catalogTab="skills";renderToolPalette();renderToolShowcase();
+   toast("Skill importada. Selecione + para adicioná-la ao fluxo.");
+ }catch(err){toast(err.message)}finally{e.target.value=""}
+});
 $("toolList").addEventListener("dragstart",e=>{const el=e.target.closest("[data-dragtool]");if(el&&e.dataTransfer){e.dataTransfer.setData("text/plain",el.dataset.dragtool);e.dataTransfer.effectAllowed="copy"}});
 $("canvasbody").addEventListener("dragover",e=>{if(e.dataTransfer?.types?.includes("text/plain"))e.preventDefault()});
-$("canvasbody").addEventListener("drop",e=>{e.preventDefault();const id=e.dataTransfer?.getData("text/plain");if(id)addTool(id)});
+$("canvasbody").addEventListener("drop",e=>{e.preventDefault();const id=e.dataTransfer?.getData("text/plain");if(!id)return;if(id.startsWith("skill:"))addSkillFromCatalog(id.slice(6));else addTool(id)});
 $("canvasNodes").addEventListener("click",e=>{
   const from=e.target.closest("[data-portout]");const to=e.target.closest("[data-portin]");
   if(from){connecting=from.dataset.portout;toast("Selecione a entrada de outro bloco para conectar.");renderCanvas();return}
   if(to){if(!connecting){toast("Clique primeiro na saída de um bloco.");return}const s=connecting;connecting=null;modify(f=>connectNodes(f,s,to.dataset.portin));return}
   const remove=e.target.closest("[data-remove]");if(remove){modify(f=>removeTool(f,remove.dataset.remove),"goal");layoutNodes();syncDom();return}
   const edit=e.target.closest("[data-edit]");const block=e.target.closest("[data-node]");
-  if(edit||block){selected=edit?.dataset.edit||block.dataset.node;renderCanvas();renderInspector()}
+  if(edit||block){selected=edit?.dataset.edit||block.dataset.node;renderCanvas();renderInspector();if(!mobile())openPanel("inspector")}
 });
 $("paths").addEventListener("click",e=>{const hit=e.target.closest("[data-from][data-to]");if(hit&&confirm("Remover esta conexão?"))modify(f=>removeEdge(f,hit.dataset.from,hit.dataset.to))});
 let dragging=null;
@@ -266,7 +378,8 @@ $("inspectorBody").addEventListener("change",e=>{if(e.target.dataset.setting==="
 $("inspectorBody").addEventListener("click",e=>{if(e.target.id==="editGeneral"){selected="goal";renderInspector();renderCanvas()}});
 $("zoomIn").addEventListener("click",()=>{zoom=Math.min(1.6,Math.round((zoom+.1)*10)/10);renderCanvas()});
 $("zoomOut").addEventListener("click",()=>{zoom=Math.max(.5,Math.round((zoom-.1)*10)/10);renderCanvas()});
-$("resetZoom").addEventListener("click",()=>{zoom=.8;renderCanvas();$("canvasbody").scrollTo({left:0,top:0})});
+$("resetZoom").addEventListener("click",()=>{zoom=.7;renderCanvas();$("canvasbody").scrollTo({left:0,top:0})});
+$("autoLayout").addEventListener("click",()=>{layoutNodes();renderCanvas();persist();toast("Blocos organizados no canvas")});
 $("previewRequest").addEventListener("click",()=>{try{const compiled=compileFlow(flow);$("requestJson").textContent=JSON.stringify(compiled,null,2);$("requestDialog").showModal()}catch(err){toast(err.message);selected="goal";renderInspector()}});
 $("closeRequest").addEventListener("click",()=>$("requestDialog").close());
 $("copyRequest").addEventListener("click",()=>{navigator.clipboard?.writeText($("requestJson").textContent).then(()=>toast("JSON copiado")).catch(()=>toast("Não foi possível copiar"))});
