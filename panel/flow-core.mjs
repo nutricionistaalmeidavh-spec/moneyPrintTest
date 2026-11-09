@@ -179,13 +179,14 @@ export function compileFlow(flow){
       if(!fileAsset(s.hook_asset)||!/\.(mp4|mov|webm)$/i.test(s.hook_asset))throw Error("Gancho precisa de um vídeo existente em assets/");
       motion.hook_asset=s.hook_asset;
       motion.hook_seconds=Number(s.hook_seconds||3);
-      if(motion.hook_seconds<.5||motion.hook_seconds>10)throw Error("Gancho deve ter entre 0,5 e 10 segundos");
+      if(motion.hook_seconds<.5||motion.hook_seconds>8)throw Error("Gancho deve ter entre 0,5 e 8 segundos");
     }
     if(set.has("motioncanvas")){
       if(!fileAsset(s.motion_canvas_clip)||!/\.(mp4|mov|webm)$/i.test(s.motion_canvas_clip))throw Error("Motion Canvas exige vídeo existente em assets/");
       motion.motion_canvas_clip=s.motion_canvas_clip;
     }
     if(Number(s.universe_seconds||0)>0){
+      if(Number(s.universe_seconds)>8)throw Error("Abertura universo limitada a 8 segundos");
       motion.universe_seconds=Number(s.universe_seconds);
       motion.universe_title=String(s.universe_title||"UNIVERSO OPEN SOURCE").slice(0,100);
     }
