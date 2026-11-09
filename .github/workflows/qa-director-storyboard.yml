@@ -38,7 +38,7 @@ jobs:
           print("HTML visual íntegro, cena por cena.")
           PY
           node --check /tmp/director-preview.js
-      - name: Confirmação: apenas pré-produção, sem render e sem publicação
+      - name: "Confirmação: apenas pré-produção, sem render e sem publicação"
         run: |
           python - <<'PY'
           import json
