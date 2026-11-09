@@ -40,6 +40,33 @@ class TalkcraftBridgeTests(unittest.TestCase):
         self.assertAlmostEqual(cues[1]["at"],3.62)
         self.assertEqual(cues[0]["method"],"measured_whisper_pt")
 
+    def test_document_overload_is_distinct_from_scribble_and_document_organization(self):
+        p = example()
+        p["scenes"][0]["text"]="Os contratos, notas e anexos ficam espalhados."
+        p["scenes"][1]["text"]="O Paperless organiza documentos por busca."
+        words = [{"word":"contratos","start":0.51,"end":1.09},
+                 {"word":"papéis","start":0.7,"end":1.15},
+                 {"word":"paperless","start":3.22,"end":3.7}]
+        cues = clip_aligned_cues(p,words)
+        self.assertEqual([c["effect"] for c in cues],
+                         ["paper_overload","document_flow"])
+        self.assertEqual(cues[0]["recipe"],"stack-fan-out")
+        self.assertEqual(cues[1]["recipe"],"numbered-step-stack")
+
+    def test_essential_effects_for_five_systems_can_be_audited(self):
+        from scripts.talkcraft_bridge import audit_illustrations
+        p=example()
+        p["scenes"][0]["text"]="O caos da planilha."
+        p["scenes"][1]["text"]="Um CRM organiza clientes."
+        cues=clip_aligned_cues(p,[
+            {"word":"caos","start":0.4,"end":0.8},
+            {"word":"CRM","start":3.7,"end":4.0}])
+        report=audit_illustrations(p,cues)
+        self.assertEqual(report["required"],["scribble_chaos","crm_orbit"])
+        self.assertEqual(report["missing"],[])
+        self.assertEqual(audit_illustrations(p,[])["missing"],
+                         ["scribble_chaos","crm_orbit"])
+
     def test_no_fabricated_word_time_when_not_aligned(self):
         self.assertEqual(clip_aligned_cues(example(),[]),[])
 
@@ -48,6 +75,7 @@ class TalkcraftBridgeTests(unittest.TestCase):
         self.assertEqual(select_recipe("atendimento"),"chat-message-flow")
         self.assertEqual(select_recipe("vendas"),"numbered-step-stack")
         self.assertEqual(select_recipe("caos"),"pencil-draw")
+        self.assertEqual(select_recipe("contratos"),"stack-fan-out")
 
     def test_project_manifest_exact_frames_and_provenance(self):
         with tempfile.TemporaryDirectory() as d:
