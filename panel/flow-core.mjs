@@ -228,7 +228,7 @@ export function parseSkillManifest(raw){
  return {name,description,tools,version:1};
 }
 export function applySkill(flow,skill){
- const manifest=typeof skill==="string"?skillCatalog.find(s=>s.id===skill):parseSkillManifest(skill);
+ const manifest=typeof skill==="string"?skillCatalog.find(s=>s.id===skill):skillCatalog.includes(skill)?skill:parseSkillManifest(skill);
  if(!manifest)throw Error("Skill não suportada");
  let updated=cloneFlow(flow);
  for(const tool of manifest.tools){
