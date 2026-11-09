@@ -192,7 +192,9 @@ def render_stack(source: Path, output: Path, *, options: dict | None = None,
                 raise VideoStackError("Gancho menor que duração solicitada")
             timeline.append(("hook", hook, hook_seconds))
         if opts["universe_seconds"] > 0:
-            from scripts.motion_design import render_universe
+            from scripts.motion_design import render_threejs_universe, render_universe
+            if opts["threejs"]:
+                render_universe = render_threejs_universe
             universe = root / "universe.mp4"
             render_universe(universe, title=opts["universe_title"],
                             seconds=opts["universe_seconds"], size=(w, h), fps=fps)
