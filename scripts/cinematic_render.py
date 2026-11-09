@@ -162,8 +162,6 @@ def prepare_shots(plan: list[dict], approved: dict[str, Path], duration: float) 
         result.append((approved[shot["asset_id"]], seconds))
         remaining -= seconds
         idx += 1
-        if idx > 200:
-            raise RuntimeError("Plano de edição excedeu orçamento técnico")
     return result
 
 
