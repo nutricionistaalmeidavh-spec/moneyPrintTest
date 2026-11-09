@@ -32,6 +32,46 @@ Pedido com roteiro e termos definidos pelo ChatGPT (evita carregar LLM no runner
 }
 ```
 
+### Novo vídeo cinematográfico: diretor de IA open source
+
+Para criar **um vídeo novo**, diferente do vídeo de referência, use
+`"visual_mode": "github_cinematic"` com `repo_urls` e `sections`.
+Os oito repositórios são **gravados novamente, em páginas públicas reais**, pelo
+Chromium/Playwright no GitHub Actions. O arquivo MOV de referência não é lido
+nem incorporado na renderização.
+
+A produção usa exclusivamente ferramentas locais gratuitas:
+
+- **Ollama/Qwen local** como diretor editorial: decide ordem e duração dos takes,
+  sugere buscas de b-roll contextual e só recebe IDs de mídias previamente
+  recuperadas. Se estiver indisponível, uma edição determinística utiliza o
+  mesmo material e o resultado registra esse fallback.
+- **Chromium** para navegação e captura de páginas reais dos repositórios.
+- **Wikimedia Commons** para vídeo contextual de usos cotidianos (ex.: restaurante,
+  atendimento, escritório ou obras). Créditos são preservados.
+- **README oficial** para GIFs e capturas de tela originais quando disponíveis.
+- **Google News RSS** para possíveis manchetes com link, veículo e data
+  conferidos. Sem fonte verificável, a notícia **não aparece** no vídeo;
+  o modelo jamais inventa uma manchete.
+- **Piper** para locução em português por seção, **FFmpeg/Pillow** para edição
+  1920×1080, motion, cortes e tipografia leve Lato/Inter. Acompanha SRT
+  editável com sincronização estimada, logs editoriais, fontes e licenças.
+
+**Não há filtros editoriais para vídeos:** takes e fontes de vídeo podem variar,
+inclusive clipes escolhidos pelo criador em `assets/` por
+`media_clips`. Verifique direitos de uso dos vídeos de terceiros e os
+créditos antes de publicar. O sistema **não inventa notícias** nem seleciona
+arquivos inexistentes.
+
+O nome do vídeo, os repositórios, o roteiro de cada seção e os termos de
+contexto são controlados pelo JSON. Veja `requests/artisys-oito-repositorios-cinematic.json`
+para a edição inédita dos oito projetos.
+
+A execução é pelo GitHub Actions e gera artifact para revisão, **sem
+autopublicação**. Runners GitHub gratuitos para repositórios públicos seguem
+os limites de uso do provedor; a mesma stack pode ser executada em
+runner self-hosted próprio, sem APIs pagas.
+
 ### Gravar as páginas do GitHub como no computador (sem celular)
 
 Use `"visual_mode": "github"` com 1 a 12 URLs de repositórios públicos.
