@@ -64,7 +64,7 @@ def validate_recipe(raw, *, duration, resolution):
             not 1<=clip["speed"]<=3.5 or clip["start"]<previous):
             raise RecipeError("Tempo ou aceleração de take inválido")
         previous=clip["end"]
-        text_line(clip.get("caption"),48)
+        if "caption" in clip: raise RecipeError("Sem legenda de ação ou contador")
         zoom=clip.get("zoom",1.0)
         if type(zoom) not in (int,float) or not 1.0<=zoom<=1.18:
             raise RecipeError("Zoom inválido")
@@ -149,30 +149,22 @@ def card_video(image,output,seconds):
              "-an","-c:v","libx264","-crf","24","-preset","veryfast",
              "-pix_fmt","yuv420p","-r",str(FPS),str(output)])
 
-def recorded_scene(source,clip,masks,overlay,output):
-    duration=clip["end"]-clip["start"]
-    speed=clip["speed"]
+def recorded_scene(source,clip,masks,output):
+    """Cuts real capture without text overlays; opaque privacy covers first."""
+    length=clip["end"]-clip["start"]
     filters=[]
     for mask in masks:
         x,y,w,h=[int(mask[k]) for k in ("x","y","width","height")]
-        # Opaque BEFORE motion/transforms: avoids revealing original pixels.
         filters.append(f"drawbox=x={x}:y={y}:w={w}:h={h}:color=0x12121d:t=fill")
-    filters += [
-        f"setpts=(PTS-STARTPTS)/{speed}",f"fps={FPS}",
-        "scale=720:1280:force_original_aspect_ratio=decrease:flags=lanczos",
-        "pad=720:1280:(ow-iw)/2:(oh-ih)/2:color=0x080c19","setsar=1"]
-    zoom=clip.get("zoom",1.0)
-    if zoom>1:
-        w=round(W*zoom/2)*2; h=round(H*zoom/2)*2
-        filters.extend([f"scale={w}:{h}:flags=lanczos",
-                        f"crop={W}:{H}:(in_w-out_w)/2:(in_h-out_h)/2"])
+    filters += [f"setpts=(PTS-STARTPTS)/{clip['speed']}",f"fps={FPS}",
+                "scale=720:1280:force_original_aspect_ratio=decrease:flags=lanczos",
+                "pad=720:1280:(ow-iw)/2:(oh-ih)/2:color=0x080c19",
+                "setsar=1","format=yuv420p"]
     execute(["ffmpeg","-hide_banner","-loglevel","error","-nostdin","-y",
-             "-ss",str(clip["start"]),"-t",str(duration),"-i",str(source),
-             "-loop","1","-i",str(overlay),"-filter_complex",
-             "[0:v]"+",".join(filters)+"[v0];[v0][1:v]overlay=shortest=1:format=auto,format=yuv420p[v]",
-             "-map","[v]","-an","-r",str(FPS),"-c:v","libx264",
+             "-ss",str(clip["start"]),"-t",str(length),"-i",str(source),
+             "-vf",",".join(filters),"-an","-r",str(FPS),"-c:v","libx264",
              "-preset","veryfast","-crf","25","-pix_fmt","yuv420p",
-             "-t",str(duration/speed),str(output)])
+             "-t",str(length/clip["speed"]),str(output)])
 
 def backing_audio(path,seconds):
     """Original non-copyright pulse, not captured microphone nor outside music."""
@@ -191,7 +183,45 @@ def backing_audio(path,seconds):
         out.setnchannels(1);out.setsampwidth(2);out.setframerate(rate)
         out.writeframes(samples.tobytes())
 
-def render(source,recipe_file,output):
+def hook_timing(start,end,opening_total=3.0):
+    """No slow motion: short near-miss then galaxy animation, total 3 s."""
+    if (type(start) not in (int,float) or type(end) not in (int,float)
+        or not 0 <= start < end <= opening_total):
+        raise RecipeError("Gancho deve rodar sem câmera lenta")
+    duration=round(end-start,3)
+    return duration,round(opening_total-duration,3)
+
+def hook_video(source,recipe,output):
+    x,y,w,h=recipe["hook_crop"]
+    start,end=recipe["hook_source_start"],recipe["hook_source_end"]
+    length,_=hook_timing(start,end)
+    execute(["ffmpeg","-hide_banner","-loglevel","error","-nostdin","-y",
+             "-ss",str(start),"-t",str(length),"-i",str(source),
+             "-vf",f"crop={w}:{h}:{x}:{y},fps={FPS},scale=720:1280:flags=lanczos,setsar=1,format=yuv420p",
+             "-an","-r",str(FPS),"-c:v","libx264","-preset","veryfast",
+             "-crf","23","-pix_fmt","yuv420p",str(output)])
+
+def universe_video(gif_source,lines,length,output):
+    """Original licensed GIF asset is local; no artificial placeholder or paid API."""
+    from PIL import Image,ImageDraw
+    frame=Image.new("RGBA",(W,H),(0,0,0,0))
+    d=ImageDraw.Draw(frame)
+    for i,phrase in enumerate(lines[:3]):
+        face=fit(d,phrase,W-64,52)
+        y=410+86*i
+        d.text((W/2+2,y+3),phrase,font=face,anchor="mm",fill=(1,4,15,220),stroke_width=6,stroke_fill=(1,4,15,200))
+        d.text((W/2,y),phrase,font=face,anchor="mm",fill=(255,255,255,255),stroke_width=1,stroke_fill=(20,20,40,255))
+    overlay=output.parent/"universe-title.png"
+    frame.save(overlay)
+    execute(["ffmpeg","-hide_banner","-loglevel","error","-nostdin","-y",
+             "-stream_loop","-1","-i",str(gif_source),"-loop","1","-i",str(overlay),
+             "-filter_complex",
+             "[0:v]fps=24,scale=720:1280:force_original_aspect_ratio=increase:flags=lanczos,"
+             "crop=720:1280,setsar=1[v0];[v0][1:v]overlay=shortest=1:format=auto,format=yuv420p[v]",
+             "-map","[v]","-an","-t",str(length),"-r",str(FPS),
+             "-c:v","libx264","-preset","veryfast","-crf","24","-pix_fmt","yuv420p",str(output)])
+
+def render(source,recipe_file,output,hook_source=None,universe_gif=None):
     from PIL import Image  # noqa: F401
     if not source.is_file(): raise RecipeError("Gravação de origem inexistente")
     if not shutil.which("ffmpeg") or not shutil.which("ffprobe"):
@@ -199,19 +229,29 @@ def render(source,recipe_file,output):
     duration,resolution=probe(source)
     recipe=validate_recipe(json.loads(recipe_file.read_text(encoding="utf-8")),
                            duration=duration,resolution=resolution)
+    if not hook_source or not Path(hook_source).is_file(): raise RecipeError("Vídeo de gancho ausente")
+    if not universe_gif or not Path(universe_gif).is_file(): raise RecipeError("GIF real do universo ausente")
+    source_secs,hook_res=probe(Path(hook_source))
+    if recipe.get("hook_source_resolution")!=list(hook_res): raise RecipeError("Resolução do gancho mudou")
+    if not 0<=recipe["hook_source_start"]<recipe["hook_source_end"]<=source_secs: raise RecipeError("Recorte do gancho inválido")
+    crop=recipe["hook_crop"]
+    if len(crop)!=4 or any(type(v) is not int for v in crop): raise RecipeError("hook_crop inválido")
+    x,y,w,h=crop
+    if x<0 or y<0 or w<160 or h<240 or x+w>hook_res[0] or y+h>hook_res[1]: raise RecipeError("Recorte fora da imagem")
     output.parent.mkdir(parents=True,exist_ok=True)
     with tempfile.TemporaryDirectory(prefix="moneyprint-tutorial-") as work:
         tmp=Path(work); segments=[]
-        intro_image=tmp/"intro.jpg"; hook_card(intro_image,recipe["hook"])
-        intro=tmp/"000-intro.mp4";card_video(intro_image,intro,2.2);segments.append(intro)
+        original_hook=tmp/"000-hook.mp4"
+        hook_video(Path(hook_source),recipe,original_hook)
+        segments.append(original_hook)
+        galaxy=tmp/"001-galaxy.mp4"
+        duration_space=hook_timing(recipe["hook_source_start"],recipe["hook_source_end"])[1]
+        universe_video(Path(universe_gif),recipe["hook"],duration_space,galaxy)
+        segments.append(galaxy)
         for i,clip in enumerate(recipe["clips"],1):
-            label=tmp/f"caption-{i:02}.png"
-            caption_card(label,clip["caption"],i,len(recipe["clips"]))
             section=tmp/f"{i:03}-take.mp4"
-            recorded_scene(source,clip,masks_for_clip(recipe,clip),label,section)
+            recorded_scene(source,clip,masks_for_clip(recipe,clip),section)
             segments.append(section)
-        outro_image=tmp/"outro.jpg";hook_card(outro_image,recipe["outro"])
-        outro=tmp/"999-outro.mp4";card_video(outro_image,outro,2);segments.append(outro)
         playlist=tmp/"concat.txt"
         playlist.write_text("".join("file '"+str(p)+"'\n" for p in segments))
         joined=tmp/"joined.mp4"
@@ -226,15 +266,18 @@ def render(source,recipe_file,output):
                  "-movflags","+faststart",str(output)])
     return {"output":str(output.resolve()),"seconds":round(length,2),
             "takes":len(recipe["clips"]),"privacy_masks":len(recipe["privacy_masks"]),
-            "source_audio":"excluded","publish":"human_review_required"}
+            "source_audio":"excluded","layout":"no_top_or_bottom_overlays","opening_seconds":3,
+            "hook_playback":"normal_1x","publish":"human_review_required"}
 
 def main():
     cli=argparse.ArgumentParser(description="MoneyPrint: criar tutorial gravado vertical")
     cli.add_argument("--source",required=True,type=Path)
+    cli.add_argument("--hook-source",required=True,type=Path)
+    cli.add_argument("--universe-gif",required=True,type=Path)
     cli.add_argument("--recipe",required=True,type=Path)
     cli.add_argument("--output",required=True,type=Path)
     args=cli.parse_args()
-    print(json.dumps(render(args.source,args.recipe,args.output),ensure_ascii=False,indent=2))
+    print(json.dumps(render(args.source,args.recipe,args.output,args.hook_source,args.universe_gif),ensure_ascii=False,indent=2))
 
 if __name__=="__main__":
     main()
