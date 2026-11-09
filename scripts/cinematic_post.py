@@ -34,6 +34,12 @@ BROLL_TERMS = {
     "security": ["data center servers", "computer security"],
     "notifications": ["mobile phone notification", "phone applications"],
     "secrets": ["computer server room", "encryption computer"],
+    "pdv": ["restaurant cashier serving customer", "restaurant waiter tablet order", "point of sale restaurant"],
+    "construction": ["civil engineer construction site", "architecture building floor plan"],
+    "automation": ["business owner working on laptop", "person checking messages mobile phone"],
+    "commerce": ["shop worker packing online orders", "warehouse stock inventory"],
+    "video": ["person editing video timeline", "content creator computer camera"],
+    "health": ["medical clinic receptionist computer", "hospital workstation"],
     "general": ["programming computer", "technology workspace"],
 }
 
@@ -74,7 +80,24 @@ def metadata_for_repo(url: str) -> dict:
     if len(parts) != 2 or not all(parts):
         raise CinematicError("Use somente a página raiz do repositório")
     slug = parts[-1].lower()
-    label = BACKEND_LABELS.get(slug, (parts[-1], "Projeto open source", "general"))
+    label = BACKEND_LABELS.get(slug)
+    if label is None:
+        keywords = {
+            "pdv": ("pdv", "pos", "point-of-sale", "checkout", "cashier", "restaurant"),
+            "construction": ("bim", "construction", "obra", "revit", "ifc", "building"),
+            "automation": ("whatsapp", "automation", "automacao", "workflow", "chatbot"),
+            "commerce": ("ecommerce", "e-commerce", "shopping", "shop", "inventory", "estoque"),
+            "video": ("video", "editing", "remotion", "clip", "editor"),
+            "security": ("pentest", "security", "cyber", "scanner", "auth"),
+            "health": ("health", "clinic", "med", "nutrition"),
+        }
+        tokens = set(re.split(r"[-_.]+", slug))
+        for category, signals in keywords.items():
+            if any(signal == slug or signal in tokens for signal in signals):
+                label = (parts[-1], "Software open source em uso real", category)
+                break
+    if label is None:
+        label = (parts[-1], "Projeto open source", "general")
     return {"title": sanitize_label(label[0], 45),
             "subtitle": sanitize_label(label[1], 90), "category": label[2],
             "url": url}
