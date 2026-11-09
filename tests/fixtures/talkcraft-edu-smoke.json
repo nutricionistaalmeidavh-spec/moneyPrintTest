@@ -1,0 +1,50 @@
+{
+  "schema_version": 3,
+  "id": "edu-smoke",
+  "revision": 1,
+  "topic": "Video Talkcraft integração educativa",
+  "script": "O caos da planilha. O CRM organiza clientes.",
+  "fps": 30,
+  "aspect": "16:9",
+  "total_frames": 180,
+  "visual_style": "talkcraft_edu",
+  "tracks": [
+    {
+      "id": "video",
+      "kind": "video"
+    },
+    {
+      "id": "voice",
+      "kind": "audio"
+    }
+  ],
+  "assets": [],
+  "scenes": [
+    {
+      "id": "scene-001",
+      "track_id": "video",
+      "title": "O CAOS DA PLANILHA",
+      "text": "O caos da planilha.",
+      "kind": "text",
+      "asset_id": null,
+      "start_frame": 0,
+      "duration_frames": 90,
+      "animation": "cut",
+      "framing": "contain",
+      "layout": "flow"
+    },
+    {
+      "id": "scene-002",
+      "track_id": "video",
+      "title": "CRM E ORGANIZAÇÃO",
+      "text": "O CRM organiza clientes.",
+      "kind": "text",
+      "asset_id": null,
+      "start_frame": 90,
+      "duration_frames": 90,
+      "animation": "cut",
+      "framing": "contain",
+      "layout": "browser"
+    }
+  ]
+}
