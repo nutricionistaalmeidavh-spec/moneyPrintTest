@@ -1,0 +1,195 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://artisys.dev/schemas/moneyprint-video-project-v3.json",
+  "title": "MoneyPrint Video Project V3",
+  "type": "object",
+  "additionalProperties": true,
+  "required": [
+    "schema_version",
+    "id",
+    "revision",
+    "topic",
+    "script",
+    "fps",
+    "aspect",
+    "total_frames",
+    "tracks",
+    "assets",
+    "scenes"
+  ],
+  "properties": {
+    "schema_version": {
+      "const": 3
+    },
+    "id": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 72
+    },
+    "revision": {
+      "type": "integer",
+      "minimum": 1
+    },
+    "topic": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 180
+    },
+    "script": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 12000
+    },
+    "fps": {
+      "type": "integer",
+      "enum": [
+        24,
+        25,
+        30,
+        60
+      ]
+    },
+    "aspect": {
+      "enum": [
+        "9:16",
+        "16:9",
+        "1:1"
+      ]
+    },
+    "total_frames": {
+      "type": "integer",
+      "minimum": 1
+    },
+    "tracks": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "type": "object",
+        "required": [
+          "id",
+          "kind"
+        ],
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "kind": {
+            "enum": [
+              "video",
+              "audio",
+              "overlay"
+            ]
+          }
+        }
+      }
+    },
+    "assets": {
+      "type": "array",
+      "maxItems": 300,
+      "items": {
+        "type": "object",
+        "required": [
+          "id",
+          "title",
+          "path",
+          "verified"
+        ],
+        "properties": {
+          "id": {
+            "type": "string",
+            "pattern": "^[A-Za-z0-9_-]{1,72}$"
+          },
+          "title": {
+            "type": "string"
+          },
+          "path": {
+            "type": "string",
+            "pattern": "^assets/[A-Za-z0-9_./-]{1,200}$"
+          },
+          "license": {
+            "type": "string"
+          },
+          "attribution": {
+            "type": "string"
+          },
+          "verified": {
+            "type": "boolean"
+          },
+          "tags": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          }
+        }
+      }
+    },
+    "scenes": {
+      "type": "array",
+      "minItems": 1,
+      "maxItems": 120,
+      "items": {
+        "type": "object",
+        "required": [
+          "id",
+          "track_id",
+          "title",
+          "text",
+          "kind",
+          "asset_id",
+          "start_frame",
+          "duration_frames"
+        ],
+        "properties": {
+          "id": {
+            "type": "string",
+            "pattern": "^[A-Za-z0-9_-]{1,72}$"
+          },
+          "track_id": {
+            "const": "video"
+          },
+          "title": {
+            "type": "string"
+          },
+          "text": {
+            "type": "string"
+          },
+          "kind": {
+            "enum": [
+              "text",
+              "media"
+            ]
+          },
+          "asset_id": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "start_frame": {
+            "type": "integer",
+            "minimum": 0
+          },
+          "duration_frames": {
+            "type": "integer",
+            "minimum": 1
+          },
+          "animation": {
+            "enum": [
+              "cut",
+              "fade",
+              "slide"
+            ]
+          },
+          "framing": {
+            "enum": [
+              "contain",
+              "cover",
+              "center"
+            ]
+          }
+        }
+      }
+    }
+  }
+}
