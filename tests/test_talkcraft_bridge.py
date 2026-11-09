@@ -67,6 +67,16 @@ class TalkcraftBridgeTests(unittest.TestCase):
         self.assertEqual(audit_illustrations(p,[])["missing"],
                          ["scribble_chaos","crm_orbit"])
 
+    def test_render_assets_for_native_paper_fan(self):
+        from scripts.talkcraft_render import write_document_assets
+        with tempfile.TemporaryDirectory() as d:
+            write_document_assets(Path(d))
+            pages=[Path(d)/f"paper_{i}.svg" for i in range(1,6)]
+            self.assertTrue(all(page.is_file() for page in pages))
+            self.assertTrue(all('xmlns="http://www.w3.org/2000/svg"' in page.read_text()
+                                for page in pages))
+            self.assertIn("CONTRATO",pages[0].read_text())
+
     def test_no_fabricated_word_time_when_not_aligned(self):
         self.assertEqual(clip_aligned_cues(example(),[]),[])
 
