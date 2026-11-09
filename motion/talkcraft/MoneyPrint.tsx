@@ -109,8 +109,8 @@ const Recipe:React.FC<{cue:Cue;scene:Scene}> = ({cue,scene}) => {
     const PaperFan=PaperFanCard.component;
     return <AbsoluteFill style={{background:'transparent'}}>
       <div style={{position:'absolute',left:220,top:360,width:960,height:540,
-        transform:'scale(1.45)',transformOrigin:'top left',borderRadius:20,
-        boxShadow:'0 22px 65px rgba(39,57,100,.08)',overflow:'hidden'}}>
+        transform:'scale(1.45)',transformOrigin:'top left',
+        mixBlendMode:'multiply',overflow:'hidden'}}>
         <PaperFan title=""
           src1={staticFile('moneyprint/paper_1.svg')}
           src2={staticFile('moneyprint/paper_2.svg')}
