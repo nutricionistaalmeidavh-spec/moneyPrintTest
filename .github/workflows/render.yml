@@ -66,6 +66,42 @@ jobs:
         run: |
           python -m pip install "playwright==1.56.0"
           python -m playwright install --with-deps chromium
+      - name: Detectar adaptadores open source solicitados
+        id: motion_deps
+        run: |
+          python - <<'PY'
+          import os
+          from pathlib import Path
+          from scripts.render_request import load_request, select_requests
+          items = [load_request(p) for p in select_requests(
+              Path.cwd(), manual=os.getenv("REQUEST_PATH",""),
+              before=os.getenv("PUSH_BEFORE",""), after=os.getenv("PUSH_AFTER",""))]
+          flags = {
+              "hyperframes": any(i["motion"]["hyperframes_project"] for i in items),
+              "threejs": any(i["motion"]["threejs"] for i in items),
+              "scenedetect": any(i["motion"]["scene_index"] for i in items),
+              "autocut": any(i["motion"]["auto_cut"] for i in items),
+          }
+          with open(os.environ["GITHUB_OUTPUT"],"a") as out:
+              for name,enabled in flags.items():
+                  out.write(f"{name}={str(enabled).lower()}\n")
+          PY
+      - uses: actions/setup-node@v4
+        if: steps.motion_deps.outputs.threejs == 'true' || steps.motion_deps.outputs.hyperframes == 'true'
+        with:
+          node-version: "22"
+      - name: Instalar PySceneDetect livre somente quando solicitado
+        if: steps.motion_deps.outputs.scenedetect == 'true'
+        run: python -m pip install "scenedetect==0.7.3"
+      - name: Instalar Auto-Editor somente quando solicitado
+        if: steps.motion_deps.outputs.autocut == 'true'
+        run: python -m pip install auto-editor
+      - name: Instalar CLI HyperFrames Apache-2.0 somente quando solicitado
+        if: steps.motion_deps.outputs.hyperframes == 'true'
+        run: npm install -g hyperframes@0.9.23 --ignore-scripts --no-audit --no-fund
+      - name: Instalar Three.js livre somente quando solicitado
+        if: steps.motion_deps.outputs.threejs == 'true'
+        run: npm install --prefix motion/three-universe --ignore-scripts --no-audit --no-fund
       - name: Testes de validação
         run: python -m unittest discover -s tests -v
       - name: Renderizar pedidos novos ou pedido manual
