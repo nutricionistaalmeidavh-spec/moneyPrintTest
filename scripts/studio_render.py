@@ -179,6 +179,11 @@ def _slide(scene, output: Path, width: int, height: int, asset: Path | None) -> 
         pass
     footer_font = _font(max(10,round(20*scale)))
     d.text((pad,height-round(height*.072)), "ARTISYS  ·  MONEYPRINT",font=footer_font,fill=(117,139,162))
+    if scene.get("repo_url"):
+        source=str(scene["repo_url"]).removeprefix("https://")[:65]
+        label_width=d.textlength(source,font=footer_font)
+        d.text((max(pad,width-pad-label_width),height-round(height*.072)),source,
+               font=footer_font,fill=(160,189,207))
     output.parent.mkdir(parents=True,exist_ok=True)
     img.save(output)
 
