@@ -66,29 +66,32 @@ def validate_request(raw: dict) -> dict:
     if not isinstance(raw, dict):
         raise RequestError("O pedido deve ser JSON objeto")
     extra = set(raw) - {"topic", "script", "terms", "duration_seconds",
-                        "aspect", "visual_mode", "repo_urls"}
+                        "aspect", "visual_mode", "repo_urls", "cinematic", "sections", "media_clips", "include_verified_news"}
     if extra:
         raise RequestError(f"Campos proibidos: {sorted(extra)}")
     topic = raw.get("topic")
     if not isinstance(topic, str) or not 1 <= len(topic.strip()) <= 280 or "\x00" in topic:
         raise RequestError("topic deve ter de 1 a 280 caracteres")
     mode = raw.get("visual_mode", "auto")
-    if mode not in ("auto", "stock", "local", "pexels", "pixabay", "github"):
+    if mode not in ("auto", "stock", "local", "pexels", "pixabay", "github", "github_cinematic"):
         raise RequestError("visual_mode inválido")
     script = raw.get("script", "")
-    max_script_size = 9000 if mode == "github" else 2400
+    max_script_size = 9000 if mode in ("github", "github_cinematic") else 2400
     if not isinstance(script, str) or len(script) > max_script_size or "\x00" in script:
         raise RequestError("script inválido")
     terms = clean_terms(raw.get("terms", []))
     duration = raw.get("duration_seconds", 40)
-    max_duration = 360 if mode == "github" else 90
+    max_duration = 360 if mode in ("github", "github_cinematic") else 90
     if type(duration) is not int or not 15 <= duration <= max_duration:
         raise RequestError(f"duration_seconds deve estar entre 15 e {max_duration}")
     aspect = raw.get("aspect", "9:16")
     if aspect not in ("9:16", "16:9", "1:1"):
         raise RequestError("aspect inválido")
+    cinematic = raw.get("cinematic", mode == "github_cinematic")
+    if type(cinematic) is not bool or (cinematic and mode not in ("github", "github_cinematic")):
+        raise RequestError("cinematic é booleano e exige visual_mode github")
     repo_urls = []
-    if mode == "github":
+    if mode in ("github", "github_cinematic"):
         if __package__:
             from .browser_capture import CaptureError, validate_repo_urls
         else:
@@ -98,14 +101,47 @@ def validate_request(raw: dict) -> dict:
         except CaptureError as exc:
             raise RequestError(str(exc)) from exc
     elif "repo_urls" in raw:
-        raise RequestError("repo_urls só pode ser usado no visual_mode github")
+        raise RequestError("repo_urls só pode ser usado nos modos GitHub")
+    sections = []
+    if mode == "github_cinematic":
+        try:
+            if __package__:
+                from .ai_director import validate_sections
+            else:
+                from ai_director import validate_sections
+            sections = validate_sections(raw.get("sections"), repo_urls)
+        except (ValueError, TypeError) as exc:
+            raise RequestError(str(exc)) from exc
+    elif "sections" in raw:
+        raise RequestError("sections exige visual_mode github_cinematic")
+    include_verified_news = raw.get("include_verified_news", False)
+    if type(include_verified_news) is not bool or (include_verified_news and not cinematic):
+        raise RequestError("include_verified_news é booleano e exige cinematic")
+    media_clips = raw.get("media_clips", [])
+    if not isinstance(media_clips, list):
+        raise RequestError("media_clips deve ser uma lista de arquivos opcionais")
+    import pathlib
+    verified_clips = []
+    for item in media_clips:
+        if not isinstance(item, dict) or set(item) != {"repo_index", "path"}:
+            raise RequestError("media_clips deve ter repo_index e path")
+        i, p = item["repo_index"], item["path"]
+        if type(i) is not int or not 1 <= i <= len(repo_urls):
+            raise RequestError("Índice do repo inválido em media_clips")
+        if not isinstance(p, str) or not re.fullmatch(r"assets/[A-Za-z0-9_./-]{1,160}", p):
+            raise RequestError("Caminho de mídia deve estar em assets/")
+        if ".." in pathlib.PurePosixPath(p).parts or pathlib.PurePosixPath(p).suffix.lower() not in (".mp4", ".mov", ".webm", ".gif"):
+            raise RequestError("Tipo ou caminho de mídia inválido")
+        verified_clips.append({"repo_index":i, "path":p})
     return {"topic": topic.strip(), "script": script.strip(), "terms": terms,
             "duration_seconds": duration, "aspect": aspect,
-            "visual_mode": mode, "repo_urls": repo_urls}
+            "visual_mode": mode, "repo_urls": repo_urls,
+            "cinematic": cinematic, "sections": sections,
+            "media_clips": verified_clips, "include_verified_news": include_verified_news}
 
 
 def select_visual_mode(mode: str, env: dict) -> str:
-    if mode == "github":
+    if mode in ("github", "github_cinematic"):
         return "github"
     if mode == "local":
         return "local"
@@ -351,8 +387,15 @@ def render_one(path: Path, output: Path, runtime: Path, env: dict):
     data = load_request(path)
     dest = output / path.stem
     dest.mkdir(parents=True, exist_ok=True)
+    if data["visual_mode"] == "github_cinematic":
+        from scripts.cinematic_render import render_cinematic
+        return render_cinematic(data, dest, runtime, env)
     source = select_visual_mode(data["visual_mode"], env)
     script, terms = data["script"], data["terms"]
+    if data.get("sections") and not script:
+        script = " ".join(item["narration"] for item in data["sections"])
+    if data.get("sections") and not terms:
+        terms = [item["title"] for item in data["sections"][:8]]
     started_ollama = False
     try:
         if not script or not terms:
@@ -362,7 +405,7 @@ def render_one(path: Path, output: Path, runtime: Path, env: dict):
                 script = generated.get("script", "")
             if not terms:
                 terms = normalize_generated_terms(generated.get("terms"), data["topic"])
-        script_limit = 9000 if data["visual_mode"] == "github" else 2400
+        script_limit = 9000 if data["visual_mode"] in ("github", "github_cinematic") else 2400
         if not isinstance(script, str) or not script.strip() or len(script) > script_limit or not terms:
             raise RequestError("Roteiro ou termos não produzidos pelo modelo local")
         script = script.strip()
@@ -428,6 +471,88 @@ def render_one(path: Path, output: Path, runtime: Path, env: dict):
             if not video_file.is_file() or video_file.suffix.lower() != ".mp4":
                 raise RuntimeError("MP4 esperado não encontrado")
             shutil.copy2(video_file, dest / f"video_{i}.mp4")
+        if data.get("cinematic"):
+            if __package__:
+                from .cinematic_post import render_cinematic, metadata_for_repo, BROLL_TERMS
+                from .commons_media import find_free_videos, source_credits
+            else:
+                from cinematic_post import render_cinematic, metadata_for_repo, BROLL_TERMS
+                from commons_media import find_free_videos, source_credits
+            brolls = {}
+            credits = []
+            media_sources = {}
+            # Any user-provided MP4/MOV/WebM/GIF in assets/ is usable as a
+            # contextual cut; there is no editorial video-type gate.
+            # Explicit sources take priority over official README GIFs or stock.
+            for media in data.get("media_clips", []):
+                candidate = (Path.cwd() / media["path"]).resolve()
+                asset_root = (Path.cwd() / "assets").resolve()
+                if not candidate.is_relative_to(asset_root) or not candidate.is_file():
+                    print("Aviso: clipe opcional indisponível:", media["path"], flush=True)
+                    continue
+                idx = media["repo_index"]
+                if candidate.suffix.lower() == ".gif":
+                    converted = dest / "context" / f"user_gif_{idx:02d}.mp4"
+                    converted.parent.mkdir(parents=True, exist_ok=True)
+                    subprocess.run(["ffmpeg", "-hide_banner", "-loglevel", "error",
+                        "-nostdin", "-y", "-stream_loop", "-1", "-i", str(candidate),
+                        "-t", "12", "-an", "-vf",
+                        "fps=24,scale=1280:720:force_original_aspect_ratio=decrease,"
+                        "pad=1280:720:(ow-iw)/2:(oh-ih)/2",
+                        "-c:v", "libx264", "-preset", "veryfast", "-crf", "24",
+                        "-pix_fmt", "yuv420p", str(converted)], check=True, timeout=120)
+                    candidate = converted
+                brolls.setdefault(idx, []).append(candidate)
+                media_sources.setdefault(str(idx), []).append("user_supplied")
+            for idx, repo_url in enumerate(data["repo_urls"], 1):
+                try:
+                    if __package__:
+                        from .ai_director import official_repo_gif
+                    else:
+                        from ai_director import official_repo_gif
+                    gif_demo = official_repo_gif(repo_url, dest / "official" / f"repo_{idx:02d}")
+                except (ImportError, OSError, ValueError):
+                    gif_demo = None
+                if gif_demo:
+                    brolls.setdefault(idx, []).append(Path(gif_demo))
+                    media_sources.setdefault(str(idx), []).append("official_readme_gif")
+                tag = metadata_for_repo(repo_url)["category"]
+                terms = BROLL_TERMS.get(tag, BROLL_TERMS["general"])
+                if data.get("sections") and data["sections"][idx - 1].get("broll_query"):
+                    terms = [data["sections"][idx - 1]["broll_query"]] + terms
+                clips, records = find_free_videos(
+                    terms, dest / "stock" / f"repo_{idx:02d}", max_results=1)
+                if clips:
+                    brolls.setdefault(idx, []).append(Path(clips[0]))
+                    media_sources.setdefault(str(idx), []).append("wikimedia")
+                    credits.extend(records)
+            (dest / "fontes_cinematicas.json").write_text(
+                json.dumps(media_sources, ensure_ascii=False, indent=2), encoding="utf-8")
+            if credits:
+                (dest / "creditos_broll.txt").write_text(
+                    source_credits(credits), encoding="utf-8")
+            verified_news = {}
+            if data.get("include_verified_news"):
+                try:
+                    if __package__:
+                        from .ai_director import fetch_news_headline
+                    else:
+                        from ai_director import fetch_news_headline
+                    for idx, url in enumerate(data["repo_urls"], 1):
+                        item = fetch_news_headline(url)
+                        if item is not None:
+                            verified_news[idx] = item
+                except (ImportError, OSError, ValueError):
+                    print("Aviso: sem notícias verificadas, omitindo cards.", flush=True)
+            (dest / "noticias_verificadas.json").write_text(
+                json.dumps(verified_news, ensure_ascii=False, indent=2),
+                encoding="utf-8")
+            for i in range(1, min(4, len(videos)) + 1):
+                original = dest / f"video_{i}.mp4"
+                render_cinematic(
+                    original, dest / f"video_{i}_cinematic.mp4",
+                    data["repo_urls"], broll_paths=brolls,
+                    news_records=verified_news)
         (dest / "resultado.json").write_text(
             json.dumps({"status": "success", "topic": data["topic"], "visual_source": material_source,
                         "upstream": "harry0703/MoneyPrinterTurbo mpt==1.3.9"},

@@ -32,6 +32,46 @@ Pedido com roteiro e termos definidos pelo ChatGPT (evita carregar LLM no runner
 }
 ```
 
+### Novo vídeo cinematográfico: diretor de IA open source
+
+Para criar **um vídeo novo**, diferente do vídeo de referência, use
+`"visual_mode": "github_cinematic"` com `repo_urls` e `sections`.
+Os oito repositórios são **gravados novamente, em páginas públicas reais**, pelo
+Chromium/Playwright no GitHub Actions. O arquivo MOV de referência não é lido
+nem incorporado na renderização.
+
+A produção usa exclusivamente ferramentas locais gratuitas:
+
+- **Ollama/Qwen local** como diretor editorial: decide ordem e duração dos takes,
+  sugere buscas de b-roll contextual e só recebe IDs de mídias previamente
+  recuperadas. Se estiver indisponível, uma edição determinística utiliza o
+  mesmo material e o resultado registra esse fallback.
+- **Chromium** para navegação e captura de páginas reais dos repositórios.
+- **Wikimedia Commons** para vídeo contextual de usos cotidianos (ex.: restaurante,
+  atendimento, escritório ou obras). Créditos são preservados.
+- **README oficial** para GIFs e capturas de tela originais quando disponíveis.
+- **Google News RSS** para possíveis manchetes com link, veículo e data
+  conferidos. Sem fonte verificável, a notícia **não aparece** no vídeo;
+  o modelo jamais inventa uma manchete.
+- **Piper** para locução em português por seção, **FFmpeg/Pillow** para edição
+  1920×1080, motion, cortes e tipografia leve Lato/Inter. Acompanha SRT
+  editável com sincronização estimada, logs editoriais, fontes e licenças.
+
+**Não há filtros editoriais para vídeos:** takes e fontes de vídeo podem variar,
+inclusive clipes escolhidos pelo criador em `assets/` por
+`media_clips`. Verifique direitos de uso dos vídeos de terceiros e os
+créditos antes de publicar. O sistema **não inventa notícias** nem seleciona
+arquivos inexistentes.
+
+O nome do vídeo, os repositórios, o roteiro de cada seção e os termos de
+contexto são controlados pelo JSON. Veja `docs/examples/artisys-oito-repositorios-cinematic.json`
+para a edição inédita dos oito projetos.
+
+A execução é pelo GitHub Actions e gera artifact para revisão, **sem
+autopublicação**. Runners GitHub gratuitos para repositórios públicos seguem
+os limites de uso do provedor; a mesma stack pode ser executada em
+runner self-hosted próprio, sem APIs pagas.
+
 ### Gravar as páginas do GitHub como no computador (sem celular)
 
 Use `"visual_mode": "github"` com 1 a 12 URLs de repositórios públicos.
@@ -77,6 +117,78 @@ com limite de 15–90 segundos.
 O GitHub Actions publica os MP4 em **Artifacts**, retidos por 7 dias.
 O uso de runners gratuitos está sujeito aos limites e à política de cobrança
 da conta GitHub; nenhuma API comercial é dependência do projeto.
+
+### Edição cinematográfica: vídeo, GIF, motion e notícia verificável
+
+O modo `github_cinematic` é **opt-in** e preserva os modos existentes.
+Combina navegação real no GitHub com movimentos editoriais de câmera, fontes
+**Inter** e vídeos contextualizados, em Full HD. O código mantém o áudio
+original da montagem e não impõe um bloqueio geral a arquivos de vídeo.
+
+- **Mídia:** vídeo/GIF enviado pelo usuário em `assets/` (`mp4`, `mov`,
+  `webm`, `gif`) > GIF oficial encontrado no README > b-roll contextual
+  Wikimedia Commons quando houver. Várias fontes podem aparecer no mesmo
+  capítulo, intercaladas com a navegação real. Não há necessidade de API paga.
+- **Motions:** animações de entrada/saída, destaque de repositório, movimentos
+  em capturas e lower-thirds discretos, sem cards gigantes.
+- **Notícias:** `include_verified_news: true` é opcional. Apenas manchetes
+  reais encontradas em RSS, com veículo e data, são renderizadas. Se não
+  houver notícia confirmável, **nenhuma é inventada ou substituída por uma
+  manchete sintética**. Todo registro utilizado fica em
+  `noticias_verificadas.json`.
+- **Fontes:** Inter (instalada no workflow, licença aberta), com fallback
+  de sistema. Não é necessário incluir arquivos de fontes no projeto.
+
+Para adicionar seus próprios takes:
+
+```json
+{
+  "topic": "8 projetos open source",
+  "visual_mode": "github_cinematic",
+  "duration_seconds": 300,
+  "aspect": "16:9",
+  "repo_urls": [
+    "https://github.com/appwrite/appwrite",
+    "https://github.com/payloadcms/payload"
+  ],
+  "sections": [
+    {
+      "repo_url": "https://github.com/appwrite/appwrite",
+      "title": "Appwrite",
+      "narration": "Appwrite entrega uma base de autenticação e APIs para aplicativos.",
+      "broll_query": "software developer working laptop"
+    },
+    {
+      "repo_url": "https://github.com/payloadcms/payload",
+      "title": "Payload CMS",
+      "narration": "Payload oferece conteúdo estruturado, painel e APIs extensíveis.",
+      "broll_query": "person editing website content"
+    }
+  ],
+  "media_clips": [
+    {"repo_index": 1, "path": "assets/appwrite-demo.mp4"},
+    {"repo_index": 2, "path": "assets/payload-presentation.gif"}
+  ],
+  "include_verified_news": false
+}
+```
+
+No exemplo, os arquivos são opcionais: se não existirem, o pipeline avisa
+e continua com captura de navegador/demos ou b-roll. Para vídeos de maior
+duração, escreva um roteiro realmente compatível com a duração, preferindo
+seções de narração mais completas. O vídeo final segue a duração da voz.
+
+É possível remasterizar um arquivo existente sem alterar a narração:
+
+```sh
+python scripts/cinematic_post.py \
+  --source video_original.mp4 --output video_remasterizado.mp4 \
+  --repos-json repos.json
+```
+
+O QA `QA cinematografico - motion + b-roll + navegador` visita os oito
+repositórios e publica clipes de navegador e material contextual para
+inspeção. **Não publica automaticamente nas redes.**
 
 ### Buscar vídeos reais sem chave de API
 
