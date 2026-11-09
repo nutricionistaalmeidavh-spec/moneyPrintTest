@@ -18,7 +18,7 @@ async function call(path,method="GET",payload,session="",csrf=""){
   return panel.fetch(new Request(origin+path,{method,headers,body:method==="POST"?JSON.stringify(payload||{}):undefined}),env);
 }
 test("health endpoint sem segredos",async()=>{const r=await call("/health");assert.equal(r.status,200);assert.deepEqual(await r.json(),{ok:true})});
-test("pagina e protecao de rotas",async()=>{const a=await call("/");assert.equal(a.status,200);assert.match(await a.text(),/Central de automações/);const b=await call("/api/jobs");assert.equal(b.status,401);assert.equal(b.headers.get("x-frame-options"),"DENY")});
+test("pagina e protecao de rotas",async()=>{const a=await call("/");assert.equal(a.status,200);assert.match(await a.text(),/(Central de automações|Estúdio de automações)/);const b=await call("/api/jobs");assert.equal(b.status,401);assert.equal(b.headers.get("x-frame-options"),"DENY")});
 test("login, sessão, CSRF, token não conectado e logout",async()=>{
   const invalid=await call("/api/login","POST",{password:"senha-errada"});assert.equal(invalid.status,401);
   const login=await call("/api/login","POST",{password});assert.equal(login.status,200);

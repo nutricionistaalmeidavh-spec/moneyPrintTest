@@ -1,3 +1,4 @@
+import {mountStudio} from "./studio-ui.mjs";
 import {
   toolCatalog, templates, makeTemplate, compileFlow, validateFlow, insertTool,
   removeTool, moveTool, updateNodePosition, connectNodes, removeEdge, cloneFlow
@@ -9,6 +10,7 @@ const selectLabel=tool=>toolCatalog.find(x=>x.id===tool)?.label||tool;
 let csrf="",authenticated=false,githubConnected=false,flow=makeTemplate("automatic"),selected="goal",zoom=.8,connecting=null,activeTemplate="automatic",savedFlows=[];
 const repo="https://github.com/nutricionistaalmeidavh-spec/moneyPrintTest";
 const events={};
+let studioModule=null;
 function toast(message){$("toast").textContent=message;$("toast").classList.remove("hidden");clearTimeout(events.toast);events.toast=setTimeout(()=>$("toast").classList.add("hidden"),5200)}
 async function api(url,method="GET",data){
   const headers={"X-Requested-With":"ArtiSysPanel"};
@@ -33,6 +35,8 @@ function showView(view){
   closePanels();
   if(view==="history")refreshHistory();
   if(view==="connections")updateConnectionStatus();
+  if(view==="videos"){if(!studioModule)studioModule=mountStudio({api,toast});studioModule.refresh()}
+  else if(studioModule)studioModule.stop();
 }
 function closePanels(){openPanel(null)}
 function syncDom(){
@@ -290,6 +294,7 @@ $("workflowList").addEventListener("click",async e=>{
 document.querySelectorAll("[data-mobile]").forEach(x=>x.addEventListener("click",()=>{
   const v=x.dataset.mobile;if(v==="tools"){showView("studio");openPanel("palette")}
   else if(v==="settings"){showView("studio");openPanel("inspector")}
+  else if(v==="videos"){showView("videos");closePanels()}
   else if(v==="runs"){showView("history")}else{showView("studio");closePanels()}
 }));
 $("scrim").addEventListener("click",closePanels);

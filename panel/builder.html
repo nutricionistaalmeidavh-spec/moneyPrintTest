@@ -7,6 +7,7 @@
  <div class="brand"><div class="logo" aria-hidden="true">▶</div><span>ArtiSys <span>MoneyPrint</span></span></div>
  <nav class="topnav" aria-label="Navegação principal">
   <button data-view="studio" aria-current="page">Estúdio</button>
+  <button data-view="videos">Cenas</button>
   <button data-view="history">Execuções</button>
   <button data-view="workflows">Workflows</button>
   <button data-view="connections">Conexões</button>
@@ -46,6 +47,79 @@
   <div class="actions"><button class="btn" id="previewRequest">Revisar pedido</button><button class="btn primary" id="executeFlow">▶ Executar automação</button></div>
  </div>
 </section>
+<section id="view-videos" class="view hidden viewbox">
+  <div class="panel viewcard">
+    <div class="studio-head"><div><h2>MoneyPrint Studio V3</h2><p class="muted">Storyboard e timeline editáveis. A prévia é visual e não substitui o MP4 renderizado.</p></div><span class="pill">P0–P2 · R$ 0</span></div>
+    <div class="studio-grid">
+      <div><label for="studioProjectSelect">Projetos salvos</label><select id="studioProjectSelect"><option value="">Selecione um projeto</option></select></div>
+      <div class="studio-actions" style="align-items:end"><button id="studioOpen" class="btn" type="button">Abrir projeto</button><button id="studioReload" class="btn" type="button">Atualizar lista</button></div>
+    </div>
+    <div class="divider"></div>
+    <form id="studioCreateForm">
+      <h3>Novo storyboard</h3>
+      <label for="studioTopic">Título</label><input id="studioTopic" required minlength="3" maxlength="150" placeholder="Ex.: Como criar um repositório GitHub">
+      <label for="studioScript">Roteiro (frases separam as cenas)</label><textarea id="studioScript" required maxlength="4500" rows="5" placeholder="Primeiro, vamos criar o repositório. Depois, configuramos o README. Por fim, publicamos."></textarea>
+      <div class="studio-grid">
+        <div><label for="studioDuration">Duração planejada em segundos</label><input id="studioDuration" type="number" min="15" max="600" value="60" required></div>
+        <div><label for="studioAspect">Proporção</label><select id="studioAspect"><option value="9:16">Shorts 9:16</option><option value="16:9">Horizontal 16:9</option><option value="1:1">Quadrado 1:1</option></select></div>
+      </div>
+      <div class="gap"></div><button class="btn primary" type="submit" id="studioCreateButton">Criar storyboard editável</button>
+    </form>
+  </div>
+  <div class="gap"></div>
+  <div id="studioEditor" class="hidden">
+    <div class="panel viewcard">
+      <div class="studio-head"><div><h2 id="studioName">Projeto</h2><p id="studioSummary" class="studio-muted"></p></div>
+        <div class="studio-actions"><button id="studioUndo" type="button" class="btn">Desfazer</button><button id="studioRedo" type="button" class="btn">Refazer</button></div></div>
+      <div class="studio-layout">
+        <div>
+          <div id="studioStage" class="studio-stage" role="img" aria-label="Prévia gráfica da cena">
+            <span id="studioStageLabel" class="pill">STORYBOARD</span>
+            <strong id="studioStageTitle"></strong><small id="studioStageBody"></small>
+          </div>
+          <div class="studio-controls">
+            <button id="studioPrevious" class="btn" type="button">Anterior</button>
+            <button id="studioPlay" class="btn" type="button">Reproduzir prévia</button>
+            <button id="studioNext" class="btn" type="button">Próxima</button>
+          </div>
+          <p id="studioTime" class="studio-muted" style="text-align:center;margin-top:10px"></p>
+        </div>
+        <div class="studio-sub">
+          <h3>Editar cena</h3>
+          <label for="studioSceneTitle">Título</label><input id="studioSceneTitle" maxlength="120">
+          <label for="studioSceneText">Texto / narração planejada</label><textarea id="studioSceneText" rows="3" maxlength="1200"></textarea>
+          <div class="studio-grid">
+            <div><label for="studioSceneSeconds">Duração (s)</label><input id="studioSceneSeconds" type="number" min="0.04" max="3600" step="0.1"></div>
+            <div><label for="studioSceneAnimation">Entrada</label><select id="studioSceneAnimation"><option value="cut">Corte seco</option><option value="fade">Fade</option><option value="slide">Slide</option></select></div>
+          </div>
+          <label for="studioSceneAsset">Mídia aprovada</label><select id="studioSceneAsset"></select>
+          <div class="studio-actions" style="margin-top:12px"><button id="studioMoveLeft" type="button" class="btn">Mover ←</button><button id="studioMoveRight" type="button" class="btn">Mover →</button></div>
+        </div>
+      </div>
+      <div class="divider"></div>
+      <div class="studio-head"><h3>Trilha de cenas</h3><span class="studio-muted">Toque numa cena para editar · deslize horizontalmente</span></div>
+      <div id="studioTimeline" class="studio-timeline" role="list" aria-label="Cenas editáveis"></div>
+      <div class="divider"></div>
+      <div class="studio-sub">
+        <h3>Biblioteca de mídia com licença</h3>
+        <p class="studio-muted">Informe somente arquivos já disponíveis em assets/ e confirme a origem. Nenhum arquivo é enviado automaticamente.</p>
+        <div class="studio-grid">
+          <div><label for="studioAssetTitle">Nome da mídia</label><input id="studioAssetTitle" placeholder="Atendimento no restaurante"></div>
+          <div><label for="studioAssetPath">Caminho no projeto</label><input id="studioAssetPath" placeholder="assets/atendimento.mp4"></div>
+          <div><label for="studioAssetLicense">Licença</label><input id="studioAssetLicense" placeholder="CC BY 4.0 / CC0"></div>
+          <div><label for="studioAssetAuthor">Crédito / origem</label><input id="studioAssetAuthor" placeholder="Autor e URL de origem"></div>
+        </div>
+        <div class="studio-actions" style="margin-top:10px"><button class="btn" id="studioAddAsset" type="button">Adicionar ao catálogo</button><span id="studioAssetCount" class="studio-muted"></span></div>
+      </div>
+      <div class="gap"></div>
+      <div class="studio-footer">
+        <span id="studioState" class="studio-muted" role="status">Nenhuma edição pendente.</span>
+        <div class="studio-actions"><button id="studioExport" class="btn" type="button">Exportar JSON V3</button><button id="studioSave" class="btn primary" type="button">Salvar revisão</button></div>
+      </div>
+    </div>
+  </div>
+</section>
+
 <section id="view-history" class="view hidden viewbox">
  <div class="intro"><div><h1>Execuções e resultados</h1><p>Histórico do painel e execuções reais do GitHub Actions.</p></div><button class="btn" id="refreshRuns">Atualizar</button></div>
  <article class="panel viewcard"><h2>Pedidos gerados pelo painel</h2><div id="jobsList" class="muted">Carregando...</div></article>
@@ -69,6 +143,7 @@
  <button data-mobile="flow"><b>▤</b>Fluxo</button>
  <button data-mobile="tools"><b>⊞</b>Ferramentas</button>
  <button data-mobile="settings"><b>⚙</b>Editar</button>
+ <button data-mobile="videos"><b>▣</b>Cenas</button>
  <button data-mobile="runs"><b>◷</b>Execuções</button>
 </nav>
 <div id="toast" role="status" aria-live="polite" class="snackbar hidden"></div>

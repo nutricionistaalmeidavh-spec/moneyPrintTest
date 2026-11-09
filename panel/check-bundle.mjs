@@ -6,7 +6,8 @@ const source=file=>readFileSync(join(dir,file),"utf8");
 const assets={
   "/ui/builder.css":{content:source("builder.css"),type:"text/css; charset=utf-8"},
   "/ui/builder.js":{content:source("builder.js"),type:"text/javascript; charset=utf-8"},
-  "/ui/flow-core.mjs":{content:source("flow-core.mjs"),type:"text/javascript; charset=utf-8"}
+  "/ui/flow-core.mjs":{content:source("flow-core.mjs"),type:"text/javascript; charset=utf-8"},
+  "/ui/studio-ui.mjs":{content:source("studio-ui.mjs"),type:"text/javascript; charset=utf-8"}
 };
 const expected="const PAGE="+JSON.stringify(source("builder.html"))+";\nconst ASSETS="+JSON.stringify(assets)+";\n";
 if(!source("worker.js").startsWith(expected)){

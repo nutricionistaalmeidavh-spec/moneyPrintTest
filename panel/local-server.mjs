@@ -48,7 +48,7 @@ const server = createServer(async (req, res) => {
     let bytes = 0;
     for await (const chunk of req) {
       bytes += chunk.length;
-      if (bytes > 22000) {
+      if (bytes > 70000) {
         res.writeHead(413).end("Payload too large");
         return;
       }

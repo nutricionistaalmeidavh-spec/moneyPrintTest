@@ -12,7 +12,8 @@ const prefix="const PAGE="+JSON.stringify(get("builder.html"))+";\n"+
 "const ASSETS="+JSON.stringify({
  "/ui/builder.css":{content:get("builder.css"),type:"text/css; charset=utf-8"},
  "/ui/builder.js":{content:get("builder.js"),type:"text/javascript; charset=utf-8"},
- "/ui/flow-core.mjs":{content:get("flow-core.mjs"),type:"text/javascript; charset=utf-8"}
+ "/ui/flow-core.mjs":{content:get("flow-core.mjs"),type:"text/javascript; charset=utf-8"},
+ "/ui/studio-ui.mjs":{content:get("studio-ui.mjs"),type:"text/javascript; charset=utf-8"}
 })+";";
 const generated=prefix+existing.slice(markerIndex);
 if(process.argv.includes("--check")){
