@@ -23,6 +23,10 @@ jobs:
         run: |
           python -m pip install "playwright==1.56.0"
           python -m playwright install --with-deps chromium
+      - name: Garantir FFmpeg no runner
+        run: |
+          sudo apt-get update -qq
+          sudo apt-get install -y ffmpeg
       - name: Gravar GitHub real em desktop e conferir MP4 com ffprobe
         run: |
           python - <<'PY'
