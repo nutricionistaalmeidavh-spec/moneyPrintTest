@@ -176,7 +176,7 @@ def paint_layout(image, scene: dict, pad: int, title_bottom: int,
         _flow(d,labels,width,height,pad,portrait)
     elif layout=="split":
         _comparison(d,before_after,width,height,pad,portrait)
-    elif layout=="browser" and not has_asset:
+    elif layout=="browser":
         _repo_badges(d,width,height,pad,portrait)
     elif layout in ("minimal","quote"):
         _outro(d,width,height,pad,portrait)
