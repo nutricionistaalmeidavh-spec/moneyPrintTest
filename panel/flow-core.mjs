@@ -51,7 +51,7 @@ export function makeTemplate(name="automatic"){
   return {version:1,id:cryptoRandomId(),name:templates.find(x=>x.id===name)?.title||name,nodes,edges,settings:{
     topic:"",duration_seconds:name==="cinematic"?180:40,aspect:["cinematic","github"].includes(name)?"16:9":"9:16",
     script:"",terms:[],repo_urls:[],sections:[],stock_required:name==="stock",hook_asset:"",
-    motion_canvas_clip:"",hook_seconds:3,universe_seconds:0,universe_title:"UNIVERSO OPEN SOURCE",transition:"cut"
+    motion_canvas_clip:"",hook_seconds:3,universe_seconds:0,universe_title:"UNIVERSO OPEN SOURCE",transition:"cut",visual_style:name==="cinematic"?"light_motion":"classic"
   }};
 }
 function cryptoRandomId(){return "flow-"+Math.random().toString(36).slice(2,12)}
@@ -156,6 +156,11 @@ export function compileFlow(flow){
   const aspect=s.aspect||"9:16";
   if(!["9:16","16:9","1:1"].includes(aspect))throw Error("Formato inválido");
   const request={topic,duration_seconds:duration,aspect,visual_mode:mode};
+  if(cinematic){
+    const style=String(s.visual_style||"classic");
+    if(!["classic","light_motion"].includes(style))throw Error("Estética cinematográfica inválida");
+    request.visual_style=style;
+  }
   const script=String(s.script||"").trim();
   if(script.length>(github?9000:2400))throw Error("Roteiro excede limite do motor atual");
   if(script)request.script=script;
