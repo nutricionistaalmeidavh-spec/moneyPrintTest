@@ -196,3 +196,40 @@ export function compileFlow(flow){
   if(set.has("stock")&&!github&&s.stock_required)request.visual_mode="stock";
   return request;
 }
+
+
+/** Skills são combinações declarativas de ferramentas suportadas, nunca código executável. */
+export const skillCatalog=Object.freeze([
+ {id:"repo-demo",name:"Demonstração GitHub",description:"Capturas, GIFs oficiais e mockups em slides.",tools:["github","slides"],icon:"⌘",category:"Pesquisa"},
+ {id:"context-broll",name:"B-roll contextual",description:"Busca de vídeos abertos no Wikimedia Commons.",tools:["stock"],icon:"▣",category:"Mídia"},
+ {id:"hook-cut",name:"Abertura com gancho",description:"Habilita vídeo de gancho na edição cinematográfica.",tools:["github","slides","hook"],icon:"⚡",category:"Motion"},
+ {id:"motion-scenes",name:"Animações e motion",description:"Slides animados e clipe Motion Canvas existente.",tools:["github","slides","motioncanvas"],icon:"◇",category:"Motion"},
+ {id:"verified-news",name:"Notícias com fontes",description:"Insere somente notícias reais e verificáveis.",tools:["github","slides","news"],icon:"▥",category:"Pesquisa"},
+ {id:"voice-captions",name:"Voz + legendas",description:"Combina a narração Piper com a etapa de legendas.",tools:["captions"],icon:"CC",category:"Áudio"}
+]);
+export function parseSkillManifest(raw){
+ const input=typeof raw==="string"?JSON.parse(raw):raw;
+ if(!input||typeof input!=="object"||Array.isArray(input))throw Error("Skill inválida");
+ if(Object.keys(input).some(k=>!["name","description","tools","version"].includes(k)))throw Error("Formato de skill inválido: código ou ações externas não são suportados");
+ const name=String(input.name||"").trim(),description=String(input.description||"").trim();
+ if(name.length<3||name.length>80||description.length>240||!Array.isArray(input.tools)||!input.tools.length||input.tools.length>8)throw Error("Skill inválida: informe nome e 1 a 8 ferramentas");
+ const tools=[...new Set(input.tools)];
+ for(const tool of tools){
+  if(typeof tool!=="string"||!byId[tool])throw Error("Ferramenta não suportada: "+String(tool));
+  if(!byId[tool].available)throw Error("Ferramenta indisponível: "+tool);
+ }
+ return {name,description,tools,version:1};
+}
+export function applySkill(flow,skill){
+ const manifest=typeof skill==="string"?skillCatalog.find(s=>s.id===skill):parseSkillManifest(skill);
+ if(!manifest)throw Error("Skill não suportada");
+ let updated=cloneFlow(flow);
+ for(const tool of manifest.tools){
+   if(updated.nodes.some(n=>n.tool===tool))continue;
+   if(byId[tool]?.required)continue;
+   updated=insertTool(updated,tool);
+ }
+ const name=manifest.name;
+ updated.applied_skills=[...new Set([...(updated.applied_skills||[]),name])];
+ return updated;
+}
