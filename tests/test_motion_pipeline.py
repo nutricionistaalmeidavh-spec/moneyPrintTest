@@ -52,7 +52,7 @@ class MotionPipelineContracts(unittest.TestCase):
         with tempfile.TemporaryDirectory() as tmp:
             root=Path(tmp)
             original={"status":"success","output":str(root/"video_1.mp4")}
-            with patch("scripts.cinematic_render.render_cinematic",return_value=original) as base:
+            with patch("scripts.motion_pipeline._render_motion_base",return_value=original) as base:
                 result=render_motion_first({"topic":"Video","motion":{}},root,root,{})
                 self.assertEqual(result,original)
                 base.assert_called_once()
