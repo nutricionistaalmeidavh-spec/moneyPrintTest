@@ -23,5 +23,11 @@ jobs:
           node-version: "22"
       - name: Testar painel e SQLite sem serviços pagos
         run: node --test panel/test.mjs panel/studio.test.mjs
+      - name: Instalar navegador de teste sem serviços pagos
+        run: |
+          npm install --no-save playwright@1.56.0
+          npx playwright install --with-deps chromium
+      - name: Testar editor Studio no Chrome mobile headless
+        run: node --test panel/studio-e2e.mjs
       - name: Validar sintaxe do adaptador self-hosted
         run: node --check panel/local-server.mjs
