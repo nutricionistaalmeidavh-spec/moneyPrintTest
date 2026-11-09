@@ -153,17 +153,9 @@ def _slide(scene, output: Path, width: int, height: int, asset: Path | None) -> 
     for line in lines:
         d.text((pad, start_y), line, font=title_font, fill=(241, 246, 252))
         start_y += round(title_font.size*1.23)
-    if scene["layout"] in {"flow", "browser", "split"}:
-        base_y = min(height-round(height*.12), max(round(height*.65),start_y+round(height*.045)))
-        if scene["layout"] == "flow" and not asset:
-            gap = round(width*.015); box_w = round(width*.22)
-            for i, name in enumerate(["CLIENTE", "PROCESSO", "RESULTADO"]):
-                x = pad + i*(box_w+gap)
-                d.rounded_rectangle((x, base_y, x+box_w, min(height-pad,base_y+round(height*.15))), radius=max(5,round(15*scale)),fill=(31,51,70),outline=(73,140,168),width=max(1,round(2*scale)))
-                d.text((x+round(box_w*.1),base_y+round(height*.045)),name,font=label_font,fill=(220,239,247))
-        elif scene["layout"] == "browser" and not asset:
-            d.rounded_rectangle((pad,base_y,width-pad,min(height-pad,base_y+round(height*.16))), radius=12, fill=(30,44,62),outline=(62,102,135),width=2)
-            d.text((pad+round(25*scale),base_y+round(24*scale)), "Exemplo ilustrativo  /  selecione uma captura real",font=body_font,fill=(170,190,212))
+    # Use contextual, business-specific diagrams rather than generic filler cards.
+    from scripts.studio_visuals import paint_layout
+    paint_layout(img, scene, pad, start_y, width, height, asset is not None)
     if asset and asset.suffix.lower() in IMAGE_EXT:
         try:
             with Image.open(asset) as source:
@@ -187,6 +179,11 @@ def _slide(scene, output: Path, width: int, height: int, asset: Path | None) -> 
         pass
     footer_font = _font(max(10,round(20*scale)))
     d.text((pad,height-round(height*.072)), "ARTISYS  ·  MONEYPRINT",font=footer_font,fill=(117,139,162))
+    if scene.get("repo_url"):
+        source=str(scene["repo_url"]).removeprefix("https://")[:65]
+        label_width=d.textlength(source,font=footer_font)
+        d.text((max(pad,width-pad-label_width),height-round(height*.072)),source,
+               font=footer_font,fill=(160,189,207))
     output.parent.mkdir(parents=True,exist_ok=True)
     img.save(output)
 
@@ -283,11 +280,26 @@ def render_project(project: dict, root: Path, output_dir: Path, *, voice: str="n
                 f"[video][overlay]overlay=0:0:shortest=1,format=yuv420p[v]")
         else:
             base=["ffmpeg","-hide_banner","-loglevel","error","-nostdin","-y","-loop","1","-framerate",str(fps),"-i",str(art)]
-            # Animate the composed slide very gently; avoid fake full-screen scrolling.
+            # Alternate subtle camera moves, retaining hard cuts and an exact frame count.
+            # These are original slide transforms, not laggy Playwright scrolling.
+            frames=max(1,count-1)
+            motion=index % 4
+            if motion==0:
+                z="min(zoom+0.0007,1.065)"
+                x="iw/2-(iw/zoom/2)"
+            elif motion==1:
+                z=f"max(1.065-on*0.065/{frames},1.0)"
+                x="iw/2-(iw/zoom/2)"
+            elif motion==2:
+                z="1.065"
+                x=f"(iw-iw/zoom)*min(1,on/{frames})"
+            else:
+                z="1.065"
+                x=f"(iw-iw/zoom)*(1-min(1,on/{frames}))"
             vf=(f"[0:v]scale={width}:{height},"
-                f"zoompan=z='min(zoom+0.0005,1.045)':d=1:"
-                f"x='iw/2-(iw/zoom/2)':y='ih/2-(ih/zoom/2)':"
-                f"s={width}x{height}:fps={fps},format=yuv420p[v]")
+                f"zoompan=z='{z}':d=1:x='{x}':"
+                f"y='ih/2-(ih/zoom/2)':s={width}x{height}:fps={fps},"
+                f"format=yuv420p[v]")
         if narration:
             base += ["-i",str(narration)]
             audio_idx=2 if moving else 1
