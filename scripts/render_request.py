@@ -115,8 +115,8 @@ def validate_request(raw: dict) -> dict:
     elif "sections" in raw:
         raise RequestError("sections exige visual_mode github_cinematic")
     media_clips = raw.get("media_clips", [])
-    if not isinstance(media_clips, list) or len(media_clips) > 30:
-        raise RequestError("media_clips deve ser lista de até 30 arquivos opcionais")
+    if not isinstance(media_clips, list):
+        raise RequestError("media_clips deve ser uma lista de arquivos opcionais")
     import pathlib
     verified_clips = []
     for item in media_clips:
