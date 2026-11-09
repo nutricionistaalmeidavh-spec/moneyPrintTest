@@ -39,8 +39,15 @@ export const templates=Object.freeze([
 ]);
 export function makeTemplate(name="automatic"){
   if(!presets[name])throw Error("Template desconhecido");
-  const nodes=presets[name].map((tool,i)=>({id:tool,tool,enabled:true,x:54+i*205,y:110+(i%2)*20}));
-  const edges=nodes.slice(1).map((node,i)=>({from:nodes[i].id,to:node.id}));
+  const lanes={goal:[40,250],script:[250,250],ollama:[465,250],stock:[465,460],github:[485,65],slides:[715,85],piper:[790,460],captions:[1010,460],render:[1210,250],final:[1435,250]};
+  const nodes=presets[name].map((tool,i)=>({id:tool,tool,enabled:true,x:lanes[tool]?.[0]??(60+i*185),y:lanes[tool]?.[1]??250}));
+  let edges=nodes.slice(1).map((node,i)=>({from:nodes[i].id,to:node.id}));
+  if(["automatic","shorts","stock"].includes(name)){
+    edges=[{from:"goal",to:"script"},{from:"script",to:"ollama"},{from:"script",to:"stock"},
+      {from:"ollama",to:"piper"},{from:"stock",to:"render"},
+      ...(name==="shorts"?[{from:"piper",to:"captions"},{from:"captions",to:"render"}]:[{from:"piper",to:"render"}]),
+      {from:"render",to:"final"}];
+  }
   return {version:1,id:cryptoRandomId(),name:templates.find(x=>x.id===name)?.title||name,nodes,edges,settings:{
     topic:"",duration_seconds:name==="cinematic"?180:40,aspect:["cinematic","github"].includes(name)?"16:9":"9:16",
     script:"",terms:[],repo_urls:[],sections:[],stock_required:name==="stock",hook_asset:"",
@@ -195,4 +202,41 @@ export function compileFlow(flow){
   }
   if(set.has("stock")&&!github&&s.stock_required)request.visual_mode="stock";
   return request;
+}
+
+
+/** Skills são combinações declarativas de ferramentas suportadas, nunca código executável. */
+export const skillCatalog=Object.freeze([
+ {id:"repo-demo",name:"Demonstração GitHub",description:"Capturas, GIFs oficiais e mockups em slides.",tools:["github","slides"],icon:"⌘",category:"Pesquisa"},
+ {id:"context-broll",name:"B-roll contextual",description:"Busca de vídeos abertos no Wikimedia Commons.",tools:["stock"],icon:"▣",category:"Mídia"},
+ {id:"hook-cut",name:"Abertura com gancho",description:"Habilita vídeo de gancho na edição cinematográfica.",tools:["github","slides","hook"],icon:"⚡",category:"Motion"},
+ {id:"motion-scenes",name:"Animações e motion",description:"Slides animados e clipe Motion Canvas existente.",tools:["github","slides","motioncanvas"],icon:"◇",category:"Motion"},
+ {id:"verified-news",name:"Notícias com fontes",description:"Insere somente notícias reais e verificáveis.",tools:["github","slides","news"],icon:"▥",category:"Pesquisa"},
+ {id:"voice-captions",name:"Voz + legendas",description:"Combina a narração Piper com a etapa de legendas.",tools:["captions"],icon:"CC",category:"Áudio"}
+]);
+export function parseSkillManifest(raw){
+ const input=typeof raw==="string"?JSON.parse(raw):raw;
+ if(!input||typeof input!=="object"||Array.isArray(input))throw Error("Skill inválida");
+ if(Object.keys(input).some(k=>!["name","description","tools","version"].includes(k)))throw Error("Formato de skill inválido: código ou ações externas não são suportados");
+ const name=String(input.name||"").trim(),description=String(input.description||"").trim();
+ if(name.length<3||name.length>80||description.length>240||!Array.isArray(input.tools)||!input.tools.length||input.tools.length>8)throw Error("Skill inválida: informe nome e 1 a 8 ferramentas");
+ const tools=[...new Set(input.tools)];
+ for(const tool of tools){
+  if(typeof tool!=="string"||!byId[tool])throw Error("Ferramenta não suportada: "+String(tool));
+  if(!byId[tool].available)throw Error("Ferramenta indisponível: "+tool);
+ }
+ return {name,description,tools,version:1};
+}
+export function applySkill(flow,skill){
+ const manifest=typeof skill==="string"?skillCatalog.find(s=>s.id===skill):parseSkillManifest(skill);
+ if(!manifest)throw Error("Skill não suportada");
+ let updated=cloneFlow(flow);
+ for(const tool of manifest.tools){
+   if(updated.nodes.some(n=>n.tool===tool))continue;
+   if(byId[tool]?.required)continue;
+   updated=insertTool(updated,tool);
+ }
+ const name=manifest.name;
+ updated.applied_skills=[...new Set([...(updated.applied_skills||[]),name])];
+ return updated;
 }
