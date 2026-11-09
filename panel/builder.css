@@ -150,3 +150,5 @@
  .inspector .sheet-footer .btn{width:100%}
  .tool-open{display:inline-flex;align-items:center}
 }
+
+.showcase-card[draggable="true"]{cursor:grab}.showcase-card[draggable="true"]:active{cursor:grabbing}
