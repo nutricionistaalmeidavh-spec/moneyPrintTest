@@ -31,6 +31,9 @@ def build_plan(project: dict) -> dict:
     fps = project.get("fps")
     if fps not in (24, 25, 30, 60) or project.get("aspect") not in {"16:9", "9:16", "1:1"}:
         raise RenderError("FPS/proporção inválidos")
+    visual_style=project.get("visual_style","classic")
+    if visual_style not in {"classic","light_motion"}:
+        raise RenderError("Estilo visual desconhecido")
     scenes = project.get("scenes")
     if not isinstance(scenes, list) or not 1 <= len(scenes) <= 120:
         raise RenderError("Cenas inválidas")
@@ -80,7 +83,7 @@ def build_plan(project: dict) -> dict:
         cursor += count
     if cursor != project.get("total_frames") or cursor > fps * 3600:
         raise RenderError("Total de frames divergente do projeto")
-    return {"fps": fps, "aspect": project["aspect"], "total_frames": cursor,
+    return {"fps": fps, "aspect": project["aspect"], "visual_style": visual_style, "total_frames": cursor,
             "duration_seconds": cursor / fps, "scenes": prepared, "assets": indexed}
 
 
@@ -313,6 +316,15 @@ def render_project(project: dict, root: Path, output_dir: Path, *, voice: str="n
             if tempo>2.0:
                 raise RenderError("Narração longa demais para a cena "+scene["id"]+"; aumente a duração")
         out=scratch/f"clip_{index:03d}.mp4"
+        if plan["visual_style"]=="light_motion":
+            from scripts.studio_light_motion import render_light_scene
+            motion=render_light_scene(scene,out,scratch,index,fps,count,width,height,
+                screenshot=image_asset,narration=narration,tempo=tempo,
+                moving_preview=asset if (asset and asset.suffix.lower() in VIDEO_EXT) else demo)
+            total_beats+=motion["animated"]
+            playlist.append(out)
+            all_cues.extend(word_cues(scene["text"],scene["start_frame"]/fps,duration))
+            continue
         moving=asset is not None and asset.suffix.lower() in VIDEO_EXT
         scene_beats=1
         if moving:
@@ -395,7 +407,7 @@ def render_project(project: dict, root: Path, output_dir: Path, *, voice: str="n
     (output_dir/"palavras.json").write_text(json.dumps({"method":mode,"cues":all_cues},ensure_ascii=False,indent=2),encoding="utf-8")
     result={"status":"ok","output":str(target),"fps":fps,"total_frames":actual,
             "duration_seconds":plan["duration_seconds"],"word_alignment":mode,
-            "credits":str(credits_path),"warnings":warnings,"voice":voice,"autopublish":False,"visual_beats":total_beats}
+            "credits":str(credits_path),"warnings":warnings,"voice":voice,"autopublish":False,"visual_beats":total_beats,"visual_style":plan["visual_style"]}
     (output_dir/"diagnostico.json").write_text(json.dumps(result,ensure_ascii=False,indent=2),encoding="utf-8")
     return result
 

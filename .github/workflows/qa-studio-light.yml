@@ -1,0 +1,32 @@
+name: QA Studio — light motion real
+on:
+  pull_request:
+    paths:
+      - 'scripts/studio_light_motion.py'
+      - 'scripts/studio_render.py'
+      - 'tests/test_studio_light_motion.py'
+      - 'panel/**'
+      - '.github/workflows/qa-studio-light.yml'
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  motion-real:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - name: Ferramentas gratuitas
+        run: |
+          sudo apt-get update -qq
+          sudo apt-get install -y ffmpeg fonts-lato fonts-dejavu-core
+          python -m pip install Pillow==11.3.0
+      - name: QA temporal e frames realmente distintos
+        run: python -m unittest discover -s tests -p 'test_studio_light_motion.py' -v
+      - name: QA painel e integração
+        run: |
+          node panel/bundle.mjs --check
+          node --test panel/studio.test.mjs

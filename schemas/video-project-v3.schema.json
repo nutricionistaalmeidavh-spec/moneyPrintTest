@@ -190,6 +190,14 @@
           }
         }
       }
+    },
+    "visual_style": {
+      "type": "string",
+      "enum": [
+        "classic",
+        "light_motion"
+      ],
+      "description": "Optional visual style; classic remains backward-compatible."
     }
   }
 }
