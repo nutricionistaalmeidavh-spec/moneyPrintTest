@@ -1,37 +1,34 @@
-# MoneyPrint — tutoriais a partir de gravações de tela
+# MoneyPrint — tutoriais de tela em vídeo curto
 
-Editor adicional e isolado para transformar uma gravação real de tela em vídeo curto vertical com gancho, cortes rápidos, legendas de passo, tela de encerramento e áudio original gerado localmente.
+Modo complementar e isolado ao MoneyPrinterTurbo: FFmpeg + Pillow e JSON local. A gravação original NÃO deve ser enviada a um repositório público. Workflows, tokens e segredos atuais permanecem intactos.
 
-**Gravações privadas não devem ser commitadas em um repositório público.** Este modo usa **um MP4 local** e uma receita JSON versionável. O fluxo de vídeos tradicional do MoneyPrint (Piper/Whisper/MoneyPrinterTurbo/Playwright) não é modificado.
+## Exemplo GitHub
 
-## Dependências gratuitas
-- Python 3.11+
-- FFmpeg e ffprobe
-- Pillow: \`python -m pip install Pillow\`
-- Linux com fonte DejaVu Sans Bold (instalar \`fonts-dejavu-core\` se necessário)
+Receita: tutorials/github_primeiro_repositorio.json
 
-## Executar
+- Gancho: moto em velocidade original por 0,7 segundo, seguida de corte seco sem crossfade.
+- Universo: GIF animado de 2,3 segundos; a abertura completa soma 3 segundos.
+- Conteúdo: nove takes acelerados da gravação com interface limpa, **sem contador superior e sem legendas de ação inferiores**.
+- Segurança: máscaras sólidas irreversíveis antes do redimensionamento. Revisão visual humana obrigatória, pois não há identificação automática de outros dados pessoais.
+- Trilha gerada localmente, sem áudio original da moto ou da gravação.
 
-\`\`\`bash
-python scripts/tutorial_editor.py \
-  --source "/caminho/privado/gravacao.mp4" \
-  --recipe tutorials/github_primeiro_repositorio.json \
-  --output "outputs/github_tutorial.mp4"
-\`\`\`
+## Rodar sem serviços pagos
 
-O arquivo de referência gravado em 08/11/2026 tem **512×1108, ~172s**, e a receita foi calibrada para ele. A receita é **um exemplo**, não contém o vídeo nem os dados pessoais. Para usar outra gravação, ajuste os intervalos, a resolução e as máscaras.
+Dependências: Python 3.11+, FFmpeg, ffprobe, Pillow e fontes DejaVu. Tenha uma gravação local, clipe de moto autorizado e um GIF de universo licenciado ou original.
 
-### Segurança/controle de qualidade
+    python scripts/tutorial_editor.py \
+      --source "/pasta-privada/gravacao-github.mp4" \
+      --hook-source "/pasta-privada/gancho-moto.mp4" \
+      --universe-gif "/pasta-privada/universo.gif" \
+      --recipe tutorials/github_primeiro_repositorio.json \
+      --output "/pasta-privada/tutorial-final.mp4"
 
-- \`privacy_masks\`: blocos opacos sobre coordenadas x, y, width, height no vídeo original, delimitados por \`start\` e \`end\`.
-- Se uma máscara interceptar parcialmente um take, o render **falha** até o take ser integralmente coberto ou recortado.
-- O áudio original da gravação não é reutilizado. Não há redes, API externa, chaves, serviço pago nem envio de arquivo.
-- O vídeo final precisa de **revisão visual manual** para proteger outros nomes, notificações, e-mails, fotos ou tokens: a receita NÃO faz detecção automática de PII.
-- Nenhuma publicação automática em TikTok, YouTube ou outras plataformas.
-- \`python -m unittest discover -s tests -v\` executa os testes da integração.
+Core R$ 0, self-hosted e open source, sem assinatura ou API paga. O GitHub Actions hospedado está sujeito a limites e custos próprios da conta; não é dependência necessária deste editor.
 
-### Próximo passo de automação
+A gravação de referência compartilhada pode conter conteúdo de terceiro; antes de publicar, confirme o direito de usar o trecho da moto. Não existe publicação automática.
 
-Para uma automação 100% privada, armazene as gravações numa pasta local monitorada do runner self-hosted e acione esse editor com a receita correspondente. GitHub-hosted Actions **não recebem automaticamente** os MP4 anexados no ChatGPT; não use URLs públicas com dados particulares. Um conector de armazenamento privado é opção explícita, não pré-requisito.
+## Testes
 
-Vídeos de referência de terceiros servem **apenas como referência de ritmo/estética**; não são copiados nem se reutiliza a música deles.
+    python -m unittest discover -s tests -v
+
+As verificações incluem duração natural do gancho, remoção de camadas com legendas, dimensões da fonte e cobertura de máscaras. A receita deve ser recalibrada ao mudar de gravação.
