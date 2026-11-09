@@ -105,7 +105,10 @@ def validate_request(raw: dict) -> dict:
     sections = []
     if mode == "github_cinematic":
         try:
-            from scripts.ai_director import validate_sections
+            if __package__:
+                from .ai_director import validate_sections
+            else:
+                from ai_director import validate_sections
             sections = validate_sections(raw.get("sections"), repo_urls)
         except (ValueError, TypeError) as exc:
             raise RequestError(str(exc)) from exc
@@ -499,7 +502,10 @@ def render_one(path: Path, output: Path, runtime: Path, env: dict):
                 if idx in brolls:
                     continue
                 try:
-                    from scripts.ai_director import official_repo_gif
+                    if __package__:
+                        from .ai_director import official_repo_gif
+                    else:
+                        from ai_director import official_repo_gif
                     gif_demo = official_repo_gif(repo_url, dest / "official" / f"repo_{idx:02d}")
                 except (ImportError, OSError, ValueError):
                     gif_demo = None
