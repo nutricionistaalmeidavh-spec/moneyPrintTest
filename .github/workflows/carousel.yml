@@ -4,6 +4,7 @@ on:
     paths:
       - "scripts/render_carousel.py"
       - "scripts/carousel_media.py"
+      - "scripts/carousel_square.py"
       - "tests/test_carousel.py"
       - ".github/workflows/carousel.yml"
       - "carousel_requests/*.json"
