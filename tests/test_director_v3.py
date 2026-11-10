@@ -43,7 +43,7 @@ class DirectorV3Tests(unittest.TestCase):
         source=(ROOT/"motion/talkcraft/DirectorV2.tsx").read_text(encoding="utf-8")
         self.assertIn("SAFE_STAGE",source)
         self.assertIn("cue.effect==='scribble_chaos'",source)
-        self.assertIn("opacity:0",source)
+        self.assertIn("frame<beats[i]?0:p",source)
         self.assertIn("objectFit:'contain'",source)
         self.assertIn("focusIndex",source)
 
