@@ -130,3 +130,16 @@ Antes de ativar a geracao automatica das imagens:
 
 A etapa editorial do Activepieces esta publicada e ativa diariamente; a etapa GitHub esta desabilitada por falta de conexao OAuth. O codigo continua em PR separada.
 Nenhum token ou secret foi alterado.
+
+
+## Estilo quadrado 1:1 (ArtiSys / Activepieces)
+
+- style: "editorial_square" com aspect: "1:1" gera 1080×1080 JPEG.
+- Reutiliza uma única foto com photo_mode: "same" em todas as páginas.
+- Cabeçalhos em preto sobre grifo branco, conteúdo curto e endereço do site.
+- Buscas gratuitas para cenários gamer RGB com setup completo: monitor,
+  gabinete, teclado e laptop. O provedor não garante o mesmo cenário exato
+  entre dias; o fundo é fixo apenas dentro de cada carrossel.
+- O modo anterior editorial / 3:5 continua disponível, sem regressão.
+- O Activepieces foi atualizado para enviar editorial_square / 1:1,
+  sem publicação automática. O GitHub permanece em PR sem merge.
