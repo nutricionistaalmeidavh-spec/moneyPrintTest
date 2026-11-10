@@ -28,8 +28,8 @@ DEFAULT_TERMS = ["desk setup computer monitor laptop window",
                  "modern home office monitor plants",
                  "dual monitor workstation desk",
                  "bright minimalist desk setup"]
-VALID_STYLES = {"reference", "brush", "editorial", "cinematic", "minimal", "contrast"}
-IMAGE_HEIGHT = {"4:5": 1350, "3:5": 1800, "9:16": 1920}
+VALID_STYLES = {"reference", "brush", "editorial", "editorial_square", "cinematic", "minimal", "contrast"}
+IMAGE_HEIGHT = {"1:1": 1080, "4:5": 1350, "3:5": 1800, "9:16": 1920}
 
 
 class CarouselError(ValueError):
@@ -76,8 +76,12 @@ def validate_request(raw):
     style = raw.get("style", "reference")
     if style not in VALID_STYLES:
         raise CarouselError("style inválido")
-    aspect = raw.get("aspect", "3:5" if style == "editorial" else "4:5" if style in ("reference", "brush") else "9:16")
-    if aspect not in IMAGE_HEIGHT or (style == "editorial" and aspect != "3:5") or (style not in ("reference", "brush", "editorial") and aspect != "9:16"):
+    aspect = raw.get("aspect", "1:1" if style == "editorial_square" else "3:5" if style == "editorial" else "4:5" if style in ("reference", "brush") else "9:16")
+    if (aspect not in IMAGE_HEIGHT or
+        (style == "editorial_square" and aspect != "1:1") or
+        (style == "editorial" and aspect != "3:5") or
+        (style in ("reference", "brush") and aspect not in ("4:5", "9:16")) or
+        (style in ("cinematic", "minimal", "contrast") and aspect != "9:16")):
         raise CarouselError("aspect não compatível com o estilo")
     brand = _one_line(raw.get("brand", "ArtiSys"), "brand", 32)
     cta = _one_line(raw.get("cta", "Salve este post para consultar depois."),
@@ -226,6 +230,11 @@ def _cover(photo, aspect="4:5"):
     with Image.open(photo) as input_image:
         original = ImageOps.exif_transpose(input_image)
         rgb = original.convert("RGB")
+    if aspect == "1:1":
+        # Keep the main monitor, RGB tower, laptop and desk together.
+        return ImageOps.fit(rgb, (WIDTH, WIDTH),
+                            method=Image.Resampling.LANCZOS,
+                            centering=(0.5, 0.41))
     if aspect == "3:5":
         # Keep the whole setup visible, including monitor, keyboard, laptop and desk.
         from PIL import ImageFilter
@@ -527,6 +536,9 @@ def _make_editorial_page(background, slide, req, index, total):
 
 
 def _make_page(background, slide, req, index, total):
+    if req["style"] == "editorial_square":
+        from scripts.carousel_square import make_square_editorial_page
+        return make_square_editorial_page(background, slide, req, index, total)
     if req["style"] == "editorial":
         return _make_editorial_page(background, slide, req, index, total)
     if req["style"] == "reference":
