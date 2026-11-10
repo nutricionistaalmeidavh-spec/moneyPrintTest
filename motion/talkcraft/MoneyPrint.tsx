@@ -16,12 +16,14 @@ import {card as OrbitCard} from '../cards/gen/orbit-drift';
 import {card as ChatCard} from '../cards/gen/chat-message-flow';
 import {card as StepsCard} from '../cards/gen/numbered-step-stack';
 import {card as PaperFanCard} from '../cards/gen/stack-fan-out';
+import {DirectorV2} from './DirectorV2';
 import data from './MoneyPrintData.json';
 
 type Scene = {
   id: string; title: string; text: string; eyebrow: string;
   layout: string; repoUrl: string; image: string;
   startFrame: number; durationFrames: number;
+  appImage?: string; direction?: any;
 };
 type Cue = {
   id: string; scene_id: string; word: string; effect: string;
@@ -160,6 +162,7 @@ const SceneView:React.FC<{scene:Scene}> = ({scene})=>{
     {t:Math.max(.03,secs),scale:1.04,x:-19,y:-8}
   ];
   const cues=movie.cues.filter(c=>c.scene_id===scene.id);
+  if(scene.direction)return <DirectorV2 scene={scene} cues={cues}/>;
   const subtitle=scene.text.length>180?scene.text.slice(0,176).trim()+'…':scene.text;
   const titleFont=scene.title.length>35?59:76;
   return <CameraRig path={cameraPath} durationSec={secs}>
