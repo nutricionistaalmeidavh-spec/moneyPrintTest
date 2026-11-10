@@ -214,6 +214,16 @@ class CarouselTests(unittest.TestCase):
         self.assertEqual(choose_candidate([gaming, daylight])["title"],
                          daylight["title"])
 
+    def test_rgb_setup_selection_downranks_photos_with_people(self):
+        from scripts.carousel_media import photo_score
+        clean = {
+            "title": "RGB neon computer workstation desk keyboard monitor",
+            "width": 1700, "height": 1300,
+        }
+        occupied = dict(clean, title=clean["title"] + " man person sitting at desk")
+        self.assertGreater(photo_score(clean, prefer_rgb=True),
+                           photo_score(occupied, prefer_rgb=True) + 500)
+
     def test_full_workstation_ranks_above_laptop_and_notebook_closeup(self):
         from scripts.carousel_media import photo_score
         info = parse_candidates(sample_candidate())[0]
