@@ -229,7 +229,7 @@ def main():
         words=align_portuguese(audio,args.whisper_model)
     screenshots=capture_stills(project,output/"capture") if args.capture_github else {}
     write_remotion(project,upstream,output,words,audio,screenshots)
-    if args.smoke:
+    if args.smoke and not project.get('director_board'):
         # Fixture only; never presented as measured timing or used in production.
         internal=upstream/"workbench"/"src"/"remotion"/"MoneyPrintData.json"
         report=output/"talkcraft_manifest.json"
