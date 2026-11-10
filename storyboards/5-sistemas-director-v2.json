@@ -34,12 +34,12 @@
     ],
     "original_revision": 2
   },
-  "version": 2,
+  "version": 3,
   "production_status": "render_requested",
   "fps": 30,
   "aspect": "16:9",
   "total_frames": 9000,
-  "creative_goal": "Vídeo educativo com papel creme editorial, cinco personagens ilustrados diferentes em PB, GitHub e capturas de UI real publicada pelos projetos, mockups com navegação animada, balões/contexto e diagramas sem linhas sobre letras.",
+  "creative_goal": "V3 editorial: preservar narração canônica, usar 3 batidas por cena, 5 retratos distintos, capturas reais grandes e linhas desenhadas apenas na área segura, com revisão humana de 100 frames.",
   "director": "Direção criativa humana + ChatGPT, execução determinística pelo MoneyPrint após aprovação.",
   "visual_grammar": {
     "background": "#F6EEDB",
@@ -72,18 +72,16 @@
     "narration": "piper_pt_BR",
     "align": "faster_whisper_pt",
     "publish": false,
-    "trigger": "merge do projeto V2 na main",
-    "stage": "production_requested",
+    "trigger": "merge do projeto atualizado na main",
+    "stage": "v3_render_requested",
     "cost_policy": "core R$0 self-hosted/open source, Talkcraft original opcional não comercial"
   },
   "review_procedure": [
-    "revisar as 25 composições do quadro a quadro",
-    "aprovar posição de pessoa/ícones/paleta",
-    "obter assets pendentes sem usar imagens stock protegidas",
-    "capturar interfaces verdadeiras e conferir permissões",
-    "renderizar 3 provas de 6–10 segundos (cenas 03, 08, 19)",
-    "comparar provas com o storyboard aprovado",
-    "só depois executar 9000 frames completos"
+    "Inspecionar qa_100_cenas.jpg com 4 amostras de cada uma das 25 cenas",
+    "Conferir individualmente títulos, legendas e sobreposições, especialmente cenas 03, 06 e 19",
+    "Confirmar GitHub e capturas originais das aplicações, sem telas fabricadas",
+    "Revisar sincronização de áudio, cortes e mudanças de foco em três batidas por cena",
+    "Não publicar nem monetizar o motor Talkcraft PolyForm Noncommercial sem licença apropriada"
   ],
   "assets": [
     {

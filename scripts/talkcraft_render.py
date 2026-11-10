@@ -253,6 +253,17 @@ def main():
     expected=min(270,plan["total_frames"]) if args.smoke else plan["total_frames"]
     report=qa(mp4,expected)
     manifest=json.loads((output/"talkcraft_manifest.json").read_text(encoding="utf-8"))
+    # P5: real 100-frame evidence, 4 samples per scene. Advisory-only:
+    # rendering is never blocked by stylistic heuristics.
+    if not args.smoke:
+        try:
+            from scripts.director_visual_qa import generate_visual_review
+            review=generate_visual_review(mp4,project["scenes"],plan["fps"],output)
+            report["visual_review"]={key:value for key,value in review.items()
+                                     if key!="samples"}
+        except Exception as exc:
+            report["visual_review_error"]=str(exc)[:500]
+            print("AVISO: QA visual não disponível:",exc)
     report["illustration_audit"]=manifest.get("illustration_audit",{})
     report.update({"engine":"original_video_talkcraft","upstream_sha":UPSTREAM_SHA,
                    "license":"PolyForm Noncommercial 1.0.0","educational_only":True,

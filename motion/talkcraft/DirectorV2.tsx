@@ -49,45 +49,80 @@ const PaperBackdrop:React.FC=()=>(
 
 // Five distinctly drawn editorial B/W portraits. Original illustrations:
 // no licensed stock image, no re-use of the same silhouette for every role.
-const Persona:React.FC<{id:string;frame:number;fps:number}> = ({id,frame,fps})=>{
- const variant={manager_a:0,seller_b:1,support_c:2,planner_d:3,docs_e:4}[id as
- "manager_a"|"seller_b"|"support_c"|"planner_d"|"docs_e"]??0;
- const rise=natural(frame,8,fps);
- const hair=[
-  <><path d="M96 166 Q72 78 137 49 Q210 11 268 67 Q298 109 284 187 Q259 132 223 119 Q161 165 96 166Z" fill="#242b34"/><ellipse cx="269" cy="72" rx="35" ry="40" fill="#303842"/></>,
-  <path d="M94 148 Q81 71 154 58 Q240 27 281 81 L270 142 Q208 123 165 130 Q135 132 94 148Z" fill="#222936"/>,
-  <><path d="M86 162 Q74 90 132 59 Q212 19 273 75 L294 166 Q254 136 227 112 Q178 149 86 162Z" fill="#333a45"/><path d="M80 174 Q57 85 159 46" stroke="#20262f" strokeWidth="20" fill="none"/></>,
-  <><path d="M78 148 C85 20 288 14 291 139" fill="none" stroke="#303842" strokeWidth="55" strokeDasharray="15 5" strokeLinecap="round"/><path d="M87 149 Q75 66 136 51 Q220 19 279 97 L273 143Z" fill="#3d424d"/></>,
-  <><path d="M96 154 Q77 65 164 53 Q248 26 283 117 L275 162 Q210 126 96 154Z" fill="#343944"/><path d="M94 111 Q134 79 187 81" stroke="#51555f" strokeWidth="16" fill="none"/></>
- ][variant];
- const attire=[
-  <><path d="M72 334 L168 290 L193 361 L219 290 L312 333 L352 513 L34 513Z" fill="#3a414c"/><path d="M157 303 L193 385 L232 301" fill="none" stroke="#c7c8c9" strokeWidth="22"/></>,
-  <><path d="M45 350 Q100 304 176 302 L204 373 L237 308 Q309 314 360 361 L364 513 L38 513Z" fill="#525963"/><path d="M173 305 L205 389 L228 309" stroke="#d5d6d8" strokeWidth="17" fill="none"/></>,
-  <><path d="M56 338 Q147 298 228 300 Q314 303 352 363 L369 513 L35 513Z" fill="#424b57"/><path d="M112 324 L202 414 L285 323" stroke="#bcc3cb" strokeWidth="17" fill="none"/></>,
-  <><path d="M40 341 Q136 287 228 308 Q302 308 352 356 L367 515 L34 515Z" fill="#494e5a"/><path d="M137 310 L196 395 L255 310" stroke="#cfd1d5" strokeWidth="15" fill="none"/></>,
-  <><path d="M48 342 Q154 283 239 311 L352 351 L361 514 L39 514Z" fill="#515765"/><path d="M145 311 L205 390 L263 310" stroke="#dddfe2" strokeWidth="19" fill="none"/></>
- ][variant];
- return <svg viewBox="0 0 400 520" style={{width:'100%',height:'100%',
-   opacity:rise,transform:'translateY('+(45*(1-rise))+'px)'}}>
-   <defs>
-    <linearGradient id={'face'+variant} x1="0" y1="0" x2="1" y2="1">
-     <stop stopColor="#d3d4d6"/><stop offset="1" stopColor="#828993"/>
-    </linearGradient>
-    <filter id={'shadow'+variant}><feGaussianBlur stdDeviation="8"/></filter>
-   </defs>
-   <ellipse cx="199" cy="507" rx="145" ry="15" fill="#6f7780" opacity=".25"
-      filter={'url(#shadow'+variant+')'}/>
-   {attire}
-   <path d="M159 256 L165 322 Q205 340 244 312 L237 255Z" fill="#a6abb1"/>
-   <ellipse cx="202" cy="168" rx="104" ry="124" fill={'url(#face'+variant+')'}/>
-   <path d="M100 187 Q106 245 156 267 Q195 295 247 262 Q283 236 286 174" fill="none" stroke="#7a808b" strokeWidth="4" opacity=".45"/>
-   {hair}
-   <path d="M149 168 Q168 161 184 169 M223 169 Q242 163 260 169" stroke="#4c515a" strokeWidth="5" fill="none" strokeLinecap="round"/>
-   <path d="M196 175 Q183 202 197 209" stroke="#777d87" strokeWidth="4" fill="none"/>
-   <path d="M175 232 Q200 245 226 229" fill="none" stroke="#656b75" strokeWidth="4" strokeLinecap="round"/>
-   {variant===2&&<g><path d="M98 160 Q83 59 206 55 Q328 80 305 188" stroke="#343943" strokeWidth="13" fill="none"/><rect x="73" y="153" width="30" height="72" rx="14" fill="#444b55"/><rect x="295" y="154" width="25" height="71" rx="11" fill="#444b55"/><path d="M302 222 Q301 263 248 260" stroke="#444b55" strokeWidth="6" fill="none"/></g>}
-   {variant===4&&<g><rect x="124" y="165" width="69" height="39" rx="11" fill="none" stroke="#353a43" strokeWidth="8"/><rect x="211" y="165" width="69" height="39" rx="11" fill="none" stroke="#353a43" strokeWidth="8"/><path d="M193 178 H211" stroke="#353a43" strokeWidth="6"/></g>}
-   <path d="M43 513 L354 513" stroke="#2e333d" strokeWidth="2"/>
+// P1: Five independent illustrated silhouettes, faces and props;
+// sceneVariant mirrors the pose without changing a role's identity.
+const Persona:React.FC<{id:string;frame:number;fps:number;sceneVariant:number}> =
+({id,frame,fps,sceneVariant})=>{
+ const rise=natural(frame,10,fps);
+ const mirror=sceneVariant%2===0;
+ const roleContours:Record<string,React.ReactNode>={
+  manager_a:<g>
+   <path d="M75 568 L65 395 Q66 331 151 326 L236 356 L290 321 Q389 350 391 423 L410 568Z" fill="#414b5a"/>
+   <path d="M162 332 L222 393 L288 332" stroke="#d4d3d0" strokeWidth="20" fill="none"/>
+   <path d="M153 209 Q132 105 209 74 Q296 68 309 196 L290 258 Q288 316 227 324 Q156 320 153 253Z" fill="#c0c3c8"/>
+   <ellipse cx="231" cy="85" rx="68" ry="63" fill="#2d333f"/>
+   <path d="M144 184 Q117 88 179 58 Q233 31 289 103 Q309 134 299 197 L266 152 Q207 195 144 184Z" fill="#323844"/>
+   <circle cx="297" cy="58" r="46" fill="#303741"/>
+   <path d="M175 222 q15 -11 31 0 M247 222 q15 -9 29 3 M204 277 q22 16 49 0" stroke="#4c545f" strokeWidth="5" fill="none" strokeLinecap="round"/>
+   <path d="M290 384 L354 451 L388 427" stroke="#c0c2c6" strokeWidth="24" fill="none" strokeLinecap="round"/>
+  </g>,
+  seller_b:<g>
+   <path d="M47 567 Q50 359 135 342 L197 381 L269 353 Q370 344 390 567Z" fill="#555e6b"/>
+   <path d="M151 355 Q223 423 286 358" stroke="#d9d6d2" strokeWidth="19" fill="none"/>
+   <ellipse cx="224" cy="218" rx="101" ry="111" fill="#b9bdc3"/>
+   <g fill="#343945">
+    <circle cx="137" cy="147" r="54"/><circle cx="190" cy="96" r="59"/>
+    <circle cx="258" cy="98" r="63"/><circle cx="311" cy="156" r="53"/>
+    <circle cx="131" cy="195" r="30"/><circle cx="321" cy="193" r="27"/>
+   </g>
+   <rect x="141" y="205" width="65" height="41" rx="16" stroke="#515762" strokeWidth="7" fill="none"/>
+   <rect x="238" y="205" width="65" height="41" rx="16" stroke="#515762" strokeWidth="7" fill="none"/>
+   <path d="M206 224 H238 M193 276 Q224 300 262 272" stroke="#525963" strokeWidth="6" fill="none" strokeLinecap="round"/>
+   <path d="M369 448 Q411 379 394 325" stroke="#b9bdc3" strokeWidth="27" fill="none" strokeLinecap="round"/>
+   <path d="M390 338 l-5 -53 M392 332 l20 -41" stroke="#b9bdc3" strokeWidth="12" strokeLinecap="round"/>
+  </g>,
+  support_c:<g>
+   <path d="M65 569 L85 394 Q101 337 183 334 L278 331 Q363 359 385 435 L390 569Z" fill="#404b5b"/>
+   <path d="M147 390 H320" stroke="#b8c5d1" strokeWidth="11"/>
+   <ellipse cx="233" cy="222" rx="91" ry="115" fill="#c4c7c9"/>
+   <path d="M130 222 Q124 103 201 103 Q258 66 308 151 L319 231 Q288 185 262 183 Q211 220 130 222Z" fill="#29333e"/>
+   <path d="M131 192 C113 91 323 65 335 194" stroke="#5b6773" strokeWidth="14" fill="none"/>
+   <rect x="111" y="181" width="35" height="74" rx="14" fill="#394551"/>
+   <rect x="319" y="181" width="32" height="74" rx="14" fill="#394551"/>
+   <path d="M338 239 Q345 299 265 307" stroke="#65727b" strokeWidth="7" fill="none"/>
+   <circle cx="260" cy="306" r="10" fill="#4e5865"/>
+   <path d="M171 225 q17 -9 32 2 M252 225 q17 -9 32 2 M204 279 q24 16 53 -3" stroke="#495460" strokeWidth="5" fill="none" strokeLinecap="round"/>
+   <path d="M359 429 L419 382" stroke="#c5c7ca" strokeWidth="23" strokeLinecap="round"/>
+  </g>,
+  planner_d:<g>
+   <path d="M52 568 Q69 390 150 355 L291 350 Q372 372 391 568Z" fill="#565966"/>
+   <path d="M173 345 L225 414 L275 348" fill="none" stroke="#d4d2d0" strokeWidth="23"/>
+   <path d="M128 199 Q117 76 211 67 Q313 64 326 195 L345 364 L295 382 L280 308 L171 307 L154 380 L107 368Z" fill="#343b47"/>
+   <ellipse cx="228" cy="213" rx="91" ry="120" fill="#c7c5c4"/>
+   <path d="M139 205 Q152 99 231 88 Q292 100 319 193 Q260 184 219 147 Q187 200 139 205Z" fill="#3e424b"/>
+   <path d="M176 226 q15 -12 32 0 M248 226 q17 -12 33 0 M204 278 q24 10 46 -2" stroke="#535862" strokeWidth="5" strokeLinecap="round" fill="none"/>
+   <rect x="299" y="414" width="136" height="115" rx="13" fill="#e6e4e1" stroke="#7d8190" strokeWidth="6" transform="rotate(-8 299 414)"/>
+   <path d="M325 448 H412 M325 464 H396 M325 483 H408" stroke="#939bac" strokeWidth="6"/>
+  </g>,
+  docs_e:<g>
+   <path d="M59 567 Q75 383 167 354 L295 347 Q374 388 384 567Z" fill="#4d5664"/>
+   <path d="M166 357 L224 411 L292 354" stroke="#e2ded7" strokeWidth="19" fill="none"/>
+   <ellipse cx="227" cy="215" rx="90" ry="121" fill="#c3c5c8"/>
+   <path d="M131 202 Q122 105 190 87 Q276 52 320 176 Q283 139 257 153 L203 123 Q178 170 131 202Z" fill="#b9bcc3"/>
+   <path d="M137 157 Q176 96 213 108 M251 113 Q291 100 313 156" stroke="#848b95" strokeWidth="23" fill="none"/>
+   <rect x="145" y="210" width="77" height="42" rx="12" stroke="#3f4b5b" strokeWidth="8" fill="none"/>
+   <rect x="238" y="210" width="77" height="42" rx="12" stroke="#3f4b5b" strokeWidth="8" fill="none"/>
+   <path d="M222 227 H238 M202 292 Q235 308 261 288" stroke="#515964" strokeWidth="6" fill="none"/>
+   <path d="M299 397 L368 436 L373 568 L288 568Z" fill="#aeb8c1" opacity=".65"/>
+   <rect x="266" y="440" width="164" height="115" rx="8" fill="#f1eeeb" stroke="#8993a0" strokeWidth="6" transform="rotate(8 266 440)"/>
+   <path d="M298 474 H395 M298 491 H387 M298 508 H405" stroke="#9497a2" strokeWidth="5"/>
+  </g>
+ };
+ return <svg viewBox="0 0 460 570" style={{width:'100%',height:'100%',
+   opacity:rise,transform:'translateY('+(25*(1-rise))+'px)'}} aria-label={'Ilustração original: '+id}>
+   <g transform={mirror?'translate(460 0) scale(-1 1)':'translate(0 0)'}>
+     {roleContours[id]||roleContours.manager_a}
+   </g>
  </svg>;
 };
 
@@ -100,6 +135,7 @@ const Bubble:React.FC<{text:string;x:number;y:number;color?:string;frame:number;
   opacity:p,transform:'translateY('+(29*(1-p))+'px) scale('+(.83+.17*p)+')'}}>{text}</div>;
 };
 
+const SAFE_STAGE={left:160,top:435,right:1760,bottom:970};
 const DramaticChaos:React.FC<{frame:number;fps:number}> = ({frame,fps})=>{
  const paths=[
  'M46 208 C85 -65 205 445 240 122 S400 386 466 72',
@@ -107,25 +143,20 @@ const DramaticChaos:React.FC<{frame:number;fps:number}> = ({frame,fps})=>{
  'M160 80 C450 480 76 448 364 55 S565 450 684 65',
  'M58 115 C186 355 400 135 525 402 S640 75 746 320',
  'M164 435 C85 175 421 -15 516 298 S698 392 750 56',
- 'M31 265 Q388 93 522 430 Q670 95 787 273',
- 'M100 54 Q254 350 430 98 T761 416',
- 'M16 350 Q220 458 370 80 T710 220',
- 'M95 432 C510 190 490 510 755 248',
- 'M206 49 C250 230 750 210 601 400'
+ 'M31 265 Q388 93 522 430 Q670 95 787 273'
  ];
- const p=natural(frame,9,fps);
- return <AbsoluteFill style={{pointerEvents:'none'}}>
-  <svg viewBox="0 0 820 530" style={{position:'absolute',left:700,top:432,width:1030,height:580}}>
+ // P0: isolated editorial canvas. Scribbles NEVER cross FlowCards or headings.
+ const p=natural(frame,10,fps);
+ return <div style={{position:'absolute',left:790,top:490,width:905,height:395,
+  overflow:'hidden',clipPath:'inset(0 round 32px)',pointerEvents:'none'}}>
+  <svg viewBox="0 0 820 530" width="100%" height="100%">
    <path d="M80 75 C290 -30 582 25 728 134 Q868 298 740 427 C520 540 210 501 69 362 Q-25 217 80 75Z"
-      fill="#FFF9ED" stroke="#2B303B" strokeWidth="4" strokeDasharray="10 12" opacity={p*.94}/>
-   {paths.map((path,i)=><path key={i} d={path} fill="none" stroke="#242b39"
-       strokeWidth={3.5+(i%4)} strokeLinecap="round" strokeLinejoin="round"
-       strokeDasharray="1700" strokeDashoffset={1700*(1-natural(frame,15+i*5,fps))}/>)}
-   {['?','!','?!','↗','↘','↖','○'].map((char,i)=><text key={char+i}
-      x={70+(i*101)%690} y={70+(i*79)%380} fontSize={38+(i%3)*12}
-      fontWeight="900" fill="#393341" opacity={natural(frame,24+i*4,fps)}>{char}</text>)}
+     fill="#FFF9ED" stroke="#B7A9A1" strokeWidth="4" strokeDasharray="10 12" opacity={p}/>
+   {paths.map((path,i)=><path key={i} d={path} fill="none" stroke="#364052"
+     strokeWidth={2.8+(i%3)} strokeLinecap="round" strokeLinejoin="round"
+     strokeDasharray="1700" strokeDashoffset={1700*(1-natural(frame,24+i*18,fps))} opacity={.75}/>)}
   </svg>
- </AbsoluteFill>;
+ </div>;
 };
 
 function pickLabels(kind:string):string[]{
@@ -143,26 +174,35 @@ function pickLabels(kind:string):string[]{
  };
  return table[kind]??['INFORMAÇÃO','PROCESSO','RESULTADO'];
 }
-const FlowCards:React.FC<{kind:string;frame:number;fps:number}> = ({kind,frame,fps})=>{
+const FlowCards:React.FC<{kind:string;frame:number;fps:number;durationFrames?:number}> =
+({kind,frame,fps,durationFrames=360})=>{
  const labels=pickLabels(kind);
- return <div style={{position:'absolute',left:265,top:540,width:1405,
-   display:'flex',justifyContent:'space-between',alignItems:'center'}}>
-  {labels.map((label,i)=><React.Fragment key={label+i}>
-    <div style={{flex:1,background:'#FFFAEF',minHeight:270,
-      border:'2px solid #DDD4C2',borderRadius:25,padding:'30px 31px',
-      boxShadow:'0 18px 35px rgba(59,48,37,.08)',
-      opacity:natural(frame,12+i*16,fps),
-      transform:'translateY('+(36*(1-natural(frame,12+i*16,fps)))+'px)'}}>
-      <div style={{display:'flex',justifyContent:'center',alignItems:'center',
+ const focusIndex=Math.min(2,Math.floor((frame/Math.max(1,durationFrames))*3));
+ const beats=[.08,.37,.68].map(f=>Math.round(durationFrames*f));
+ return <div style={{position:'absolute',left:SAFE_STAGE.left+70,top:SAFE_STAGE.top+100,
+  width:1415,height:310,display:'flex',justifyContent:'space-between',alignItems:'center'}}>
+  {labels.map((label,i)=>{
+    const p=natural(frame,beats[i],fps);
+    const focused=focusIndex===i;
+    return <React.Fragment key={label+i}>
+      <div style={{flex:1,background:'#FFFAEF',minHeight:254,
+       border:focused?'3px solid #A08AC9':'2px solid #DDD4C2',
+       borderRadius:25,padding:'27px 27px',
+       boxShadow:focused?'0 17px 42px rgba(109,91,146,.18)':'0 12px 25px rgba(59,48,37,.08)',
+       opacity:frame<beats[i]?0:p,
+       transform:'translateY('+(28*(1-p))+'px) scale('+(focused?1.035:1)+')'}}>
+       <div style={{display:'flex',justifyContent:'center',alignItems:'center',
         background:[violet,blue,sage][i],color:'#fff',width:60,height:60,
-        borderRadius:19,fontWeight:900,fontSize:32}}>{i+1}</div>
-      <div style={{marginTop:37,fontSize:32,fontWeight:900,color:ink}}>{label}</div>
-      <div style={{height:7,width:100+i*40,background:[violet,blue,sage][i],
-        borderRadius:8,opacity:.35,marginTop:22}}/>
-    </div>
-    {i<2&&<div style={{width:68,display:'flex',justifyContent:'center',alignItems:'center',
-       fontSize:40,color:violet,opacity:natural(frame,25+i*16,fps)}}>→</div>}
-  </React.Fragment>)}
+        borderRadius:19,fontWeight:900,fontSize:31}}>{i+1}</div>
+       <div style={{marginTop:32,fontSize:31,fontWeight:900,color:ink}}>{label}</div>
+       <div style={{height:6,width:90+i*40,background:[violet,blue,sage][i],
+         borderRadius:8,opacity:.4,marginTop:18}}/>
+      </div>
+      {i<2&&<div style={{width:62,display:'flex',justifyContent:'center',
+         alignItems:'center',fontSize:38,color:violet,
+         opacity:natural(frame,beats[i+1]-10,fps)}}>→</div>}
+    </React.Fragment>;
+  })}
  </div>;
 };
 
@@ -223,30 +263,42 @@ const FiveMap:React.FC<{frame:number;fps:number}> = ({frame,fps})=>{
 };
 
 const RepoProof:React.FC<{scene:Scene;frame:number;fps:number}> = ({scene,frame,fps})=>{
- const p=natural(frame,13,fps),q=natural(frame,34,fps);
- return <div style={{position:'absolute',left:180,top:430,right:170,bottom:85,display:'flex',gap:24}}>
-  <div style={{width:scene.appImage?'54%':'100%',height:'100%',padding:12,
-    background:'#FFF9EE',borderRadius:27,border:'2px solid #D9CEBD',
-    boxShadow:'0 24px 55px rgba(56,48,44,.15)',
-    overflow:'hidden',opacity:p,transform:'translateY('+(45*(1-p))+'px)'}}>
-    <div style={{height:48,fontSize:22,fontWeight:900,color:'#75688b',padding:'8px 18px',
-      display:'flex',gap:12,alignItems:'center'}}>● ● ●　 REPOSITÓRIO · GITHUB</div>
-    {scene.image?<Img src={staticFile(scene.image)} style={{width:'100%',height:'91%',
-      objectFit:'cover',objectPosition:'top',borderRadius:13}}/>:
-      <div style={{fontSize:27,fontWeight:800,padding:30,color:ink}}>
-        {scene.repoUrl.replace('https://github.com/','')}<div style={{fontSize:20,
-          fontWeight:400,marginTop:25}}>Captura real indisponível. Não é uma interface simulada.</div>
-      </div>}
-  </div>
-  {scene.appImage&&<div style={{width:'46%',height:'100%',padding:12,
-      background:'#FFF9EE',borderRadius:27,border:'2px solid #D9CEBD',
-      boxShadow:'0 24px 55px rgba(56,48,44,.15)',overflow:'hidden',
-      opacity:q,transform:'translateY('+(60*(1-q))+'px)'}}>
-      <div style={{height:48,fontSize:22,fontWeight:900,color:'#537969',padding:'8px 15px'}}>
-       ● ● ●　 CAPTURA DE INTERFACE DO README</div>
-      <Img src={staticFile(scene.appImage)} style={{width:'100%',height:'91%',
-        objectFit:'contain',background:'#fff',borderRadius:12}}/>
+ const p=natural(frame,10,fps);
+ const reveal=natural(frame,Math.round(scene.durationFrames*.30),fps);
+ const useApp=Boolean(scene.appImage);
+ // P2: real application image takes the majority of the stage after repository proof.
+ const repoWidth=useApp? (68-36*reveal)+'%' : '100%';
+ const appWidth=useApp? (28+36*reveal)+'%' : '0%';
+ return <div style={{position:'absolute',left:SAFE_STAGE.left,top:420,
+   right:SAFE_STAGE.left,bottom:80,display:'flex',gap:22,alignItems:'stretch'}}>
+  <div style={{width:repoWidth,flexShrink:0,padding:12,
+   background:'#FFF9EE',borderRadius:27,border:'2px solid #D9CEBD',
+   boxShadow:'0 20px 48px rgba(56,48,44,.14)',overflow:'hidden',
+   opacity:p,transform:'translateY('+(32*(1-p))+'px)'}}>
+   <div style={{height:46,fontSize:20,fontWeight:900,color:'#75688b',
+     padding:'8px 16px'}}>● ● ●　 REPOSITÓRIO REAL · GITHUB</div>
+   {scene.image?<Img src={staticFile(scene.image)} style={{width:'100%',height:'91%',
+     objectFit:'contain',objectPosition:'top',background:'#151a22',borderRadius:13}}/>:
+    <div style={{fontSize:25,fontWeight:800,padding:30,color:ink}}>
+      {scene.repoUrl.replace('https://github.com/','')}
+      <div style={{fontSize:20,fontWeight:400,marginTop:25}}>
+        Captura indisponível. Não substituir por interface inventada.
+      </div>
     </div>}
+  </div>
+  {useApp&&<div style={{width:appWidth,flexShrink:0,padding:12,
+    background:'#FFF9EE',borderRadius:27,border:'2px solid #D9CEBD',
+    boxShadow:'0 24px 55px rgba(56,48,44,.15)',overflow:'hidden',
+    opacity:Math.max(.08,reveal),transform:'translateY('+(38*(1-reveal))+'px)'}}>
+    <div style={{height:46,fontSize:20,fontWeight:900,color:'#537969',
+      padding:'8px 12px'}}>● ● ●　 INTERFACE AUTÊNTICA · README</div>
+    <div style={{height:'90%',width:'100%',overflow:'hidden',borderRadius:12,
+       background:'#e7e8eb'}}>
+       <Img src={staticFile(scene.appImage||'')} style={{width:'100%',height:'100%',
+         objectFit:'contain',objectPosition:'center',
+         transform:'scale('+(1+.045*reveal)+')'}}/>
+    </div>
+   </div>}
  </div>;
 };
 
@@ -278,24 +330,36 @@ const Orbit:React.FC<{frame:number;fps:number}> = ({frame,fps})=>{
 
 const InfoCollage:React.FC<{scene:Scene;frame:number;fps:number}> = ({scene,frame,fps})=>{
  const id=scene.direction?.portrait;
- const labels=pickLabels(scene.direction?.kind||'');
  const main=scene.direction?.kind??'';
+ const sceneVariant=parseInt(scene.id.split('-')[1]||'0',10)%3;
+ const sideRight=sceneVariant===0 &&
+   !['chaos_thought_cloud','paper_overload_collage'].includes(main);
+ const portraitLeft=sideRight?1200:175;
+ const bubbleLeft=sideRight?220:750;
  const bubbleLabels=main.includes('support')?['CLIENTE','MENSAGEM','RESPOSTA']:
      main.includes('task')?['TAREFAS','PRAZO','EQUIPE']:
      main.includes('lost_lead')?['CLIENTES','ORÇAMENTO','VENDAS']:
      main.includes('paper')?['CONTRATOS','NOTAS','ARQUIVOS']:
+     main.includes('process')?['PESSOAS','PROCESSO','ROTINA']:
      ['SISTEMAS','CLIENTES','GESTÃO'];
+ const positions=[490,640,790];
+ const beats=[.10,.42,.74].map(f=>Math.round(scene.durationFrames*f));
  return <AbsoluteFill>
-   {id&&<div style={{position:'absolute',width:440,height:550,left:180,top:430,
+   {id&&<div style={{position:'absolute',width:440,height:535,
+       left:portraitLeft,top:430,overflow:'hidden',
        filter:'drop-shadow(0 16px 25px rgba(43,37,34,.13))'}}>
-       <Persona id={id} frame={frame} fps={fps}/>
+       <Persona id={id} frame={frame} fps={fps} sceneVariant={sceneVariant}/>
     </div>}
-   <Bubble text={bubbleLabels[0]} x={730} y={485} color="#E8E1F5" frame={frame} at={16} fps={fps}/>
-   <Bubble text={bubbleLabels[1]} x={1110} y={600} color="#DCECF2" frame={frame} at={35} fps={fps}/>
-   <Bubble text={bubbleLabels[2]} x={810} y={815} color="#DFEDDF" frame={frame} at={50} fps={fps}/>
-   <svg viewBox="0 0 1920 1080" style={{position:'absolute',inset:0,width:'100%',height:'100%',pointerEvents:'none'}}>
-    <path d="M610 710 Q730 620 850 570" fill="none" stroke="#9A8CAC" strokeWidth="4" strokeDasharray="8 10"/>
-    <path d="M620 760 Q865 895 1110 680" fill="none" stroke="#9A8CAC" strokeWidth="4" strokeDasharray="8 10"/>
+   {bubbleLabels.map((label,i)=>
+      <Bubble key={label+i} text={label} x={bubbleLeft+(i===1?230:0)}
+       y={positions[i]} color={['#E8E1F5','#DCECF2','#DFEDDF'][i]}
+       frame={frame} at={beats[i]} fps={fps}/>
+   )}
+   <svg viewBox="0 0 1920 1080" style={{position:'absolute',inset:0,
+     width:'100%',height:'100%',pointerEvents:'none'}}>
+    <path d={'M'+(sideRight?1190:630)+' 700 Q'+(sideRight?950:750)+' 610 '+(bubbleLeft+100)+' 570'}
+      fill="none" stroke="#AFA2B6" strokeWidth="3" strokeDasharray="6 12"
+      opacity={.8*natural(frame,beats[0],fps)}/>
    </svg>
  </AbsoluteFill>;
 };
@@ -333,8 +397,11 @@ export const DirectorV2:React.FC<Props>=({scene,cues})=>{
  const frame=useCurrentFrame(),{fps}=useVideoConfig();
  const d=scene.direction!;
  const title=d.headline || scene.title;
+ const dur=scene.durationFrames/fps;
  const camera=[{t:0,scale:1,x:0,y:0},
-               {t:scene.durationFrames/fps,scale:1.025,x:-10,y:-4}];
+               {t:dur*.35,scale:1.012,x:-5,y:-2},
+               {t:dur*.72,scale:1.028,x:-13,y:-5},
+               {t:dur,scale:1.018,x:-7,y:-3}];
  const intro=natural(frame,2,fps);
  // Only a short readable editorial caption is displayed; Piper narrates every
  // original word. Never show a paragraph clipped in the middle of a line.
@@ -383,12 +450,15 @@ export const DirectorV2:React.FC<Props>=({scene,cues})=>{
        <PaperFan frame={frame} fps={fps}/></>:
       isFive?<FiveMap frame={frame} fps={fps}/>:
       isPortrait?<InfoCollage scene={scene} frame={frame} fps={fps}/>:
-      <FlowCards kind={d.kind} frame={frame} fps={fps}/>}
+      <FlowCards kind={d.kind} frame={frame} fps={fps} durationFrames={scene.durationFrames}/>}
    </Plane>
    {/* Keyword effects are SMALL insets, never opaque full-screen slide changes. */}
-   {cues.filter(c=>!(['scribble_chaos','paper_overload','crm_orbit'].includes(c.effect)
-       && [d.kind].some(k=>k==='chaos_thought_cloud'||k==='paper_overload_collage'||k==='crm_orbit_explainer')))
-     .slice(0,2).map((cue,i)=>{
+   {cues.filter(c=> {
+       // P0: native large effects are part of the scene itself.
+       // Never layer them over readable labels or authentic screenshots.
+       if(['scribble_chaos','paper_overload','crm_orbit'].includes(c.effect)) return false;
+       return !isProof && !isOpening && !isChaos && !isPaper && !isOrbit;
+     }).slice(0,1).map((cue,i)=>{
        const from=Math.max(0,Math.round(cue.at*fps)-scene.startFrame);
        if(from>=scene.durationFrames)return null;
        const duration=Math.min(scene.durationFrames-from,Math.max(12,Math.round(cue.duration*fps)));
