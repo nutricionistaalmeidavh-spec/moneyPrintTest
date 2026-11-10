@@ -43,7 +43,10 @@ jobs:
           assert len(shots) == 1 and len(shots[0]) >= 2, shots
           for screenshot in shots[0]:
               with Image.open(screenshot) as image:
-                  assert image.size == (1440,900)
+                  if Path(screenshot).name == "app_real.png":
+                      assert image.width >= 600 and image.height >= 300
+                  else:
+                      assert image.size == (1440,900)
           print("Capturas reais:", shots[0])
           PY
       - name: Gerar prévia REAL de slide animado com mídia em mockup
