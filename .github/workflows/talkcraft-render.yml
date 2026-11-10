@@ -143,8 +143,14 @@ jobs:
           assert manifest["license_notice"].startswith("PolyForm Noncommercial")
           assert report["frames"]==(min(270,manifest["totalFrames"]) if "${{ env.SMOKE }}"=="true" else manifest["totalFrames"])
           if "${{ env.SMOKE }}"=="true":
-              assert {"scribble_chaos","crm_orbit","paper_overload"} <= {c["effect"] for c in manifest["cues"]}
-              assert all(c["method"]=="qa_fixture_not_asr" for c in manifest["cues"])
+              if manifest.get("director_board"):
+                  assert manifest["style"]=="paper-editorial-v2"
+                  assert len(manifest["scenes"])==25
+                  assert all(scene["direction"] for scene in manifest["scenes"])
+                  assert not manifest["cues"],"Não inserir gatilhos artificiais no storyboard V2"
+              else:
+                  assert {"scribble_chaos","crm_orbit","paper_overload"} <= {c["effect"] for c in manifest["cues"]}
+                  assert all(c["method"]=="qa_fixture_not_asr" for c in manifest["cues"])
           else:
               print("Efeitos de áudio:",manifest.get("illustration_audit",{}))
 
