@@ -71,6 +71,54 @@ class CarouselTests(unittest.TestCase):
             with self.subTest(value=value), self.assertRaises(CarouselError):
                 validate_request(value)
 
+    def test_editorial_square_renders_six_1080x1080_from_same_background(self):
+        from PIL import Image
+        from scripts.render_carousel import _cover
+        slides = [
+            {"title": "4 sites pra digitalizar sua empresa",
+             "highlight": "EMPRESA", "body": "(e ninguém te conta)"},
+            *[
+                {"title": f"{i}. EXEMPLO", "highlight": "FERRAMENTA",
+                 "body": "Faça o trabalho do seu negócio.",
+                 "url": "example.org"} for i in range(1, 5)
+            ],
+            {"title": "SALVA ESSE POST!", "highlight": "PRA TESTAR DEPOIS",
+             "body": "Qual ferramenta você usaria?"},
+        ]
+        request = validate_request({"topic": "4 sites empresariais",
+                                    "style": "editorial_square", "slides": slides})
+        self.assertEqual(request["aspect"], "1:1")
+        self.assertEqual(request["photo_mode"], "same")
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            photo = root / "gamer.jpg"
+            Image.new("RGB", (1400, 1800), "#345678").save(photo)
+            bg = _cover(photo, "1:1")
+            self.assertEqual(bg.size, (1080, 1080))
+            output = root / "out"
+            paths = compose_carousel(
+                request, photo, output,
+                parse_candidates(sample_candidate())[0])
+            self.assertEqual(len(paths), 6)
+            for path in paths:
+                with Image.open(path) as img:
+                    self.assertEqual(img.size, (1080, 1080))
+                    self.assertEqual(img.format, "JPEG")
+            with Image.open(output / "preview.jpg") as img:
+                self.assertEqual(img.width, 810)
+            with zipfile.ZipFile(output / "carrossel.zip") as zipped:
+                self.assertIn("06.jpg", zipped.namelist())
+                self.assertEqual(len([name for name in zipped.namelist()
+                    if name.endswith(".jpg") and len(name) == 6]), 6)
+
+    def test_editorial_square_rejects_wrong_aspect_without_affecting_legacy(self):
+        self.assertEqual(
+            validate_request({"topic": "x", "style": "editorial",
+                              "aspect": "3:5"})["aspect"], "3:5")
+        with self.assertRaises(CarouselError):
+            validate_request({"topic": "x", "style": "editorial_square",
+                              "aspect": "3:5"})
+
     def test_editorial_style_accepts_new_sites_and_full_setup_layout(self):
         from PIL import Image
         from scripts.render_carousel import _cover, _make_page
