@@ -1,0 +1,61 @@
+{
+  "topic": "4 sites pra digitalizar sua empresa",
+  "slide_count": 6,
+  "source": "auto",
+  "photo_mode": "same",
+  "style": "editorial_square",
+  "aspect": "1:1",
+  "brand": "ArtiSys",
+  "slides": [
+    {
+      "title": "4 sites pra digitalizar sua",
+      "highlight": "EMPRESA",
+      "body": "(e ninguém te conta)"
+    },
+    {
+      "title": "1. WORDPRESS",
+      "highlight": "PRESENÇA DIGITAL",
+      "body": "Crie e gerencie seu site e seus conteúdos.",
+      "detail": "Código aberto e instalação própria.",
+      "url": "wordpress.org"
+    },
+    {
+      "title": "2. MEDUSA",
+      "highlight": "E-COMMERCE",
+      "body": "Construa vendas online com catálogo e pedidos.",
+      "detail": "Plataforma aberta para projetos personalizados.",
+      "url": "medusajs.com"
+    },
+    {
+      "title": "3. BUDIBASE",
+      "highlight": "SISTEMAS INTERNOS",
+      "body": "Monte painéis, formulários e fluxos para sua equipe.",
+      "detail": "Aplicativos internos com opção self-hosted.",
+      "url": "budibase.com"
+    },
+    {
+      "title": "4. ERPNEXT",
+      "highlight": "ESTOQUE E GESTÃO",
+      "body": "Organize estoque, compras e vendas no mesmo ERP.",
+      "detail": "Sistema de gestão open source.",
+      "url": "erpnext.com"
+    },
+    {
+      "title": "SALVA ESSE POST!",
+      "highlight": "PRA TESTAR DEPOIS",
+      "body": "Qual dessas ferramentas resolveria um problema do seu negócio?"
+    }
+  ],
+  "photo_terms": [
+    "dark RGB gaming PC full workstation ultrawide monitor laptop desk setup",
+    "neon gamer computer setup PC tower keyboard monitor blue purple",
+    "complete RGB desktop gaming workspace low light monitor laptop"
+  ],
+  "cta": "Salve para testar depois",
+  "hashtags": [
+    "#ArtiSys",
+    "#automacao",
+    "#gestao",
+    "#opensource"
+  ]
+}
