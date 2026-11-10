@@ -153,27 +153,43 @@ def prepare_talkcraft_data(project: dict, aligned_words: list[dict],
         raise ValueError("Talkcraft só pode executar quando explicitamente selecionado")
     fps = plan["fps"]
     media = shots or {}
+    board=None
+    if project.get("director_board"):
+        if project["director_board"]!="storyboards/5-sistemas-director-v2.json":
+            raise ValueError("Caminho do storyboard não autorizado")
+        from scripts.director_v2 import validate_v2
+        root=Path(__file__).resolve().parents[1]
+        board=json.loads((root/project["director_board"]).read_text(encoding="utf-8"))
+        validate_v2(board,project)
     scenes = []
     for scene in plan["scenes"]:
         # Internal file keys, never untrusted absolute paths or URLs for Remotion.
-        img = media.get(scene["id"])
-        if img is not None and not re.fullmatch(r"moneyprint/[a-zA-Z0-9_.-]+[.]png", img):
-            raise ValueError("Mídia deve usar caminho interno seguro")
+        bundle=media.get(scene["id"])
+        if isinstance(bundle,dict):
+            img=bundle.get("repo")
+            app=bundle.get("interface")
+        else:
+            img=bundle
+            app=None
+        for path in (img,app):
+            if path is not None and not re.fullmatch(r"moneyprint/[a-zA-Z0-9_.-]+[.]png",path):
+                raise ValueError("Mídia deve usar caminho interno seguro")
+        director=(board["shots"][len(scenes)]["visual_v2"] if board else None)
         scenes.append({
             "id":scene["id"], "title":scene["title"], "text":scene["text"],
             "eyebrow":scene.get("eyebrow") or "", "layout":scene["layout"],
             "startFrame":scene["start_frame"], "durationFrames":scene["duration_frames"],
-            "repoUrl":scene.get("repo_url") or "", "image":img or "",
+            "repoUrl":scene.get("repo_url") or "", "image":img or "", "appImage":app or "", "direction":director,
         })
     cues=clip_aligned_cues(project, aligned_words)
     result = {
       "schema":"moneyprint-talkcraft-v1", "upstream":UPSTREAM,
       "upstreamSha":UPSTREAM_SHA, "license_notice":LICENSE_NOTICE,
-      "style":"pastel-light","fps":fps, "aspect":plan["aspect"],
+      "style":"paper-editorial-v2" if board else "pastel-light","fps":fps, "aspect":plan["aspect"],
       "totalFrames":plan["total_frames"], "scenes":scenes,
       "cues":cues,"illustration_audit":audit_illustrations(project,cues),
       "alignment":("measured_whisper_pt_with_interpolation" if any(c["method"].startswith("interpolated") for c in cues) else "measured_whisper_pt") if aligned_words else "none",
-      "autopublish":False, "commercial_use":False,
+      "autopublish":False, "commercial_use":False, "director_board":board["id"] if board else None,
     }
     destination.parent.mkdir(parents=True, exist_ok=True)
     destination.write_text(json.dumps(result,ensure_ascii=False,indent=2)+"\n",encoding="utf-8")
