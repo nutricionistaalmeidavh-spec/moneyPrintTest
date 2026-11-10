@@ -162,6 +162,9 @@ def write_remotion(project: dict, upstream: Path, out: Path, words: list[dict],
     shutil.copyfile(narration,public/"narration.wav")
     source=Path(__file__).resolve().parents[1]/"motion"/"talkcraft"/"MoneyPrint.tsx"
     shutil.copyfile(source,src/"MoneyPrint.tsx")
+    director_source=source.parent/"DirectorV2.tsx"
+    if director_source.is_file():
+        shutil.copyfile(director_source,src/"DirectorV2.tsx")
     manifest=prepare_talkcraft_data(project,words,src/"MoneyPrintData.json",images)
     copy=out/"talkcraft_manifest.json"
     copy.parent.mkdir(parents=True,exist_ok=True)
