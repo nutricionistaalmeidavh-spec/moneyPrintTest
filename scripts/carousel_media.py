@@ -114,7 +114,7 @@ def parse_pixabay_candidates(data):
     return out
 
 
-def photo_score(item):
+def photo_score(item, prefer_rgb=False):
     """Prefer calm desk/workspace images over gaming, neon and generated art."""
     title = " " + str(item.get("title", "")).lower() + " "
     positives = {
@@ -136,6 +136,19 @@ def photo_score(item):
     }
     quality = sum(weight for word, weight in positives.items() if word in title)
     quality += sum(weight for word, weight in negatives.items() if word in title)
+    if prefer_rgb:
+        # RGB gaming setups can still be workstations; do not penalize neon
+        # as strongly when the user's request explicitly calls for RGB.
+        quality += sum(260 for word in ("rgb", "neon", "led lighting") if word in title)
+        quality += sum(200 for word in ("gaming", "gamer") if word in title)
+    # Explicit human terms are bad fits for a clean full-workstation background.
+    # Metadata-only detection is not exhaustive; visual review remains required.
+    if any(word in title for word in (
+        "person", "people", " man ", " woman ", "boy", "girl", "human",
+        "player", "portrait", "male", "female", "child", "sitting",
+        "playing", "hands", "face"
+    )):
+        quality -= 750
     ratio = item["width"] / max(1, item["height"])
     portrait = 160 if ratio < 1.15 else 0
     resolution = (min(item["width"], 2000) + min(item["height"], 2200)) / 35
@@ -226,7 +239,10 @@ def search_free_photos(terms, source, env, cache_dir, *, photo_id=None):
     if not all_items:
         raise PhotoError("Nenhuma foto livre disponível; revise a busca ou a conexão do provedor. "
                          + ", ".join(errors[:3]))
-    return sorted(all_items, key=photo_score, reverse=True)
+    rgb_query = any(word in term.lower() for term in terms
+                    for word in ("rgb", "neon", "gaming"))
+    return sorted(all_items, key=lambda item: photo_score(
+        item, prefer_rgb=rgb_query), reverse=True)
 
 
 def download_photo(item, target):
