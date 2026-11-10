@@ -166,6 +166,38 @@ const FlowCards:React.FC<{kind:string;frame:number;fps:number}> = ({kind,frame,f
  </div>;
 };
 
+const OpeningVisual:React.FC<{frame:number;fps:number}> = ({frame,fps})=>{
+ const tools=[
+  ['ERPNext',180,125,'#E3D9F3'],['Twenty',1160,105,'#D3E7EA'],
+  ['Chatwoot',1350,530,'#D6EAD9'],['Plane',270,575,'#DCE6F6'],
+  ['Paperless',960,640,'#F0E1D1']
+ ] as const;
+ return <div style={{position:'absolute',left:180,top:390,right:180,bottom:75}}>
+  <div style={{position:'absolute',left:560,top:140,width:440,height:385,
+   display:'flex',justifyContent:'center',alignItems:'center',borderRadius:55,
+   background:'#FFFAF1',border:'3px solid #E0D2BE',
+   boxShadow:'0 26px 55px rgba(79,65,56,.12)',
+   opacity:natural(frame,4,fps),
+   transform:'scale('+(.85+.15*natural(frame,4,fps))+')'}}>
+   <div style={{textAlign:'center'}}>
+    <div style={{fontSize:215,fontWeight:900,color:violet,lineHeight:.9}}>5</div>
+    <div style={{fontSize:27,color:ink,fontWeight:900,letterSpacing:1.3}}>SISTEMAS REAIS</div>
+    <div style={{fontSize:18,color:'#77818c',marginTop:10}}>CÓDIGO ABERTO · GITHUB</div>
+   </div>
+  </div>
+  {tools.map(([name,x,y,col],i)=>{
+    const p=natural(frame,14+i*9,fps);
+    return <div key={name} style={{position:'absolute',left:x,top:y,
+      minWidth:203,padding:'21px 27px',borderRadius:38,
+      border:'2px solid #E2D5C7',background:col,
+      color:ink,fontSize:27,fontWeight:900,textAlign:'center',
+      opacity:p,transform:'translateY('+(35*(1-p))+'px) scale('+(.92+.08*p)+')'}}>
+      {name}
+    </div>;
+  })}
+ </div>;
+};
+
 const FiveMap:React.FC<{frame:number;fps:number}> = ({frame,fps})=>{
  const data=[['ERPNext','#d9d2f4',250,130],['Twenty CRM','#d4ebed',1030,110],
  ['Chatwoot','#dce9da',1450,300],['Plane','#d5e4f4',360,570],
@@ -304,7 +336,12 @@ export const DirectorV2:React.FC<Props>=({scene,cues})=>{
  const camera=[{t:0,scale:1,x:0,y:0},
                {t:scene.durationFrames/fps,scale:1.025,x:-10,y:-4}];
  const intro=natural(frame,2,fps);
- const subtitle=scene.text.length>210?scene.text.slice(0,207)+'…':scene.text;
+ // Only a short readable editorial caption is displayed; Piper narrates every
+ // original word. Never show a paragraph clipped in the middle of a line.
+ const sentence=scene.text.split(/[.!?]/)[0].trim();
+ const subtitle=sentence.length<=104?sentence:
+   sentence.slice(0,100).replace(/\s+\S*$/,'').trim()+'…';
+ const isOpening=d.kind==='opening_burst';
  const isProof=d.media_mode!=='illustration';
  const isChaos=d.kind==='chaos_thought_cloud';
  const isOrbit=d.kind==='crm_orbit_explainer';
@@ -336,7 +373,8 @@ export const DirectorV2:React.FC<Props>=({scene,cues})=>{
     </div>
    </Plane>
    <Plane depth={1.27}>
-    {isProof?<RepoProof scene={scene} frame={frame} fps={fps}/>:
+    {isOpening?<OpeningVisual frame={frame} fps={fps}/>:
+      isProof?<RepoProof scene={scene} frame={frame} fps={fps}/>:
       isChaos?<><InfoCollage scene={scene} frame={frame} fps={fps}/>
        <DramaticChaos frame={frame} fps={fps}/></>:
       isOrbit?<><InfoCollage scene={scene} frame={frame} fps={fps}/>
