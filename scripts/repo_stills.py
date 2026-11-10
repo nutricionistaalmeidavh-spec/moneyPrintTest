@@ -11,6 +11,30 @@ import json
 from scripts.browser_capture import validate_repo_urls, is_github_asset, CaptureError
 
 
+def rank_readme_images(items: list[dict]) -> list[dict]:
+    """Rank only real large README images. Never fabricate a product screenshot."""
+    accepted=[]
+    for item in items:
+        try:
+            w,h=int(item.get("width") or 0),int(item.get("height") or 0)
+        except (TypeError,ValueError):
+            continue
+        src=str(item.get("src") or "")
+        if not is_github_asset(urlsplit(src).hostname):
+            continue
+        if w<600 or h<300:
+            continue
+        alt=str(item.get("alt") or "").lower()
+        if any(k in alt for k in ("badge","icon","logo","sponsor","donate","coverage")):
+            continue
+        score=0
+        for key in ("screenshot","dashboard","interface","preview","app","screen","ui"):
+            if key in alt or key in src.lower():score+=3
+        score+=min(3,w*h/900000)
+        accepted.append((score,item))
+    return [item for _,item in sorted(accepted,key=lambda pair:pair[0],reverse=True)]
+
+
 def capture_repo_stills(urls: list[str], output: Path, *, width=1440, height=900) -> list[list[str]]:
     urls = validate_repo_urls(urls)
     if width < 640 or height < 480:
@@ -65,6 +89,25 @@ def capture_repo_stills(urls: list[str], output: Path, *, width=1440, height=900
                             dest = folder / f"readme_{n}.png"
                             page.screenshot(path=str(dest), animations="disabled")
                             files.append(str(dest.resolve()))
+                    # Capture authentic application screenshots *shown by the
+                    # original README*. If none exists, do not fake an app UI.
+                    try:
+                        images=page.locator("article.markdown-body img, #readme img")
+                        metadata=images.evaluate_all("""nodes => nodes.map((el,i) => ({
+                           index:i,alt:el.getAttribute('alt')||'',
+                           src:el.currentSrc||el.src,
+                           width:el.naturalWidth||0,height:el.naturalHeight||0
+                        }))""")
+                        ranked=rank_readme_images(metadata)
+                        if ranked:
+                            chosen=images.nth(ranked[0]["index"])
+                            chosen.scroll_into_view_if_needed(timeout=8000)
+                            chosen.screenshot(path=str(folder/"app_real.png"),timeout=15000)
+                            files.append(str((folder/"app_real.png").resolve()))
+                    except Exception as e:
+                        # Screenshot fallback is repository README itself,
+                        # which remains a real capture with separate label.
+                        (folder/"captura-aviso.txt").write_text(str(e)[:500],encoding="utf-8")
                     records.append(files)
                 finally:
                     context.close()
