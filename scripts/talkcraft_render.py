@@ -96,11 +96,16 @@ def capture_stills(project: dict, output: Path) -> dict[str,Path]:
     lookup={repo:list(map(Path,images)) for repo,images in zip(repos,records)}
     serial={repo:0 for repo in repos}
     found={}
-    for s in project["scenes"]:
-        repo=s.get("repo_url")
-        if repo and lookup.get(repo):
-            found[s["id"]]=lookup[repo][serial[repo]%len(lookup[repo])]
-            serial[repo]+=1
+    for scene in project["scenes"]:
+        repo=scene.get("repo_url")
+        images=lookup.get(repo) or []
+        if not images:continue
+        repo_still=images[serial[repo]%min(3,len(images))]
+        app=next((path for path in images if path.name=="app_real.png"),None)
+        # Independent, honest capture provenance: one GitHub screenshot
+        # plus a REAL published application preview when available.
+        found[scene["id"]]={"repo":repo_still,"interface":app}
+        serial[repo]+=1
     return found
 
 
@@ -140,17 +145,26 @@ def write_remotion(project: dict, upstream: Path, out: Path, words: list[dict],
     public.mkdir(parents=True,exist_ok=True)
     write_document_assets(public)
     images={}
-    for scene_id,path in (screenshots or {}).items():
+    for scene_id,bundle in (screenshots or {}).items():
         if not re.fullmatch(r"scene-[0-9]{3}",scene_id):
             raise ValueError("ID da imagem inválido")
-        if not path.is_file():
-            raise FileNotFoundError("Captura não disponível")
-        dest=public/f"{scene_id}.png"
-        shutil.copyfile(path,dest)
-        images[scene_id]="moneyprint/"+dest.name
+        if not isinstance(bundle,dict):bundle={"repo":bundle}
+        record={}
+        for media_key,suffix in (("repo","repo"),("interface","app")):
+            path=bundle.get(media_key)
+            if path is None:continue
+            if not path.is_file():
+                raise FileNotFoundError("Captura de "+media_key+" não disponível")
+            dest=public/f"{scene_id}_{suffix}.png"
+            shutil.copyfile(path,dest)
+            record[media_key]="moneyprint/"+dest.name
+        images[scene_id]=record
     shutil.copyfile(narration,public/"narration.wav")
     source=Path(__file__).resolve().parents[1]/"motion"/"talkcraft"/"MoneyPrint.tsx"
     shutil.copyfile(source,src/"MoneyPrint.tsx")
+    director_source=source.parent/"DirectorV2.tsx"
+    if director_source.is_file():
+        shutil.copyfile(director_source,src/"DirectorV2.tsx")
     manifest=prepare_talkcraft_data(project,words,src/"MoneyPrintData.json",images)
     copy=out/"talkcraft_manifest.json"
     copy.parent.mkdir(parents=True,exist_ok=True)
@@ -215,7 +229,7 @@ def main():
         words=align_portuguese(audio,args.whisper_model)
     screenshots=capture_stills(project,output/"capture") if args.capture_github else {}
     write_remotion(project,upstream,output,words,audio,screenshots)
-    if args.smoke:
+    if args.smoke and not project.get('director_board'):
         # Fixture only; never presented as measured timing or used in production.
         internal=upstream/"workbench"/"src"/"remotion"/"MoneyPrintData.json"
         report=output/"talkcraft_manifest.json"

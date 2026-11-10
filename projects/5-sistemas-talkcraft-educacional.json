@@ -1,7 +1,7 @@
 {
   "schema_version": 3,
   "id": "5-sistemas-talkcraft-edu",
-  "revision": 2,
+  "revision": 3,
   "topic": "5 sistemas que empresas precisam e existem gratuitamente no GitHub",
   "script": "Cinco sistemas gratuitos que sua empresa precisa conhecer.\nSabe aquele sistema de gestão, de atendimento ou de clientes pelo qual muitas empresas pagam todo mês? Existem alternativas de código aberto disponíveis no GitHub. Hoje eu vou mostrar cinco, com aplicações reais e sem prometer mágica.\nPrimeiro, pense em uma empresa que controla estoque numa planilha, vendas em outra e ainda precisa conferir o financeiro manualmente. Quando as informações não conversam, o retrabalho começa a custar caro.\nÉ aqui que entra o ERPNext. Um ERP open source com módulos para vendas, compras, estoque e contabilidade, além de outros processos empresariais. É um sistema completo, mas precisa de implantação e configuração.\nImagine registrar um pedido e acompanhar seu reflexo no estoque e no financeiro dentro de um mesmo ambiente. A animação mostra esse caminho. Os módulos disponíveis e as configurações precisam ser avaliados para cada negócio.\nO ERPNext pode interessar a negócios que cresceram além das planilhas. O código é gratuito para instalação própria, mas servidor, manutenção, treinamento e adaptação continuam exigindo planejamento.\nSegundo problema: alguém pede um orçamento, o vendedor anota o contato e depois ninguém lembra de retornar. O cliente se perde antes de virar venda. Esse é um problema de organização comercial.\nO Twenty é um CRM de código aberto com contatos, empresas e oportunidades de negócio. A ideia é organizar o relacionamento com clientes e visualizar melhor o processo comercial, sem depender de planilhas soltas.\nUm fluxo simples começa no contato, passa por uma proposta e pode terminar na venda. Quando cada oportunidade tem uma etapa visível, fica mais fácil acompanhar os próximos passos e responsabilidades da equipe.\nNenhum CRM substitui o trabalho comercial. O ganho está em manter histórico, tarefas e informações acessíveis. Para self-hosting, confira a edição comunitária, os recursos disponíveis e os requisitos de operação.\nTerceiro: sua equipe responde clientes por canais diferentes e ninguém sabe quem ficou responsável por cada conversa. O resultado pode ser demora, resposta repetida e até atendimento perdido.\nO Chatwoot oferece uma caixa de entrada para atendimento ao cliente, com conversas, agentes e recursos de organização. Existem integrações com diferentes canais, dependendo da configuração e da edição utilizada.\nA ideia é acompanhar uma conversa, atribuir um responsável e manter o contexto até a solução. Isso ajuda equipes que atendem muitos clientes e precisam dividir o trabalho com clareza.\nO software pode ser instalado por conta própria. Mas conectar canais como WhatsApp pode exigir contas oficiais, regras específicas e custos externos. Gratuidade do código não significa custo zero em toda integração.\nQuarto problema: reuniões terminam, tarefas aparecem, mas ninguém sabe o prazo, o responsável ou o andamento. Quando tudo fica numa conversa, acompanhar projetos se torna mais difícil.\nO Plane é uma plataforma open source de gerenciamento de projetos. Permite organizar trabalhos em tarefas e acompanhar o progresso por diferentes visualizações, conforme os recursos da edição escolhida.\nPense num quadro com colunas como a fazer, em andamento e concluído. A movimentação dos cartões deixa visível o progresso. É especialmente útil quando várias pessoas trabalham no mesmo projeto.\nUm bom painel não resolve prioridades confusas. O Plane é uma base para estruturar a execução, mas a equipe ainda precisa combinar regras de uso, responsáveis e rotina de atualização.\nQuinto: contratos, notas e documentos ficam espalhados por pastas e anexos. Encontrar uma informação pode significar abrir arquivo por arquivo. E o problema cresce com o volume de documentos.\nO Paperless-ngx é um sistema open source de gestão de documentos. Ele ajuda a importar arquivos, organizar metadados e tornar documentos pesquisáveis, inclusive com reconhecimento de texto em cenários compatíveis.\nO fluxo visual é simples: entra um documento, o sistema processa o conteúdo e a equipe consegue encontrá-lo por filtros ou busca. Menos tempo procurando arquivos, mais organização para o dia a dia.\nDocumentos empresariais podem ser sensíveis. Por isso, implantação exige controle de acesso, backups, atualização e política de retenção. É uma ferramenta, não uma dispensa das responsabilidades de proteção de dados.\nResumindo: ERPNext organiza operações. Twenty acompanha clientes e vendas. Chatwoot centraliza atendimento. Plane ajuda a equipe a executar projetos. E Paperless organiza os documentos.\nTodos esses projetos têm código público e opções de uso próprio, mas você precisa avaliar licença, edição, hospedagem, manutenção e segurança. Também existem ofertas comerciais opcionais. Não instale em produção sem testar.\nOs cinco links estão na descrição. Salve este vídeo para consultar depois e me conta nos comentários qual desses sistemas seria mais útil na sua empresa. Aqui a ideia é usar tecnologia com inteligência.",
   "fps": 30,
@@ -384,7 +384,7 @@
     }
   ],
   "visual_recipe_revision": 4,
-  "render_profile": "video-talkcraft-native-remotion-noncommercial",
+  "render_profile": "video-talkcraft-director-v2-paper-hybrid",
   "visual_style": "talkcraft_edu",
   "licensing": {
     "external_engine": "Vincentwei1021/video-talkcraft",
@@ -404,5 +404,15 @@
     ],
     "layout": "pastel-light",
     "qa": "nonblocking-manifest-report"
-  }
+  },
+  "director_board": "storyboards/5-sistemas-director-v2.json",
+  "visual_edition": "v2_warm_paper",
+  "production_requested": true,
+  "narration": {
+    "engine": "piper",
+    "language": "pt-BR",
+    "word_alignment": "faster-whisper",
+    "enabled": true
+  },
+  "creative_notes": "25 cenas sequenciais com tela real de repositório + screenshot do README quando disponível, personagens PB variados e papeis texturizados; não repetir slide."
 }
