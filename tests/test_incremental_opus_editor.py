@@ -14,6 +14,30 @@ BOARD=json.loads((ROOT/"video-requests/five-systems-original-opus-2026.json").re
 PATCH=json.loads((ROOT/"video-requests/five-systems-visual-fixes.json").read_text(encoding="utf-8"))
 
 class IncrementalOpusTests(unittest.TestCase):
+    def test_paradee_metadata_frames_override_original_9000_ranges(self):
+        # Original Opus is 9000 frames; approved Paradee master has 8994.
+        original=[x["min"] for x in BOARD["scenes"]]
+        new=original[:]
+        new[0]-=6
+        timing={"original_scenes":[{"scene":i+1,"motion":s["motion"],"new_frames":frames}
+                 for i,(s,frames) in enumerate(zip(BOARD["scenes"],new))],
+                "output_frames":8994}
+        from scripts.incremental_opus_editor import build_scene_spans
+        spans=build_scene_spans(BOARD,timing=timing)
+        self.assertEqual(sum(x["frames"] for x in spans),8994)
+        self.assertEqual(spans[-1]["end_frame"],8994)
+        self.assertEqual(spans[6]["frames"],original[6])
+        self.assertEqual(spans[7]["frames"],original[7])
+
+    def test_audio_on_paradee_master_uses_existing_voice_without_retts(self):
+        w=(ROOT/".github/workflows/five-systems-incremental-fixes.yml").read_text()
+        self.assertIn("43062464943",w)
+        self.assertIn("moneyprint-opus-paradee-ptbr",w)
+        self.assertIn("--timing-json",w)
+        self.assertNotIn("scripts.paradee_voice",w)
+        self.assertNotIn("piper",w.lower())
+        self.assertNotIn("qwen",w.lower())
+
     def test_only_two_bad_scenes_selected(self):
         fixes=validate_patch(BOARD,PATCH)
         self.assertEqual(sorted(fixes),[7,8])
