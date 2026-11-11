@@ -1,0 +1,155 @@
+name: MoneyPrint — vídeo Opus original com voz brasileira Qwen3 e sem pausas
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - '.github/workflows/five-systems-qwen-voice.yml'
+      - 'scripts/five_systems_qwen_voice.py'
+      - 'tests/test_five_systems_qwen_voice.py'
+  pull_request:
+    paths:
+      - '.github/workflows/five-systems-qwen-voice.yml'
+      - 'scripts/five_systems_qwen_voice.py'
+      - 'tests/test_five_systems_qwen_voice.py'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  actions: read
+
+concurrency:
+  group: five-systems-qwen-voice
+  cancel-in-progress: false
+
+jobs:
+  tests:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Instalar numpy para teste de pausas
+        run: python -m pip install 'numpy>=1.26,<3'
+      - name: Validar voz original, remoção de silêncios e timeline
+        run: |
+          python -m unittest discover -s tests -p 'test_five_systems_qwen_voice.py' -v
+          python -m compileall -q scripts/five_systems_qwen_voice.py
+
+  render-qwen:
+    needs: tests
+    if: github.event_name != 'pull_request'
+    runs-on: ubuntu-24.04
+    timeout-minutes: 360
+    env:
+      OMP_NUM_THREADS: '4'
+      MKL_NUM_THREADS: '4'
+      OPENBLAS_NUM_THREADS: '4'
+      TOKENIZERS_PARALLELISM: 'false'
+      HF_HUB_DISABLE_XET: '1'
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Recuperar amostra Qwen VoiceDesign brasileira
+        uses: actions/download-artifact@v4
+        with:
+          name: moneyprint-qwen3-ptbr-preview-43047161887
+          run-id: 43047161887
+          github-token: ${{ github.token }}
+          path: voice-previews
+      - name: Recuperar filme dos 25 motions ORIGINAIS Opus
+        uses: actions/download-artifact@v4
+        with:
+          name: moneyprint-five-systems-opus-original
+          run-id: 43040474562
+          github-token: ${{ github.token }}
+          path: original-video
+      - name: Verificar mídia real antes da síntese
+        run: |
+          set -euo pipefail
+          test -s voice-previews/01_jovem_dinamico.wav
+          test -s voice-previews/voice_options.json
+          test -s original-video/outputs/five-systems-original/five-systems-opus-original-5min.mp4
+          python - <<'PY'
+          import json, pathlib, wave
+          p=pathlib.Path('voice-previews/01_jovem_dinamico.wav')
+          with wave.open(str(p)) as w:
+            assert w.getframerate()==24000
+            assert 10<w.getnframes()/w.getframerate()<25
+          manifest=json.loads(pathlib.Path('voice-previews/voice_options.json').read_text())
+          assert any(x.get('name')=='01_jovem_dinamico' for x in manifest)
+          source=pathlib.Path('original-video/outputs/five-systems-original/five-systems-opus-original-5min.mp4')
+          assert source.stat().st_size>90_000_000
+          print('Amostra Qwen real e filme Opus original verificados.')
+          PY
+      - name: FFmpeg estático sem apt-get
+        timeout-minutes: 5
+        run: |
+          set -euo pipefail
+          python -m pip install 'imageio-ffmpeg==0.6.0'
+          mkdir -p "$HOME/.local/bin"
+          python - <<'PY'
+          import imageio_ffmpeg
+          from pathlib import Path
+          p=Path.home()/'.local/bin/ffmpeg'
+          p.symlink_to(imageio_ffmpeg.get_ffmpeg_exe())
+          PY
+          echo "$HOME/.local/bin" >> "$GITHUB_PATH"
+          export PATH="$HOME/.local/bin:$PATH"
+          ffmpeg -hide_banner -encoders 2>/dev/null | grep -F 'libx264'
+      - name: Cache Qwen3 Base CPU
+        uses: actions/cache@v4
+        with:
+          path: ~/.cache/huggingface/hub
+          key: qwen3-tts-base-0.6b-cpu-v1
+      - name: Instalar Qwen3-TTS open source
+        timeout-minutes: 15
+        env:
+          PIP_DEFAULT_TIMEOUT: '55'
+          PIP_RETRIES: '2'
+        run: |
+          set -euo pipefail
+          timeout 420s python -m pip install --index-url https://download.pytorch.org/whl/cpu 'torch==2.6.0' 'torchaudio==2.6.0'
+          timeout 360s python -m pip install 'qwen-tts==0.1.1' 'soundfile'
+          python -c 'from qwen_tts import Qwen3TTSModel; print("Qwen3 voice engine pronto")'
+      - name: Criar 25 vozes Qwen e sincronizar os 25 motions sem silêncios
+        timeout-minutes: 300
+        run: |
+          python -m scripts.five_systems_qwen_voice \
+            --board video-requests/five-systems-original-opus-2026.json \
+            --reference voice-previews/01_jovem_dinamico.wav \
+            --manifest voice-previews/voice_options.json \
+            --original original-video/outputs/five-systems-original/five-systems-opus-original-5min.mp4 \
+            --out outputs/five-systems-qwen3-original
+      - name: Validar MP4 final, voz, silêncio e movimentos originais
+        run: |
+          python - <<'PY'
+          from pathlib import Path
+          import json, subprocess
+          d=Path('outputs/five-systems-qwen3-original')
+          v=d/'moneyprint_5_sistemas_qwen3_opus_original.mp4'
+          qa=json.loads((d/'qa_qwen3_sem_silencios.json').read_text())
+          assert v.is_file() and v.stat().st_size>4_000_000
+          assert qa['result']=='rendered'
+          assert qa['original_opus_motions']==25 and qa['unique_motion_types']==22
+          assert qa['paid_api_dependency'] is False and qa['autopublish'] is False
+          assert abs(qa['audio_duration_seconds']-qa['updated_video_duration_seconds'])<.05
+          p=subprocess.run(['ffmpeg','-hide_banner','-i',str(v)],capture_output=True,text=True)
+          assert 'Video: h264' in p.stderr and 'Audio: aac' in p.stderr
+          print('Qwen original e Opus aprovados:',qa['updated_video_duration_seconds'],'segundos')
+          PY
+      - name: Disponibilizar MP4 Qwen, narração e QA sem publicar
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: moneyprint-5-sistemas-opus-voz-qwen3
+          path: |
+            outputs/five-systems-qwen3-original/moneyprint_5_sistemas_qwen3_opus_original.mp4
+            outputs/five-systems-qwen3-original/moneyprint_qwen3_narracao_sem_pausas.wav
+            outputs/five-systems-qwen3-original/qa_qwen3_sem_silencios.json
+          if-no-files-found: warn
+          retention-days: 7
