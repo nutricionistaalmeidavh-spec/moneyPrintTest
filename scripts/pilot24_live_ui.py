@@ -58,6 +58,16 @@ def has_visible_main_content(image) -> bool:
     return visible/max(1,main.width*main.height) >= .002
 
 
+def crop_demo_chrome(image):
+    """Frame the genuine app, excluding only the demo site's promotional strip.
+
+    Keeps the workspace, navigation, fields and numbers intact. This is an
+    editorial crop, not a simulated app state. Original PNG stays in artifact.
+    """
+    inset=min(round(image.height*.095),image.height//6)
+    return image.crop((0,inset,image.width,image.height))
+
+
 def capture_demo_views(output: Path, *, width=1440, height=900) -> dict:
     """Try the official public demo; never fabricate a missing screen.
 
