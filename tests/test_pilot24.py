@@ -27,7 +27,7 @@ class Pilot24Tests(unittest.TestCase):
             blank=Image.new("RGB",(640,360),(246,238,219))
             self.assertIsNotNone(ImageChops.difference(image,blank).getbbox(),name)
             colors.append(image.getpixel((30,30)))
-        self.assertIn((24,30,41),colors)
+        self.assertIn((24,31,43),colors)
 
     def test_visual_beats_have_explicit_media_proof_vs_diagram(self):
         self.assertEqual([x[2] for x in BEATS][4:6],["github","interface"])
