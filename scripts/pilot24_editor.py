@@ -95,17 +95,18 @@ class Stage:
         self.box(x-12,y-48,w+24,h+60,WHITE,r=20)
         for i,color in enumerate((RUST,(216,183,112),SAGE)):
             self.circ(x+22+i*26,y-23,7,color)
-        self.tx(x+104,y-44,caption[:80],18,(106,102,103))
+        # Provenance is diagnostic metadata, never text on the exported film.
         self.screenshot(source,rect,zoom=zoom,contain=contain)
     def badge(self,x,y,title,color=VIOLET):
         self.box(x,y,300,75,WHITE,r=18)
         self.box(x+13,y+14,14,46,color,r=4)
         self.tx(x+48,y+17,title,27,INK)
 
-def frame_at(t,repo,app,w=1920,h=1080):
+def frame_at(t,repo,app,w=1920,h=1080,ui_screens=None):
     i=next((k for k,(a,b,_) in enumerate(BEATS) if a<=t<b),7)
     a,b,_=BEATS[i]
     local=t-a
+    ui_screens=ui_screens or {}
     s=Stage(w,h,t)
     if i==0:
         s.tx(100,147,"01 / O PROBLEMA",28,VIOLET)
@@ -169,52 +170,53 @@ def frame_at(t,repo,app,w=1920,h=1080):
     elif i==4:
         s.im.paste((24,31,43),(0,0,w,h))
         s.browser(repo,(535,98,1240,893),1+.09*ease(local/(b-a)),
-                  "FONTE: CAPTURA REAL · GITHUB / FRAPPE / ERPNEXT")
+                  "")
         s.box(62,181,518,670,PAPER,r=0)
-        s.tx(99,235,"EXEMPLO REAL",30,VIOLET)
+        s.tx(99,235,"SISTEMA ABERTO",30,VIOLET)
         s.tx(96,335,"ERP",110)
         s.tx(96,460,"NEXT",110)
         s.tx(104,628,"CÓDIGO",36)
         s.tx(104,682,"ABERTO.",36)
-        s.tx(104,789,"REPOSITÓRIO VERIFICÁVEL",20,INK)
+        s.tx(104,789,"ERPNext",20,INK)
     elif i==5:
+        # Product-led scene: the actual app UI dominates the screen.
+        # A public demo workspace wins; otherwise the original README screenshot.
+        screen=ui_screens.get("home",app)
         s.im.paste((24,31,43),(0,0,w,h))
-        s.browser(app,(68,106,1780,893),1+.12*ease(local/(b-a)),
-                  "INTERFACE AUTÊNTICA · SCREENSHOT DO README",True)
-        s.box(115,758,680,148,PAPER,r=24)
-        s.tx(146,783,"TÁ NA APLICAÇÃO.",48)
-        s.tx(146,852,"NÃO É MOCKUP.",30,VIOLET)
+        s.screenshot(screen,(65,77,1790,956),zoom=1+.045*ease(local/(b-a)),contain=True)
+        s.box(90,839,652,947,PAPER,r=22)
+        s.tx(120,857,"ERPNext",55,INK)
+        s.tx(120,921,"GESTÃO EM UM SÓ LUGAR",20,VIOLET)
     elif i==6:
-        s.tx(110,136,"UMA PLATAFORMA, VÁRIAS FUNÇÕES",28,VIOLET)
-        s.tx(106,260,"TUDO NO MESMO",103)
-        s.tx(110,388,"ECOSSISTEMA.",103,VIOLET)
-        for k,(name,col) in enumerate((("VENDAS",BLUE),("COMPRAS",VIOLET),("ESTOQUE",SAGE),("CONTÁBIL",RUST))):
-            v=ease((local-k*.25)/.40)
-            if v<=0:continue
-            x=158+k*452;y=625+(1-v)*70
-            s.box(x,y,378,240,WHITE,(215,208,199))
-            s.circ(x+92,y+92,42,col)
-            s.tx(x+39,y+173,name,32)
-            if k<3 and local>.9+k*.27:s.line(x+391,y+113,x+442,y+113,VIOLET,8)
-        s.tx(138,941,"FLUXO DIDÁTICO, NÃO UMA SIMULAÇÃO DE INTERFACE.",23,INK)
-    else:
+        # Never suggest real sales navigation when no such screen was captured.
+        actual=ui_screens.get("selling")
+        screen=actual or app
         s.im.paste((24,31,43),(0,0,w,h))
-        s.browser(app,(630,95,1180,905),1+.07*ease(local/(b-a)),
-                  "ERPNext · CAPTURA AUTÊNTICA",True)
-        s.box(58,145,696,743,PAPER,r=0)
-        s.tx(98,205,"ALERTA",29,VIOLET)
-        s.tx(99,305,"NÃO É",92)
-        s.tx(99,411,"INSTALAR",86)
-        s.tx(99,515,"E PRONTO.",85,RUST)
-        for k,(label,col) in enumerate((("IMPLANTAÇÃO",VIOLET),("CONFIGURAÇÃO",BLUE))):
-            if ease((local-.4-k*.48)/.4)>0:s.badge(99,699+k*91,label,col)
+        s.screenshot(screen,(65,77,1790,956),zoom=1.075+.060*ease(local/(b-a)),contain=True)
+        s.box(90,825,704,957,PAPER,r=22)
+        if actual:
+            s.tx(120,842,"VENDAS E CLIENTES",48,INK)
+            s.tx(122,910,"ERPNext",23,VIOLET)
+        else:
+            s.tx(120,841,"PAINEL EM DETALHE",47,INK)
+            s.tx(122,910,"ERPNext",23,VIOLET)
+    else:
+        # Stock is shown only if the demo really exposed the actual Stock screen.
+        actual=ui_screens.get("stock")
+        screen=actual or app
+        s.im.paste((24,31,43),(0,0,w,h))
+        s.screenshot(screen,(65,77,1790,956),zoom=1.035+.055*ease(local/(b-a)),contain=True)
+        s.box(90,826,740,957,PAPER,r=22)
+        if actual:
+            s.tx(120,843,"GESTÃO DE ESTOQUE",47,INK)
+            s.tx(122,909,"ERPNext",23,VIOLET)
+        else:
+            s.tx(120,843,"VISÃO FINANCEIRA",47,INK)
+            s.tx(122,909,"ERPNext",23,VIOLET)
     dark=i in (4,5,7)
     fg=(224,219,210) if dark else (107,104,104)
     track=(115,119,125) if dark else (222,214,201)
-    s.box(90,1044,1740,7,track,r=3)
-    s.box(90,1044,1740*(t/DURATION),7,SAGE if dark else VIOLET,r=3)
-    s.tx(94,1008,"MONEYPRINT  /  PILOTO 24s",20,fg)
-    s.tx(1658,1008,f"{t:04.1f}s / 24s",20,fg)
+    # No timer, no progress bar and no QA/provenance captions on-screen.
     return s.im
 
 def ffprobe_duration(path):
@@ -265,6 +267,13 @@ def render(project,output,model,width=1920,height=1080):
     repo_file,app_file=capture_proofs(capture_root)
     repo=Image.open(repo_file).convert("RGB")
     app=Image.open(app_file).convert("RGB")
+    from scripts.pilot24_live_ui import capture_demo_views
+    demo=capture_demo_views(output/"demo_ui")
+    ui_screens={}
+    for key,item in demo.get("screens",{}).items():
+        path=Path(item["path"])
+        if path.is_file():
+            ui_screens[key]=Image.open(path).convert("RGB")
     audio=output/"narracao_piper.wav"
     subprocess.run(["ffmpeg","-v","error","-y","-i",str(clips[0]),"-i",str(clips[1]),
         "-filter_complex","[0:a][1:a]concat=n=2:v=0:a=1[a]",
@@ -278,7 +287,7 @@ def render(project,output,model,width=1920,height=1080):
     with subprocess.Popen(cmd,stdin=subprocess.PIPE) as proc:
         try:
             for frame in range(FPS*DURATION):
-                image=frame_at(frame/FPS,repo,app,width,height)
+                image=frame_at(frame/FPS,repo,app,width,height,ui_screens)
                 proc.stdin.write(image.tobytes())
             proc.stdin.close()
             if proc.wait()!=0:raise RuntimeError("Falha ao produzir MP4")
@@ -288,7 +297,7 @@ def render(project,output,model,width=1920,height=1080):
         raise RuntimeError("A duração final diverge da timeline")
     sheet=Image.new("RGB",(1280,1440),PAPER)
     for i,(start,end,_) in enumerate(BEATS):
-        shot=frame_at((start+end)/2,repo,app,640,360)
+        shot=frame_at((start+end)/2,repo,app,640,360,ui_screens)
         sheet.paste(shot,((i%2)*640,(i//2)*360))
     sheet.save(output/"qa_8_cortes.jpg",quality=88)
     report={"engine":"moneyprint_pilot24_ffmpeg_pillow","fps":FPS,
@@ -296,6 +305,8 @@ def render(project,output,model,width=1920,height=1080):
         "timeline":BEATS,"anchors":ANCHORS,
         "note":"Piper regenerado: os timestamps da execução anterior são referência, não nova medição ASR",
         "github_source":CAPTURE_URL,"real_app_capture":str(app_file),
+        "demo_ui":demo,"on_screen_source_labels":False,
+        "real_navigation_used":bool(ui_screens.get("selling") or ui_screens.get("stock")),
         "talkcraft_dependency":False,"paid_dependencies":[],
         "autopublish":False,"human_approval_required":True}
     (output/"pilot24_diagnostico.json").write_text(
