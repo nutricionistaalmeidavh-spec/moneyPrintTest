@@ -185,7 +185,20 @@ def _capture_repos(opus):
                     report.update(note)
             except Exception as exc:
                 report["official_doc_error"]=str(exc)[:250]
-        if tool=="twenty" and (source is None or source.name not in {"app_real.png","official_app_image.png"}):
+        # Validate actual pixels/geometry before accepting a dynamic app shot.
+        # The live docs sometimes serve a tiny preview (valid PNG, >8 KB)
+        # instead of a legible interface. For Twenty always recover to the
+        # authenticated README screenshot already vendored in this repository.
+        source_usable=False
+        if source is not None and source.is_file():
+            try:
+                with Image.open(source) as probe:
+                    probe.load()
+                    source_usable=probe.width>=600 and probe.height>=300
+            except (OSError,ValueError):
+                source_usable=False
+        if tool=="twenty" and not source_usable:
+            report["rejected_dynamic_capture"]=str(source) if source else "missing"
             try:
                 original=out/"twenty_official_crm.png"
                 note=_capture_twenty_readme_asset(original)
@@ -193,6 +206,8 @@ def _capture_repos(opus):
                 report.update(note)
             except Exception as exc:
                 report["github_asset_error"]=str(exc)[:260]
+        elif tool=="twenty" and source_usable:
+            report["image_validation"]="geometry_acceptable"
         try:
             if source is None or not source.is_file():
                 raise RuntimeError("Não foi possível obter imagem real do GitHub nem do site oficial")
@@ -209,6 +224,8 @@ def _capture_repos(opus):
     (opus/"moneyprint-sources.json").write_text(
         json.dumps(sources,indent=2,ensure_ascii=False)+"\n",encoding="utf-8")
     if errors:
+        print("DIAGNÓSTICO FONTES REJEITADAS:",json.dumps(
+            {tool:sources[tool] for tool in errors},ensure_ascii=False),flush=True)
         raise RuntimeError("Imagem autêntica indisponível (não inventar UI): "+", ".join(errors))
     return sources
 
