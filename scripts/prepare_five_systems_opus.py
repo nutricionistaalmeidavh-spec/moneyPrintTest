@@ -182,7 +182,7 @@ def _capture_repos(opus):
                     report.update(note)
             except Exception as exc:
                 report["official_doc_error"]=str(exc)[:250]
-        if tool=="twenty" and (source is None or source.name!="app_real.png"):
+        if tool=="twenty" and (source is None or source.name not in {"app_real.png","official_app_image.png"}):
             try:
                 original=out/"twenty_official_crm.png"
                 note=_capture_twenty_readme_asset(original)
