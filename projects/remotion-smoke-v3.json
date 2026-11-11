@@ -1,0 +1,45 @@
+{
+  "schema_version": 3,
+  "id": "remotion-smoke",
+  "revision": 1,
+  "topic": "QA Remotion independente",
+  "script": "Cenas demonstrativas com áudio mudo.",
+  "fps": 30,
+  "aspect": "1:1",
+  "total_frames": 30,
+  "render_engine": "remotion",
+  "visual_style": "light_motion",
+  "tracks": [
+    {
+      "id": "video",
+      "kind": "video"
+    }
+  ],
+  "assets": [],
+  "scenes": [
+    {
+      "id": "scene-001",
+      "track_id": "video",
+      "title": "REPOSITÓRIO",
+      "text": "Primeira cena de apresentação",
+      "kind": "text",
+      "asset_id": null,
+      "start_frame": 0,
+      "duration_frames": 15,
+      "layout": "hero",
+      "animation": "cut"
+    },
+    {
+      "id": "scene-002",
+      "track_id": "video",
+      "title": "FLUXO REAL",
+      "text": "Segunda cena com animação",
+      "kind": "text",
+      "asset_id": null,
+      "start_frame": 15,
+      "duration_frames": 15,
+      "layout": "flow",
+      "animation": "slide"
+    }
+  ]
+}
