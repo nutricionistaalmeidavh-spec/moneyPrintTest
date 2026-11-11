@@ -1,0 +1,1035 @@
+{
+  "name": "five-systems-original-opus-2026",
+  "width": 1920,
+  "height": 1080,
+  "fps": 30,
+  "background": "#F6F1E7",
+  "captions": false,
+  "voice": {
+    "speaker": "pt_BR-faber-medium",
+    "style": "Narração brasileira natural."
+  },
+  "music": {
+    "volume": 0,
+    "duck": 0
+  },
+  "scenes": [
+    {
+      "motion": "stamp-slam",
+      "props": {
+        "preTitle": "CINCO SISTEMAS",
+        "lines": [
+          "OPEN SOURCE"
+        ],
+        "keyword": "PARA EMPRESAS",
+        "color": "#6E58A7",
+        "textColor": "#F6F1E7",
+        "keywordColor": "#F6F1E7",
+        "backdrop": "warm",
+        "flash": 0,
+        "slamAt": 5,
+        "keywordAt": 35,
+        "size": 74
+      },
+      "say": "Cinco sistemas gratuitos que sua empresa precisa conhecer.",
+      "min": 90,
+      "lead": 2,
+      "pad": 5,
+      "caption": false,
+      "transition": {
+        "type": "cut"
+      }
+    },
+    {
+      "motion": "board-camera",
+      "props": {
+        "regions": [
+          {
+            "id": "a",
+            "x": 400,
+            "y": 500,
+            "w": 2300,
+            "h": 1700,
+            "title": "Gestão",
+            "doodle": "bars",
+            "at": 8
+          },
+          {
+            "id": "b",
+            "x": 2850,
+            "y": 500,
+            "w": 2300,
+            "h": 1700,
+            "title": "Clientes",
+            "doodle": "cycle",
+            "at": 110
+          },
+          {
+            "id": "c",
+            "x": 5300,
+            "y": 500,
+            "w": 2300,
+            "h": 1700,
+            "title": "Atendimento",
+            "doodle": "bulb",
+            "at": 200
+          },
+          {
+            "id": "d",
+            "x": 2850,
+            "y": 2300,
+            "w": 2300,
+            "h": 1700,
+            "title": "Projetos e documentos",
+            "doodle": "gear",
+            "at": 300
+          }
+        ],
+        "camera": [
+          [
+            0,
+            1550,
+            1350,
+            0.62,
+            0,
+            "hold"
+          ],
+          [
+            80,
+            1550,
+            1350,
+            0.62,
+            0,
+            "hold"
+          ],
+          [
+            165,
+            4000,
+            1350,
+            0.62,
+            0,
+            "quintic"
+          ],
+          [
+            255,
+            6450,
+            1350,
+            0.62,
+            0,
+            "quintic"
+          ],
+          [
+            345,
+            4000,
+            3150,
+            0.64,
+            0,
+            "quintic"
+          ],
+          [
+            425,
+            4000,
+            2250,
+            0.24,
+            0,
+            "quintic"
+          ]
+        ],
+        "boardColor": "#F6F1E7",
+        "wallColor": "#D8D3CA",
+        "accents": [
+          "#6E58A7",
+          "#198C90",
+          "#DE9A25",
+          "#6E58A7"
+        ]
+      },
+      "say": "Sabe aquele sistema de gestão, de atendimento ou de clientes pelo qual muitas empresas pagam todo mês? Existem alternativas de código aberto disponíveis no GitHub. Hoje eu vou mostrar cinco, com aplicações reais e sem prometer mágica.",
+      "min": 450,
+      "lead": 5,
+      "pad": 10,
+      "caption": false,
+      "transition": {
+        "type": "cut"
+      }
+    },
+    {
+      "motion": "ui-accumulation-storm",
+      "props": {
+        "count": 120,
+        "seed": 11,
+        "accel": 0.55,
+        "spawnEnd": 7,
+        "note": "Estoque, vendas e financeiro em planilhas",
+        "noteTitle": "CONTROLE MANUAL",
+        "counterLabel": "PENDÊNCIAS",
+        "accent": "#6E58A7",
+        "tremble": 2,
+        "pullBack": 0.2
+      },
+      "say": "Primeiro, pense em uma empresa que controla estoque numa planilha, vendas em outra e ainda precisa conferir o financeiro manualmente. Quando as informações não conversam, o retrabalho começa a custar caro.",
+      "min": 360,
+      "lead": 5,
+      "pad": 10,
+      "caption": false,
+      "transition": {
+        "type": "cut"
+      }
+    },
+    {
+      "motion": "ken-burns",
+      "props": {
+        "src": "software/erpnext/verified.png",
+        "mode": "push",
+        "rate": 1.4,
+        "focus": [
+          0.5,
+          0.4
+        ],
+        "punchAt": -1,
+        "grain": 0.008,
+        "vignette": 0.04,
+        "handheld": 0,
+        "paper": 0
+      },
+      "say": "É aqui que entra o ERPNext. Um ERP open source com módulos para vendas, compras, estoque e contabilidade, além de outros processos empresariais. É um sistema completo, mas precisa de implantação e configuração.",
+      "min": 360,
+      "lead": 5,
+      "pad": 10,
+      "caption": false,
+      "transition": {
+        "type": "cut"
+      }
+    },
+    {
+      "motion": "flow-diagram",
+      "props": {
+        "title": "Da venda ao estoque e ao financeiro",
+        "nodes": [
+          {
+            "id": "p",
+            "label": "Pedido",
+            "icon": "user"
+          },
+          {
+            "id": "e",
+            "label": "Estoque",
+            "icon": "db"
+          },
+          {
+            "id": "f",
+            "label": "Financeiro",
+            "icon": "chart"
+          },
+          {
+            "id": "r",
+            "label": "Acompanhar",
+            "icon": "shield"
+          }
+        ],
+        "edges": [
+          {
+            "from": "p",
+            "to": "e"
+          },
+          {
+            "from": "e",
+            "to": "f"
+          },
+          {
+            "from": "f",
+            "to": "r"
+          }
+        ],
+        "theme": "paper",
+        "accent": "#6E58A7",
+        "loop": false
+      },
+      "say": "Imagine registrar um pedido e acompanhar seu reflexo no estoque e no financeiro dentro de um mesmo ambiente. A animação mostra esse caminho. Os módulos disponíveis e as configurações precisam ser avaliados para cada negócio.",
+      "min": 360,
+      "lead": 5,
+      "pad": 10,
+      "caption": false,
+      "transition": {
+        "type": "cut"
+      }
+    },
+    {
+      "motion": "myth-vs-fact",
+      "props": {
+        "myth": "Código livre significa implantação sem esforço.",
+        "fact": "Servidor, manutenção e treinamento ainda exigem planejamento.",
+        "mythLabel": "MITO",
+        "factLabel": "NA PRÁTICA",
+        "stampText": "INCOMPLETO",
+        "factStamp": "PLANEJE A OPERAÇÃO",
+        "background": "#111827",
+        "ink": "#25213F",
+        "accent": "#198C90",
+        "accent2": "#E5412D",
+        "card": "#F6F1E7",
+        "startAt": 0,
+        "hold": 45,
+        "speed": 1
+      },
+      "say": "O ERPNext pode interessar a negócios que cresceram além das planilhas. O código é gratuito para instalação própria, mas servidor, manutenção, treinamento e adaptação continuam exigindo planejamento.",
+      "min": 360,
+      "lead": 5,
+      "pad": 10,
+      "caption": false,
+      "transition": {
+        "type": "cut"
+      }
+    },
+    {
+      "motion": "notification-stack",
+      "props": {
+        "items": [
+          {
+            "app": "Vendas",
+            "icon": "chat",
+            "color": "#6E58A7",
+            "title": "Orçamento solicitado",
+            "body": "Cliente aguarda retorno",
+            "at": 14
+          },
+          {
+            "app": "Comercial",
+            "icon": "mail",
+            "color": "#198C90",
+            "title": "Proposta enviada",
+            "body": "Precisa de acompanhamento",
+            "at": 52
+          },
+          {
+            "app": "Equipe",
+            "icon": "calendar",
+            "color": "#DEA33A",
+            "title": "Contato sem dono",
+            "body": "Quem fará o retorno?",
+            "at": 94
+          },
+          {
+            "app": "Vendas",
+            "icon": "bell",
+            "color": "#E45855",
+            "title": "Cliente esquecido",
+            "body": "O histórico ficou espalhado",
+            "at": 142
+          }
+        ],
+        "platform": "macos",
+        "layout": "stack",
+        "theme": "dark",
+        "maxVisible": 4,
+        "badge": true,
+        "background": "#121A2D",
+        "clock": "",
+        "date": ""
+      },
+      "say": "Segundo problema: alguém pede um orçamento, o vendedor anota o contato e depois ninguém lembra de retornar. O cliente se perde antes de virar venda. Esse é um problema de organização comercial.",
+      "min": 360,
+      "lead": 5,
+      "pad": 10,
+      "caption": false,
+      "transition": {
+        "type": "cut"
+      }
+    },
+    {
+      "motion": "document-zoom-highlight",
+      "props": {
+        "org": "FluxOpen · exemplo educativo",
+        "title": "Twenty",
+        "meta": "Exemplo fictício · sem varredura real",
+        "paragraphs": [
+          "Um alerta automatizado descreve um possível problema e deve ser confirmado antes de concluir que existe uma vulnerabilidade explorável.",
+          "Prioridade: revisar a configuração de segurança de acordo com o contexto do sistema. Registrar evidências, validar riscos e implementar a correção apropriada.",
+          "Depois da correção, repetir testes autorizados e manter o registro da análise."
+        ],
+        "focusParagraph": 1,
+        "highlightText": "Registrar evidências, validar riscos e implementar a correção apropriada.",
+        "source": "",
+        "sourceTag": "",
+        "accent": "#6E58A7",
+        "pageSrc": "software/twenty/verified.png",
+        "region": [
+          0.16,
+          0.2,
+          0.65,
+          0.54
+        ],
+        "highlightColor": "#CDBBEE",
+        "tilt": 0,
+        "zoomAt": 25,
+        "markAt": 98
+      },
+      "say": "O Twenty é um CRM de código aberto com contatos, empresas e oportunidades de negócio. A ideia é organizar o relacionamento com clientes e visualizar melhor o processo comercial, sem depender de planilhas soltas.",
+      "min": 360,
+      "lead": 5,
+      "pad": 10,
+      "caption": false,
+      "transition": {
+        "type": "cut"
+      }
+    },
+    {
+      "motion": "deploy-pipeline-stages",
+      "props": {
+        "title": "Do contato à venda",
+        "subtitle": "Organização do funil comercial",
+        "stages": [
+          {
+            "name": "Contato",
+            "steps": [
+              "Oportunidade registrada"
+            ],
+            "seconds": 2
+          },
+          {
+            "name": "Proposta",
+            "steps": [
+              "Orçamento enviado"
+            ],
+            "seconds": 3
+          },
+          {
+            "name": "Negociação",
+            "steps": [
+              "Próximo passo"
+            ],
+            "seconds": 3
+          },
+          {
+            "name": "Fechamento",
+            "steps": [
+              "Acompanhar resultado"
+            ],
+            "seconds": 2
+          }
+        ],
+        "successText": "Etapas visíveis para a equipe",
+        "stageFrames": 65,
+        "background": "#111827",
+        "accent": "#6E58A7"
+      },
+      "say": "Um fluxo simples começa no contato, passa por uma proposta e pode terminar na venda. Quando cada oportunidade tem uma etapa visível, fica mais fácil acompanhar os próximos passos e responsabilidades da equipe.",
+      "min": 360,
+      "lead": 5,
+      "pad": 10,
+      "caption": false,
+      "transition": {
+        "type": "cut"
+      }
+    },
+    {
+      "motion": "flashcard-flip-deck",
+      "props": {
+        "cards": [
+          {
+            "term": "CRM",
+            "definition": "Relacionamento com clientes organizado."
+          },
+          {
+            "term": "Histórico",
+            "definition": "Interações e próximos passos visíveis."
+          },
+          {
+            "term": "Processo",
+            "definition": "A ferramenta não substitui a equipe."
+          }
+        ],
+        "title": "CRM NÃO VENDE SOZINHO",
+        "termLabel": "CONCEITO",
+        "definitionLabel": "O QUE SIGNIFICA",
+        "flipHint": "",
+        "doneText": "Processo e ferramentas",
+        "doneSubtitle": "Organização comercial",
+        "background": "#F6F1E7",
+        "ink": "#25213F",
+        "accent": "#6E58A7",
+        "accent2": "#198C90",
+        "card": "#FFFFFF",
+        "hold": 30,
+        "startAt": 0,
+        "speed": 1.25
+      },
+      "say": "Nenhum CRM substitui o trabalho comercial. O ganho está em manter histórico, tarefas e informações acessíveis. Para self-hosting, confira a edição comunitária, os recursos disponíveis e os requisitos de operação.",
+      "min": 360,
+      "lead": 5,
+      "pad": 10,
+      "caption": false,
+      "transition": {
+        "type": "cut"
+      }
+    },
+    {
+      "motion": "network-graph",
+      "props": {
+        "title": "Conversas espalhadas por canais",
+        "subtitle": "O contexto se perde entre responsáveis",
+        "nodes": [
+          {
+            "id": "Cliente"
+          },
+          {
+            "id": "Site"
+          },
+          {
+            "id": "Email"
+          },
+          {
+            "id": "WhatsApp"
+          },
+          {
+            "id": "Rede"
+          },
+          {
+            "id": "Equipe"
+          }
+        ],
+        "edges": [
+          {
+            "from": "Cliente",
+            "to": "Site"
+          },
+          {
+            "from": "Cliente",
+            "to": "Email"
+          },
+          {
+            "from": "Cliente",
+            "to": "WhatsApp"
+          },
+          {
+            "from": "Cliente",
+            "to": "Rede"
+          },
+          {
+            "from": "Site",
+            "to": "Equipe"
+          }
+        ],
+        "hub": "Cliente",
+        "background": "#141A2C",
+        "ink": "#F6F1E7",
+        "accent": "#6E58A7"
+      },
+      "say": "Terceiro: sua equipe responde clientes por canais diferentes e ninguém sabe quem ficou responsável por cada conversa. O resultado pode ser demora, resposta repetida e até atendimento perdido.",
+      "min": 360,
+      "lead": 5,
+      "pad": 10,
+      "caption": false,
+      "transition": {
+        "type": "cut"
+      }
+    },
+    {
+      "motion": "device-mockup",
+      "props": {
+        "device": "laptop",
+        "src": "software/chatwoot/verified.png",
+        "src2": "",
+        "fit": "contain",
+        "scroll": [
+          0,
+          0.12
+        ],
+        "scrollFrames": [
+          20,
+          110
+        ],
+        "tilt": 8,
+        "flipAt": 0,
+        "headline": "Chatwoot",
+        "subline": "Atendimento organizado",
+        "bodyColor": "#171b26",
+        "accent": "#6E58A7",
+        "background": "#F6F1E7",
+        "background2": "#E4DACD",
+        "textColor": "#25213F",
+        "size": 1.07,
+        "brand": "Chatwoot"
+      },
+      "say": "O Chatwoot oferece uma caixa de entrada para atendimento ao cliente, com conversas, agentes e recursos de organização. Existem integrações com diferentes canais, dependendo da configuração e da edição utilizada.",
+      "min": 360,
+      "lead": 5,
+      "pad": 10,
+      "caption": false,
+      "transition": {
+        "type": "cut"
+      }
+    },
+    {
+      "motion": "chat-bubbles",
+      "props": {
+        "showBot": false,
+        "messages": [
+          {
+            "text": "Chegou uma conversa de cliente.",
+            "kind": "user"
+          },
+          {
+            "text": "Quem vai atender?",
+            "kind": "reply"
+          },
+          {
+            "text": "Atribuir à equipe",
+            "kind": "chip"
+          },
+          {
+            "text": "Manter o histórico até resolver",
+            "kind": "comment"
+          }
+        ],
+        "thoughtCaption": "Contexto compartilhado",
+        "verdict": "Conversa acompanhada",
+        "background": "#170F2B",
+        "verdictColor": "#80D6A7"
+      },
+      "say": "A ideia é acompanhar uma conversa, atribuir um responsável e manter o contexto até a solução. Isso ajuda equipes que atendem muitos clientes e precisam dividir o trabalho com clareza.",
+      "min": 360,
+      "lead": 5,
+      "pad": 10,
+      "caption": false,
+      "transition": {
+        "type": "cut"
+      }
+    },
+    {
+      "motion": "glass-lesson-card",
+      "props": {
+        "cards": [
+          {
+            "eyebrow": "CÓDIGO ABERTO",
+            "heading": "Self-hosted",
+            "body": [
+              "O programa pode rodar na própria infraestrutura."
+            ]
+          },
+          {
+            "eyebrow": "CANAIS EXTERNOS",
+            "heading": "Integração",
+            "body": [
+              "Contas oficiais e custos podem ser necessários."
+            ]
+          }
+        ],
+        "holdFrames": 130,
+        "backdrop": "book"
+      },
+      "say": "O software pode ser instalado por conta própria. Mas conectar canais como WhatsApp pode exigir contas oficiais, regras específicas e custos externos. Gratuidade do código não significa custo zero em toda integração.",
+      "min": 360,
+      "lead": 5,
+      "pad": 10,
+      "caption": false,
+      "transition": {
+        "type": "cut"
+      }
+    },
+    {
+      "motion": "card-stack-cascade",
+      "props": {
+        "cards": [
+          {
+            "title": "Sem responsável",
+            "body": "Tarefa sem dono",
+            "icon": "user"
+          },
+          {
+            "title": "Sem prazo",
+            "body": "Acompanhamento difícil",
+            "icon": "cog"
+          },
+          {
+            "title": "Status disperso",
+            "body": "Equipe desinformada",
+            "icon": "chat"
+          },
+          {
+            "title": "Reunião",
+            "body": "Decisões fora do quadro",
+            "icon": "bolt"
+          }
+        ],
+        "layout": "bento",
+        "focusAt": 100,
+        "focusIndex": 0,
+        "unfocusAt": 180,
+        "stagger": 5,
+        "dimTo": 0.4,
+        "dark": false,
+        "accent": "#6E58A7",
+        "background": "#F6F1E7"
+      },
+      "say": "Quarto problema: reuniões terminam, tarefas aparecem, mas ninguém sabe o prazo, o responsável ou o andamento. Quando tudo fica numa conversa, acompanhar projetos se torna mais difícil.",
+      "min": 360,
+      "lead": 5,
+      "pad": 10,
+      "caption": false,
+      "transition": {
+        "type": "cut"
+      }
+    },
+    {
+      "motion": "magnifier-loupe",
+      "props": {
+        "src": "software/plane/verified.png",
+        "backdrop": "book",
+        "path": [
+          [
+            0.85,
+            0.8,
+            0
+          ],
+          [
+            0.35,
+            0.33,
+            25
+          ],
+          [
+            0.7,
+            0.53,
+            75
+          ],
+          [
+            0.32,
+            0.71,
+            100
+          ]
+        ],
+        "zoom": 1.6,
+        "bulge": 0.09,
+        "size": 235,
+        "lag": 0.08,
+        "fringe": 0.5,
+        "fringeOuter": "#BEA3EA",
+        "fringeInner": "#6E58A7",
+        "icon": true,
+        "drift": 0.02,
+        "background": "#F6F1E7"
+      },
+      "say": "O Plane é uma plataforma open source de gerenciamento de projetos. Permite organizar trabalhos em tarefas e acompanhar o progresso por diferentes visualizações, conforme os recursos da edição escolhida.",
+      "min": 360,
+      "lead": 5,
+      "pad": 10,
+      "caption": false,
+      "transition": {
+        "type": "cut"
+      }
+    },
+    {
+      "motion": "gantt-timeline",
+      "props": {
+        "tasks": [
+          {
+            "label": "A fazer",
+            "start": 1,
+            "end": 4,
+            "progress": 0.08
+          },
+          {
+            "label": "Em andamento",
+            "start": 3,
+            "end": 8,
+            "progress": 0.4
+          },
+          {
+            "label": "Revisão",
+            "start": 7,
+            "end": 9,
+            "progress": 0
+          },
+          {
+            "label": "Concluído",
+            "start": 9,
+            "end": 12,
+            "progress": 1
+          }
+        ],
+        "milestones": [
+          {
+            "label": "Entrega",
+            "at": 12
+          }
+        ],
+        "today": -1,
+        "todayLabel": "",
+        "title": "Tarefas e prazos visíveis",
+        "subtitle": "Etapas acompanhadas pela equipe",
+        "tickPrefix": "Dia ",
+        "durationSuffix": " d",
+        "showProgress": true,
+        "showDurations": true,
+        "background": "#F6F1E7",
+        "ink": "#25213F",
+        "accent": "#6E58A7",
+        "startAt": 8,
+        "speed": 1
+      },
+      "say": "Pense num quadro com colunas como a fazer, em andamento e concluído. A movimentação dos cartões deixa visível o progresso. É especialmente útil quando várias pessoas trabalham no mesmo projeto.",
+      "min": 360,
+      "lead": 5,
+      "pad": 10,
+      "caption": false,
+      "transition": {
+        "type": "cut"
+      }
+    },
+    {
+      "motion": "radial-blueprint",
+      "props": {
+        "categories": [
+          "PRIORIDADES",
+          "RESPONSÁVEIS",
+          "ROTINA"
+        ],
+        "centerLabel": "PROCESSO",
+        "background": "#101521",
+        "accent": "#6E58A7",
+        "line": "#E4DFEA",
+        "labelColor": "#CDBEF2"
+      },
+      "say": "Um bom painel não resolve prioridades confusas. O Plane é uma base para estruturar a execução, mas a equipe ainda precisa combinar regras de uso, responsáveis e rotina de atualização.",
+      "min": 360,
+      "lead": 5,
+      "pad": 10,
+      "caption": false,
+      "transition": {
+        "type": "cut"
+      }
+    },
+    {
+      "motion": "ui-accumulation-storm",
+      "props": {
+        "count": 120,
+        "seed": 22,
+        "accel": 0.6,
+        "spawnEnd": 7.5,
+        "note": "Onde foi parar o contrato?",
+        "noteTitle": "DOCUMENTOS",
+        "counterLabel": "ARQUIVOS",
+        "accent": "#6E58A7",
+        "tremble": 1.8,
+        "pullBack": 0.2
+      },
+      "say": "Quinto: contratos, notas e documentos ficam espalhados por pastas e anexos. Encontrar uma informação pode significar abrir arquivo por arquivo. E o problema cresce com o volume de documentos.",
+      "min": 360,
+      "lead": 5,
+      "pad": 10,
+      "caption": false,
+      "transition": {
+        "type": "cut"
+      }
+    },
+    {
+      "motion": "ken-burns",
+      "props": {
+        "src": "software/paperless/verified.png",
+        "mode": "push",
+        "rate": 1.3,
+        "focus": [
+          0.5,
+          0.42
+        ],
+        "punchAt": -1,
+        "grain": 0.008,
+        "vignette": 0.05,
+        "handheld": 0,
+        "paper": 0
+      },
+      "say": "O Paperless-ngx é um sistema open source de gestão de documentos. Ele ajuda a importar arquivos, organizar metadados e tornar documentos pesquisáveis, inclusive com reconhecimento de texto em cenários compatíveis.",
+      "min": 360,
+      "lead": 5,
+      "pad": 10,
+      "caption": false,
+      "transition": {
+        "type": "cut"
+      }
+    },
+    {
+      "motion": "step-process-numbered",
+      "props": {
+        "title": "Do documento à pesquisa",
+        "steps": [
+          {
+            "title": "Importar",
+            "text": "Adicionar PDFs e notas",
+            "icon": "user"
+          },
+          {
+            "title": "Processar",
+            "text": "Reconhecer conteúdo",
+            "icon": "gear"
+          },
+          {
+            "title": "Organizar",
+            "text": "Metadados e filtros",
+            "icon": "chart"
+          },
+          {
+            "title": "Buscar",
+            "text": "Encontrar com rapidez",
+            "icon": "target"
+          }
+        ],
+        "background": "#111827",
+        "ink": "#F6F1E7",
+        "accent": "#198C90",
+        "accent2": "#6E58A7",
+        "card": "#FFFFFF",
+        "startAt": 0,
+        "stagger": 50
+      },
+      "say": "O fluxo visual é simples: entra um documento, o sistema processa o conteúdo e a equipe consegue encontrá-lo por filtros ou busca. Menos tempo procurando arquivos, mais organização para o dia a dia.",
+      "min": 360,
+      "lead": 5,
+      "pad": 10,
+      "caption": false,
+      "transition": {
+        "type": "cut"
+      }
+    },
+    {
+      "motion": "myth-vs-fact",
+      "props": {
+        "myth": "Ter documentos digitais dispensa backup.",
+        "fact": "Controle de acesso, retenção e backups continuam essenciais.",
+        "mythLabel": "MITO",
+        "factLabel": "REALIDADE",
+        "stampText": "FALSO",
+        "factStamp": "PROTEÇÃO NECESSÁRIA",
+        "background": "#111827",
+        "ink": "#25213F",
+        "accent": "#198C90",
+        "accent2": "#E5412D",
+        "card": "#F6F1E7",
+        "startAt": 0,
+        "hold": 50,
+        "speed": 1
+      },
+      "say": "Documentos empresariais podem ser sensíveis. Por isso, implantação exige controle de acesso, backups, atualização e política de retenção. É uma ferramenta, não uma dispensa das responsabilidades de proteção de dados.",
+      "min": 360,
+      "lead": 5,
+      "pad": 10,
+      "caption": false,
+      "transition": {
+        "type": "cut"
+      }
+    },
+    {
+      "motion": "counting-objects",
+      "props": {
+        "count": 5,
+        "shape": "square",
+        "faces": false,
+        "showWords": false,
+        "title": "5 sistemas · 5 necessidades",
+        "unitLabel": "sistemas",
+        "doneText": "Cinco opções de código aberto",
+        "background": "#F6F1E7",
+        "ink": "#25213F",
+        "colors": [
+          "#6E58A7",
+          "#198C90",
+          "#DEA33A",
+          "#5B88B2",
+          "#7EAA93"
+        ]
+      },
+      "say": "Resumindo: ERPNext organiza operações. Twenty acompanha clientes e vendas. Chatwoot centraliza atendimento. Plane ajuda a equipe a executar projetos. E Paperless organiza os documentos.",
+      "min": 420,
+      "lead": 5,
+      "pad": 10,
+      "caption": false,
+      "transition": {
+        "type": "cut"
+      }
+    },
+    {
+      "motion": "spec-compare-table",
+      "props": {
+        "title": "Código livre não elimina custos",
+        "products": [
+          "Código",
+          "Operação"
+        ],
+        "rows": [
+          {
+            "label": "Licença",
+            "values": [
+              "Avaliar uso",
+              "Hospedar"
+            ]
+          },
+          {
+            "label": "Implantação",
+            "values": [
+              "Configurar",
+              "Treinar"
+            ]
+          },
+          {
+            "label": "Manutenção",
+            "values": [
+              "Atualizar",
+              "Monitorar"
+            ]
+          },
+          {
+            "label": "Proteção",
+            "values": [
+              "Permissões",
+              "Backup"
+            ]
+          }
+        ],
+        "winner": -1,
+        "winnerLabel": "",
+        "background": "#F6F1E7",
+        "ink": "#25213F",
+        "accent": "#6E58A7",
+        "card": "#FFFFFF",
+        "startAt": 8,
+        "stagger": 28
+      },
+      "say": "Todos esses projetos têm código público e opções de uso próprio, mas você precisa avaliar licença, edição, hospedagem, manutenção e segurança. Também existem ofertas comerciais opcionais. Não instale em produção sem testar.",
+      "min": 420,
+      "lead": 5,
+      "pad": 10,
+      "caption": false,
+      "transition": {
+        "type": "cut"
+      }
+    },
+    {
+      "motion": "end-screen-cards",
+      "props": {
+        "title": "Qual sistema serve à sua empresa?",
+        "subtitle": "ERPNext · Twenty · Chatwoot · Plane · Paperless-ngx",
+        "cards": [
+          {
+            "label": "Conheça os repositórios",
+            "src": ""
+          },
+          {
+            "label": "Mais tecnologia aberta",
+            "src": ""
+          }
+        ],
+        "circleLabel": "ARTISYS",
+        "ringText": "OPEN SOURCE · AUTOMAÇÃO · ",
+        "background": "#101322",
+        "accent": "#6E58A7"
+      },
+      "say": "Os cinco links estão na descrição. Salve este vídeo para consultar depois e me conta nos comentários qual desses sistemas seria mais útil na sua empresa. Aqui a ideia é usar tecnologia com inteligência.",
+      "min": 420,
+      "lead": 5,
+      "pad": 10,
+      "caption": false,
+      "transition": {
+        "type": "cut"
+      }
+    }
+  ]
+}

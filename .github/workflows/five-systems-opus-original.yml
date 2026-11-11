@@ -1,0 +1,127 @@
+name: MoneyPrint — 5 sistemas com Opus ORIGINAL (25 cenas)
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - '.github/workflows/five-systems-opus-original.yml'
+      - 'video-requests/five-systems-original-opus-2026.json'
+      - 'scripts/prepare_five_systems_opus.py'
+      - 'tests/test_five_systems_opus_original.py'
+  pull_request:
+    paths:
+      - '.github/workflows/five-systems-opus-original.yml'
+      - 'video-requests/five-systems-original-opus-2026.json'
+      - 'scripts/prepare_five_systems_opus.py'
+      - 'tests/test_five_systems_opus_original.py'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: five-systems-opus-original
+  cancel-in-progress: false
+
+jobs:
+  tests:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 12
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - name: Validar storyboard exato e proibir animações redesenhadas
+        run: |
+          python -m unittest discover -s tests -p 'test_five_systems_opus_original.py' -v
+          python -m compileall -q scripts/prepare_five_systems_opus.py
+
+  render-original:
+    needs: tests
+    if: github.event_name != 'pull_request'
+    runs-on: ubuntu-24.04
+    timeout-minutes: 180
+    steps:
+      - name: Checkout MoneyPrint
+        uses: actions/checkout@v4
+      - name: Configurar Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - name: Configurar Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Instalar FFmpeg, Piper e navegador (sem API paga)
+        run: |
+          sudo apt-get update -qq
+          sudo apt-get install -y ffmpeg fonts-lato fonts-dejavu-core
+          python -m pip install 'Pillow==11.3.0' 'piper-tts==1.8.0' 'playwright==1.56.0'
+          python -m playwright install --with-deps chromium
+      - name: Baixar o código ORIGINAL Opus MIT em ambiente isolado
+        run: |
+          git clone --depth 1 --branch v1.2.0 https://github.com/GovinduSasanka/opus-motion-library.git "$RUNNER_TEMP/opus-motion-library"
+          cd "$RUNNER_TEMP/opus-motion-library"
+          test "$(git rev-parse HEAD)" = "8f1b78a25d0cf310c9bf904d434285046c4ed25a"
+          npm install --no-audit --no-fund
+          git rev-parse HEAD > "$GITHUB_WORKSPACE/opus-source-commit.txt"
+      - name: Baixar a voz offline Piper pt-BR
+        run: |
+          python - <<'PY'
+          from pathlib import Path
+          from scripts.render_request import download_piper
+          print(download_piper(Path('/tmp/moneyprint-five-systems-voice')))
+          PY
+      - name: Capturar 5 softwares de fontes reais e preparar 25 vozes
+        run: |
+          python -m scripts.prepare_five_systems_opus \
+            video-requests/five-systems-original-opus-2026.json \
+            "$RUNNER_TEMP/opus-motion-library" \
+            /tmp/moneyprint-five-systems-voice/pt_BR-faber-medium.onnx
+      - name: Renderizar 25 cenas usando os componentes React ORIGINAIS Opus
+        run: |
+          mkdir -p outputs/five-systems-original
+          cd "$RUNNER_TEMP/opus-motion-library"
+          node cli/direct.mjs "storyboards/five-systems-original-opus-2026.json" \
+            --no-voice --no-zones --concurrency 2 \
+            --out "$GITHUB_WORKSPACE/outputs/five-systems-original/five-systems-opus-original-5min.mp4"
+      - name: QA do vídeo real Full HD, voz e diversidade
+        run: |
+          python - <<'PY'
+          from pathlib import Path
+          import json, subprocess
+          from scripts.prepare_five_systems_opus import validate_board,BOARD,PROJECT
+          video=Path('outputs/five-systems-original/five-systems-opus-original-5min.mp4')
+          assert video.exists() and video.stat().st_size>5_000_000
+          info=json.loads(subprocess.check_output(['ffprobe','-v','error','-count_frames',
+              '-show_format','-show_streams','-of','json',str(video)],text=True))
+          duration=float(info['format']['duration'])
+          streams=info['streams']
+          assert any(s.get('codec_type')=='video' and s.get('width')==1920 and s.get('height')==1080 for s in streams)
+          assert any(s.get('codec_type')=='audio' for s in streams)
+          assert 298<=duration<=304, f'Duração inesperada {duration:.2f}'
+          board=json.loads(Path(BOARD).read_text())
+          project=json.loads(Path(PROJECT).read_text())
+          report=validate_board(board,project)
+          result={"duration":duration,"bytes":video.stat().st_size,**report,
+                  "renderer":"Opus Motion Library v1.2.0 ORIGINAL direct.mjs",
+                  "runtime":"Remotion isolado, sujeito à licença própria",
+                  "autopublish":False}
+          Path('outputs/five-systems-original/qa.json').write_text(
+              json.dumps(result,ensure_ascii=False,indent=2),encoding='utf-8')
+          print('QA filme original Opus:',result)
+          PY
+          cp video-requests/five-systems-original-opus-2026.json outputs/five-systems-original/storyboard.json
+          cp opus-source-commit.txt outputs/five-systems-original/
+          cp "$RUNNER_TEMP/opus-motion-library/moneyprint-sources.json" outputs/five-systems-original/fontes_reais.json
+      - name: Anexar MP4 e fontes sem autopublicar
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: moneyprint-five-systems-opus-original
+          path: |
+            outputs/five-systems-original/
+            opus-source-commit.txt
+          if-no-files-found: warn
+          retention-days: 7
