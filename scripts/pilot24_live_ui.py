@@ -21,7 +21,7 @@ def allowed_capture_target(url: str) -> bool:
     parts = urlparse(url)
     return (parts.scheme=="https" and parts.hostname==DEMO_HOST
             and parts.port in (None,443) and not parts.username and not parts.password
-            and (parts.path.startswith("/app/") or parts.path.startswith("/api/method/erpnext_demo.erpnext_demo.auth/login_demo"))
+            and (parts.path.startswith("/app/") or parts.path.startswith("/api/method/erpnext_demo.erpnext_demo.auth.login_demo"))
             and not parts.query and not parts.fragment)
 
 def is_readable_app(url: str, visible_text: str) -> bool:
