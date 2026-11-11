@@ -96,6 +96,7 @@ jobs:
           if test -x "$FFMPEG_BIN_DIR/ffmpeg"; then
             echo "$FFMPEG_BIN_DIR" >> "$GITHUB_PATH"
           fi
+          export PATH="$FFMPEG_BIN_DIR:$PATH"
           ffmpeg -hide_banner -encoders 2>/dev/null | grep -F 'libx264'
       - name: Cache de cenas aprovadas renderizadas anteriormente
         uses: actions/cache@v4
