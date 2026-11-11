@@ -1,0 +1,90 @@
+{
+  "name": "moneyprint-correcoes-visuais-seletivas-v1",
+  "source_run_id": 43040474562,
+  "scene_overrides": {
+    "7": {
+      "motion": "notification-stack",
+      "props": {
+        "items": [
+          {
+            "app": "COMERCIAL",
+            "icon": "chat",
+            "color": "#6E58A7",
+            "title": "Orçamento solicitado",
+            "body": "Cliente aguarda retorno",
+            "at": 18
+          },
+          {
+            "app": "COMERCIAL",
+            "icon": "mail",
+            "color": "#198C90",
+            "title": "Proposta enviada",
+            "body": "Precisa de acompanhamento",
+            "at": 92
+          },
+          {
+            "app": "EQUIPE",
+            "icon": "calendar",
+            "color": "#DEA33A",
+            "title": "Contato sem responsável",
+            "body": "Quem fará o retorno?",
+            "at": 164
+          },
+          {
+            "app": "VENDAS",
+            "icon": "bell",
+            "color": "#E45855",
+            "title": "Cliente esquecido",
+            "body": "Informação espalhada",
+            "at": 242
+          }
+        ],
+        "platform": "ios",
+        "layout": "list",
+        "position": "top",
+        "theme": "dark",
+        "maxVisible": 4,
+        "badge": true,
+        "clock": "09:41",
+        "date": "Clientes e oportunidades",
+        "background": "#121A2D"
+      },
+      "rationale": "Notificações centralizadas, grandes, em lista progressiva; evita canto vazio."
+    },
+    "8": {
+      "motion": "device-mockup",
+      "props": {
+        "device": "laptop",
+        "src": "software/twenty/verified.png",
+        "src2": "",
+        "fit": "contain",
+        "scroll": [
+          0,
+          0
+        ],
+        "scrollFrames": [
+          30,
+          90
+        ],
+        "tilt": 2,
+        "flipAt": 10000,
+        "headline": "Twenty",
+        "subline": "CRM open source",
+        "bodyColor": "#181d2b",
+        "accent": "#6E58A7",
+        "background": "#F6F1E7",
+        "background2": "#E4DACD",
+        "textColor": "#25213F",
+        "size": 1.22,
+        "brand": "Twenty"
+      },
+      "rationale": "Captura Twenty autêntica em tela real, sem destaque roxo cobrindo interface."
+    }
+  },
+  "silence_cut": {
+    "threshold_db": -38,
+    "min_gap_seconds": 0.68,
+    "pad_seconds": 0.18,
+    "mode": "audio_e_video"
+  }
+}
