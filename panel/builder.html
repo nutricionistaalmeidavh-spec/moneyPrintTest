@@ -70,7 +70,11 @@
         <div><label for="studioDuration">Duração planejada em segundos</label><input id="studioDuration" type="number" min="15" max="600" value="60" required></div>
         <div><label for="studioAspect">Proporção</label><select id="studioAspect"><option value="9:16">Shorts 9:16</option><option value="16:9">Horizontal 16:9</option><option value="1:1">Quadrado 1:1</option></select></div>
       </div>
-      <div class="studio-grid"><div><label for="studioVisualStyle">Estilo visual</label><select id="studioVisualStyle"><option value="light_motion" selected>Claro + animações reais (recomendado)</option><option value="classic">Clássico — slides escuros</option><option value="talkcraft_edu">Video Talkcraft original — somente educacional não comercial</option></select></div></div><div class="gap"></div><button class="btn primary" type="submit" id="studioCreateButton">Criar storyboard editável</button><div class="studio-actions" style="margin-top:10px"><button type="button" id="studioImportButton" class="btn">Importar storyboard V3 (JSON)</button><input id="studioImportFile" type="file" accept=".json,application/json" class="hidden"></div>
+      <div class="studio-grid"><div><label for="studioVisualStyle">Estilo visual</label><select id="studioVisualStyle"><option value="light_motion" selected>Claro + animações reais (recomendado)</option><option value="classic">Clássico — slides escuros</option><option value="talkcraft_edu">Video Talkcraft original — somente educacional não comercial</option></select></div></div>
+      <div class="studio-grid"><div><label for="studioRenderEngineCreate">Motor de renderização</label>
+        <select id="studioRenderEngineCreate"><option value="ffmpeg" selected>FFmpeg — core livre (padrão)</option><option value="remotion">Remotion — opcional, licença própria</option></select>
+        <p class="studio-muted">Remotion é source-available, não open source OSI. Verifique a elegibilidade antes de usar.</p>
+      </div></div><div class="gap"></div><button class="btn primary" type="submit" id="studioCreateButton">Criar storyboard editável</button><div class="studio-actions" style="margin-top:10px"><button type="button" id="studioImportButton" class="btn">Importar storyboard V3 (JSON)</button><input id="studioImportFile" type="file" accept=".json,application/json" class="hidden"></div>
     </form>
   </div>
   <div class="gap"></div>
@@ -93,6 +97,10 @@
         </div>
         <div class="studio-sub">
           <h3>Editar cena</h3><label for="studioProjectTheme">Estilo de produção do projeto</label><select id="studioProjectTheme"><option value="light_motion">Claro + animações independentes</option><option value="classic">Clássico — slides escuros</option><option value="talkcraft_edu">Video Talkcraft original — somente educacional não comercial</option></select><p class="studio-muted">Afeta o vídeo final, não apenas a prévia. Salve a revisão para aplicar.</p>
+          <label for="studioRenderEngine">Motor de renderização</label><select id="studioRenderEngine">
+            <option value="ffmpeg">FFmpeg — core livre</option>
+            <option value="remotion">Remotion — opcional (licença própria)</option>
+          </select><p class="studio-muted">Sem ativação silenciosa nem integração ao Talkcraft. Verifique a elegibilidade/licença.</p>
           <label for="studioSceneTitle">Título</label><input id="studioSceneTitle" maxlength="120">
           <label for="studioSceneText">Texto / narração planejada</label><textarea id="studioSceneText" rows="3" maxlength="1200"></textarea>
           <div class="studio-grid">

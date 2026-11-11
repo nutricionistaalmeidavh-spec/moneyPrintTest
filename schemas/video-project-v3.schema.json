@@ -199,6 +199,15 @@
         "talkcraft_edu"
       ],
       "description": "Optional visual style; classic remains backward-compatible."
+    },
+    "render_engine": {
+      "type": "string",
+      "enum": [
+        "ffmpeg",
+        "remotion"
+      ],
+      "default": "ffmpeg",
+      "description": "Optional proprietary Remotion renderer; FFmpeg remains open-source default."
     }
   }
 }

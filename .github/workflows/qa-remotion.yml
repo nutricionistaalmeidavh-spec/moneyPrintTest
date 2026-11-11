@@ -1,0 +1,53 @@
+name: QA — Remotion opt-in e compatibilidade V3
+on:
+  pull_request:
+    paths:
+      - 'scripts/remotion_render.py'
+      - 'motion/remotion/**'
+      - 'tests/test_remotion_render.py'
+      - 'projects/remotion-smoke-v3.json'
+      - '.github/workflows/qa-remotion.yml'
+      - '.github/workflows/studio-remotion.yml'
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  contract:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - name: Python RED-GREEN e compatibilidade
+        run: |
+          python -m unittest tests.test_remotion_render tests.test_studio_render tests.test_studio_v3 -v
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Instalar FFmpeg e Remotion somente para QA deste adaptador
+        run: |
+          sudo apt-get update -qq
+          sudo apt-get install -y ffmpeg fonts-lato
+          npm install --prefix motion/remotion --no-audit --no-fund
+          npm run typecheck --prefix motion/remotion
+          motion/remotion/node_modules/.bin/remotion browser ensure
+      - name: Smoke MP4 nativo com áudio silencioso
+        run: |
+          python -m scripts.remotion_render --input projects/remotion-smoke-v3.json \
+            --root . --output outputs/remotion-smoke --voice none
+          python - <<'PY'
+          import json
+          from pathlib import Path
+          d=json.loads(Path("outputs/remotion-smoke/diagnostico.json").read_text())
+          assert d["engine"]=="remotion" and d["total_frames"]==30 and d["autopublish"] is False
+          print("Render Remotion smoke aprovado:",d["output"])
+          PY
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: remotion-smoke
+          path: outputs/remotion-smoke/
+          retention-days: 3
+          if-no-files-found: warn

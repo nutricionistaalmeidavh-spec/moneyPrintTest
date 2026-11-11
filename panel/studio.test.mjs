@@ -136,3 +136,26 @@ test("Talkcraft educational mode is explicit, validated, and saved in Studio V3"
    {...body,visual_style:"paid_service"},session,csrf);
  assert.equal(bad.status,400);
 });
+
+test("Remotion is optional, persisted, and incompatible with noncommercial Talkcraft",async()=>{
+  const {session,csrf}=await auth();
+  const basic={topic:"Integração Remotion",script:"Cena inicial. Cena de fluxo.",
+    duration_seconds:20,aspect:"16:9"};
+  const old=(await (await call("/api/studio/projects","POST",basic,session,csrf)).json()).project;
+  assert.equal(old.render_engine,"ffmpeg");
+  const created=await call("/api/studio/projects","POST",
+    {...basic,render_engine:"remotion"},session,csrf);
+  assert.equal(created.status,201);
+  const p=(await created.json()).project;
+  assert.equal(p.render_engine,"remotion");
+  const saved=await call("/api/studio/projects/"+p.id+"/save","POST",
+    {revision:1,scenes:p.scenes,render_engine:"ffmpeg"},session,csrf);
+  assert.equal(saved.status,200);
+  assert.equal((await saved.json()).project.render_engine,"ffmpeg");
+  const reopened=await call("/api/studio/projects/"+p.id,"GET",null,session);
+  assert.equal((await reopened.json()).project.render_engine,"ffmpeg");
+  assert.equal((await call("/api/studio/projects","POST",
+    {...basic,render_engine:"unknown"},session,csrf)).status,400);
+  assert.equal((await call("/api/studio/projects","POST",
+    {...basic,render_engine:"remotion",visual_style:"talkcraft_edu"},session,csrf)).status,400);
+});
