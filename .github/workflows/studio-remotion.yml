@@ -1,0 +1,93 @@
+name: MoneyPrint Studio — Remotion opcional (licença explícita)
+on:
+  workflow_dispatch:
+    inputs:
+      project_path:
+        description: 'Projeto V3 com render_engine=remotion salvo em studio-requests/ ou projects/'
+        type: string
+        required: true
+      align_words:
+        description: 'Reservado (false; alinhamento lexical não implementado neste adaptador)'
+        type: boolean
+        default: false
+        required: false
+permissions:
+  contents: read
+jobs:
+  remotion:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 120
+    env:
+      PROJECT_PATH: ${{ inputs.project_path }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - name: Contrato explícito e caminhos seguros
+        run: |
+          python - <<'PY'
+          import json,os,re
+          from pathlib import Path
+          from scripts.studio_render import build_plan
+          path=os.environ["PROJECT_PATH"]
+          if not re.fullmatch(r"(?:studio-requests|projects)/[A-Za-z0-9_.-]{1,100}\.json",path) or '..' in path:
+              raise SystemExit("Caminho não autorizado")
+          source=Path(path)
+          if not source.is_file() or source.stat().st_size>64000:raise SystemExit("Projeto ausente ou >64 KB")
+          data=json.loads(source.read_text(encoding="utf-8"))
+          if data.get("render_engine")!="remotion":raise SystemExit("Selecione render_engine=remotion explicitamente")
+          if data.get("visual_style")=="talkcraft_edu":raise SystemExit("Talkcraft não é liberado para uso comercial")
+          if os.environ.get("ALIGN_WORDS")=="true":raise SystemExit("Alinhamento lexical indisponível neste adaptador")
+          plan=build_plan(data)
+          print("Contrato",plan["total_frames"],"frames; sem mudança no core")
+          PY
+        env:
+          ALIGN_WORDS: ${{ inputs.align_words }}
+      - name: Instalar dependências apenas neste workflow
+        run: |
+          sudo apt-get update -qq
+          sudo apt-get install -y ffmpeg fonts-lato fonts-dejavu-core
+          python -m pip install 'piper-tts==1.8.0' 'playwright==1.56.0'
+          python -m playwright install --with-deps chromium
+          npm install --prefix motion/remotion --no-audit --no-fund
+          motion/remotion/node_modules/.bin/remotion browser ensure
+      - name: Verificar tipos da composição Remotion
+        run: npm run typecheck --prefix motion/remotion
+      - name: Voz Piper local com hash verificado
+        run: |
+          python - <<'PY'
+          from pathlib import Path
+          from scripts.render_request import download_piper
+          print(download_piper(Path('/tmp/moneyprint-voice')))
+          PY
+      - name: Renderizar vídeo no Remotion (sem fallback)
+        run: |
+          python -m scripts.remotion_render --input "$PROJECT_PATH" --root . \
+            --output "outputs/remotion-${{ github.run_id }}" --voice piper \
+            --voice-model /tmp/moneyprint-voice/pt_BR-faber-medium.onnx \
+            --capture-github
+      - name: Garantir MP4, trilhas e frames canônicos
+        run: |
+          python - <<'PY'
+          import json,subprocess
+          from pathlib import Path
+          folder=Path("outputs/remotion-${{ github.run_id }}")
+          diagnostics=json.loads((folder/"diagnostico.json").read_text())
+          media=json.loads(subprocess.check_output(["ffprobe","-v","error","-show_streams",
+              "-of","json",diagnostics["output"]],text=True))
+          assert diagnostics["engine"]=="remotion"
+          assert diagnostics["autopublish"] is False
+          assert {s["codec_type"] for s in media["streams"]}>={"video","audio"}
+          print("QA técnico OK. Revisar estética antes de publicar.")
+          PY
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: moneyprint-remotion-${{ github.run_id }}
+          path: outputs/remotion-${{ github.run_id }}/
+          retention-days: 7
+          if-no-files-found: warn
