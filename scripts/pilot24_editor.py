@@ -182,40 +182,33 @@ def frame_at(t,repo,app,w=1920,h=1080,ui_screens=None,opus_motions=False):
         s.tx(104,682,"ABERTO.",36)
         s.tx(104,789,"ERPNext",20,INK)
     elif i==5:
-        # Product-led scene: the actual app UI dominates the screen.
-        # A public demo workspace wins; otherwise the original README screenshot.
-        screen=ui_screens.get("home",app)
+        # Prefer the validated Selling workspace. Home can contain "Loading..."
+        # indefinitely despite a functioning sidebar and should not lead a demo.
+        actual=ui_screens.get("selling")
+        screen=actual if actual is not None else app
         s.im.paste((24,31,43),(0,0,w,h))
         s.screenshot(screen,(65,77,1790,956),zoom=1+.045*ease(local/(b-a)),contain=True)
         s.box(90,839,652,947,PAPER,r=22)
         s.tx(120,857,"ERPNext",55,INK)
-        s.tx(120,921,"GESTÃO EM UM SÓ LUGAR",20,VIOLET)
+        s.tx(120,921,"VENDAS E GESTÃO",20,VIOLET)
     elif i==6:
-        # Never suggest real sales navigation when no such screen was captured.
-        actual=ui_screens.get("selling")
-        screen=actual or app
+        # Stock replaces an arbitrary second picture of the same Selling UI.
+        actual=ui_screens.get("stock")
+        screen=actual if actual is not None else app
         s.im.paste((24,31,43),(0,0,w,h))
         s.screenshot(screen,(65,77,1790,956),zoom=1.075+.060*ease(local/(b-a)),contain=True)
-        s.box(90,825,704,957,PAPER,r=22)
-        if actual:
-            s.tx(120,842,"VENDAS E CLIENTES",48,INK)
-            s.tx(122,910,"ERPNext",23,VIOLET)
-        else:
-            s.tx(120,841,"PAINEL EM DETALHE",47,INK)
-            s.tx(122,910,"ERPNext",23,VIOLET)
+        s.box(90,825,740,957,PAPER,r=22)
+        s.tx(120,842,"ESTOQUE E PRODUTOS" if actual is not None else "ERPNext",46,INK)
+        s.tx(122,910,"GESTÃO INTEGRADA",23,VIOLET)
     else:
-        # Stock is shown only if the demo really exposed the actual Stock screen.
-        actual=ui_screens.get("stock")
-        screen=actual or app
+        # The source README image illustrates another verified application
+        # workspace; do not repeat the demo's in-progress loading screen.
+        screen=app
         s.im.paste((24,31,43),(0,0,w,h))
         s.screenshot(screen,(65,77,1790,956),zoom=1.035+.055*ease(local/(b-a)),contain=True)
         s.box(90,826,740,957,PAPER,r=22)
-        if actual:
-            s.tx(120,843,"GESTÃO DE ESTOQUE",47,INK)
-            s.tx(122,909,"ERPNext",23,VIOLET)
-        else:
-            s.tx(120,843,"VISÃO FINANCEIRA",47,INK)
-            s.tx(122,909,"ERPNext",23,VIOLET)
+        s.tx(120,843,"VISÃO GERAL",47,INK)
+        s.tx(122,909,"ERPNext",23,VIOLET)
     dark=i in (4,5,7)
     fg=(224,219,210) if dark else (107,104,104)
     track=(115,119,125) if dark else (222,214,201)
