@@ -56,7 +56,10 @@ class QwenOriginalVoiceTests(unittest.TestCase):
         self.assertIn("autopublish", (ROOT/"scripts/five_systems_qwen_voice.py").read_text(encoding="utf-8"))
 
     def test_silence_compactor_preserves_signal_and_removes_long_gaps(self):
-        import numpy as np
+        try:
+            import numpy as np
+        except ImportError:
+            self.skipTest('NumPy optional in global tests; dedicated Qwen workflow installs it')
         from scripts.five_systems_qwen_voice import compact_silence
         sr=24000
         t=np.arange(sr,dtype=np.float32)/sr
