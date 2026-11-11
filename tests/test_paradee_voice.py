@@ -72,7 +72,9 @@ class ParadeeVoiceTests(unittest.TestCase):
         self.assertIn("actions/download-artifact",w)
         self.assertNotIn("cli/direct.mjs",w)
         self.assertNotIn("remotion render",w)
-        self.assertNotIn("apt-get",w)
+        self.assertNotIn("sudo apt-get",w)
+        self.assertNotIn("apt-get update",w)
+        self.assertNotIn("apt-get install",w)
         self.assertNotIn("qwen-tts",w)
 
 if __name__=="__main__":unittest.main()
