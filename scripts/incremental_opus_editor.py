@@ -39,8 +39,17 @@ def _video_info(file,count=False):
     if not v:raise ValueError(f"Source has no video stream: {file}")
     a=next((s for s in data["streams"] if s.get("codec_type")=="audio"),None)
     frames=int(v["nb_read_frames"]) if count and v.get("nb_read_frames") else None
-    fps=v.get("avg_frame_rate","")
-    if fps not in ("30/1","30/1.0","60/2"):raise ValueError(f"Source FPS must be 30: {fps}")
+    # FFprobe may reduce a CFR 30fps stream's average rate to a
+    # near-30 rational after concat: e.g. 138147840/4604873.
+    # The r_frame_rate describes the true per-frame timebase.
+    from fractions import Fraction
+    fps=v.get("r_frame_rate") or v.get("avg_frame_rate","")
+    try:
+        rate=float(Fraction(fps))
+    except (ValueError,ZeroDivisionError):
+        raise ValueError(f"Unrecognised source frame rate: {fps}") from None
+    if not math.isfinite(rate) or abs(rate-30)>.02:
+        raise ValueError(f"Source FPS must be 30: {fps}")
     return {"width":int(v.get("width",0)),"height":int(v.get("height",0)),
             "fps":fps,"frames":frames,"audio":bool(a),
             "seconds":float(data["format"]["duration"])}
