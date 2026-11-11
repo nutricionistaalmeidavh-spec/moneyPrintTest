@@ -27,6 +27,7 @@ MOTION_SOURCES={
     "paperless":"https://github.com/paperless-ngx/paperless-ngx",
 }
 OFFICIAL_APP_DOCS={
+    "twenty":"https://twenty.com",
     "chatwoot":"https://app.chatwoot.com/hc/user-guide/articles/1677231493-lesson-2-dashboard-basics",
     "plane":"https://plane.so/open-source",
 }
@@ -77,7 +78,7 @@ def _capture_official_doc(tool,output):
     from playwright.sync_api import sync_playwright
     url=OFFICIAL_APP_DOCS[tool]
     official=urlsplit(url).hostname
-    if official not in {"app.chatwoot.com","plane.so"}:
+    if official not in {"app.chatwoot.com","plane.so","twenty.com"}:
         raise ValueError("Domínio não autorizado")
     output.parent.mkdir(parents=True,exist_ok=True)
     with sync_playwright() as p:
@@ -116,7 +117,7 @@ def _capture_official_doc(tool,output):
             browser.close()
 
 def _capture_repos(opus):
-    """Keep both real GitHub and original app imagery, with audit provenance."""
+    """Keep only authentic repository or first-party screenshots, never pretend mock UI."""
     from PIL import Image
     from scripts.repo_stills import capture_repo_stills
     sources={}
@@ -128,37 +129,44 @@ def _capture_repos(opus):
         out.mkdir(parents=True,exist_ok=True)
         image=out/"verified.png"
         report={"github":url}
+        source=None
+        # A GitHub page sometimes times out (especially for large repos).
+        # It must not prevent an authentic FIRST-PARTY screenshot fallback.
         try:
-            captures=capture_repo_stills([url],out/"github")
-            records=[Path(v) for v in captures[0]]
-            pics={p.name:p for p in records}
-            image_source=pics.get("app_real.png") or pics.get("readme_1.png") or pics.get("top.png")
-            if not image_source: raise RuntimeError("Nenhuma imagem real do repositório")
-            report["source_type"]="github_readme_app_image" if image_source.name=="app_real.png" else "github_page_real"
-            report["source_path"]=str(image_source)
-            # Official product docs preferred only when the repository lacks UI.
-            if image_source.name!="app_real.png" and tool in OFFICIAL_APP_DOCS:
-                try:
-                    official=out/"official_app_image.png"
-                    note=_capture_official_doc(tool,official)
-                    if official.is_file() and official.stat().st_size>10000:
-                        image_source=official
-                        report.update(note)
-                except Exception as exc:
-                    report["official_doc_error"]=str(exc)[:300]
-            shutil.copyfile(image_source,image)
+            records=capture_repo_stills([url],out/"github")[0]
+            pics={Path(v).name:Path(v) for v in records}
+            source=pics.get("app_real.png") or pics.get("readme_1.png") or pics.get("top.png")
+            if source is not None:
+                report["source_type"]="github_readme_app_image" if source.name=="app_real.png" else "github_page_real"
+                report["source_path"]=str(source)
+        except Exception as exc:
+            report["github_error"]=str(exc)[:240]
+        if (source is None or source.name!="app_real.png") and tool in OFFICIAL_APP_DOCS:
+            try:
+                official=out/"official_app_image.png"
+                note=_capture_official_doc(tool,official)
+                if official.is_file() and official.stat().st_size>8000:
+                    source=official
+                    report.update(note)
+            except Exception as exc:
+                report["official_doc_error"]=str(exc)[:250]
+        try:
+            if source is None or not source.is_file():
+                raise RuntimeError("Não foi possível obter imagem real do GitHub nem do site oficial")
+            # Files must be copied unchanged; no generated substitute is accepted.
+            shutil.copyfile(source,image)
             with Image.open(image) as actual:
                 if actual.width<600 or actual.height<300:
-                    raise RuntimeError("Captura pequena demais para interface")
+                    raise RuntimeError("Fonte visual muito pequena")
             report["verified"]="software/"+tool+"/verified.png"
         except Exception as exc:
-            report["error"]=str(exc)[:500]
+            report["error"]=str(exc)[:300]
             errors.append(tool)
         sources[tool]=report
     (opus/"moneyprint-sources.json").write_text(
         json.dumps(sources,indent=2,ensure_ascii=False)+"\n",encoding="utf-8")
     if errors:
-        raise RuntimeError("Captura real ausente (sem fabricar interface): "+", ".join(errors))
+        raise RuntimeError("Imagem autêntica indisponível (não inventar UI): "+", ".join(errors))
     return sources
 
 def prepare_audio(board,opus,model):
