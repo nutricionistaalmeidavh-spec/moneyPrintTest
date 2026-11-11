@@ -197,8 +197,12 @@ def _capture_repos(opus):
                     source_usable=probe.width>=600 and probe.height>=300
             except (OSError,ValueError):
                 source_usable=False
-        if tool=="twenty" and not source_usable:
-            report["rejected_dynamic_capture"]=str(source) if source else "missing"
+        if tool=="twenty":
+            # Prefer deterministic FIRST-PARTY README image over a live page
+            # whose visible crop can be empty or wrong despite a 200 response.
+            # Keep live captures as evidence; never fabricate an interface.
+            if not source_usable:
+                report["rejected_dynamic_capture"]=str(source) if source else "missing"
             try:
                 original=out/"twenty_official_crm.png"
                 note=_capture_twenty_readme_asset(original)
@@ -206,8 +210,8 @@ def _capture_repos(opus):
                 report.update(note)
             except Exception as exc:
                 report["github_asset_error"]=str(exc)[:260]
-        elif tool=="twenty" and source_usable:
-            report["image_validation"]="geometry_acceptable"
+                if not source_usable:
+                    source=None
         try:
             if source is None or not source.is_file():
                 raise RuntimeError("Não foi possível obter imagem real do GitHub nem do site oficial")
