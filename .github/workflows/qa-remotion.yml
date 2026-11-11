@@ -26,8 +26,10 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: '22'
-      - name: Instalar Remotion somente para QA deste adaptador
+      - name: Instalar FFmpeg e Remotion somente para QA deste adaptador
         run: |
+          sudo apt-get update -qq
+          sudo apt-get install -y ffmpeg fonts-lato
           npm install --prefix motion/remotion --no-audit --no-fund
           npm run typecheck --prefix motion/remotion
           motion/remotion/node_modules/.bin/remotion browser ensure
