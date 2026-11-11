@@ -24,7 +24,7 @@ class QwenOriginalVoiceTests(unittest.TestCase):
 
     def test_timeline_uses_exact_25_opus_scenes_and_new_audio_times(self):
         seconds=[8.2]+[9.5]*24
-        rows=self.build_timeline(self.board,seconds)
+        rows=type(self).build_timeline(self.board,seconds)
         self.assertEqual(len(rows),25)
         self.assertEqual(sum(row["original_frames"] for row in rows),9000)
         self.assertEqual(rows[0]["start_frame"],0)
