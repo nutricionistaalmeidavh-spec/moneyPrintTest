@@ -87,6 +87,7 @@ def validate_patch(board,patch):
     if len(overrides)>5:
         raise ValueError("Selective repair cannot accidentally rerender most of the film")
     selected={}
+    allowed_motion_ids={shot["motion"] for shot in board["scenes"]}|{"notification-stack","device-mockup"}
     for key,item in overrides.items():
         if not str(key).isdigit():raise ValueError("Scene IDs must be decimal numbers")
         n=int(key)
@@ -97,6 +98,8 @@ def validate_patch(board,patch):
         motion=item.get("motion")
         if not isinstance(motion,str) or not re.fullmatch(r"[a-z0-9]+(?:-[a-z0-9]+)+",motion):
             raise ValueError("Invalid original Opus motion ID")
+        if motion not in allowed_motion_ids:
+            raise ValueError("Unknown upstream original Opus motion: "+motion)
         selected[n]=item
     return selected
 
@@ -236,12 +239,13 @@ def _cut_silence_from_both_streams(src,dest,cuts,total_frames,work):
         return keep
     # Frame-aligned trim on both streams. Using FFmpeg silenceremove on only
     # the audio would desynchronize the animation, so NEVER do that.
-    filters=[]
+    filters=["[0:v]split="+str(len(keep))+"".join(f"[vs{k}]" for k in range(len(keep))),
+             "[0:a]asplit="+str(len(keep))+"".join(f"[as{k}]" for k in range(len(keep)))]
     for k,(start,end) in enumerate(keep):
         filters.append(
-            f"[0:v]trim=start_frame={start}:end_frame={end},setpts=PTS-STARTPTS[v{k}]")
+            f"[vs{k}]trim=start_frame={start}:end_frame={end},setpts=PTS-STARTPTS[v{k}]")
         filters.append(
-            f"[0:a]atrim=start={start/FPS:.9f}:end={end/FPS:.9f},"
+            f"[as{k}]atrim=start={start/FPS:.9f}:end={end/FPS:.9f},"
             f"asetpts=PTS-STARTPTS[a{k}]")
     inp="".join(f"[v{k}][a{k}]" for k in range(len(keep)))
     filters.append(f"{inp}concat=n={len(keep)}:v=1:a=1[v][a]")
