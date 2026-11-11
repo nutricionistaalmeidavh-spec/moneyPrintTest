@@ -1,0 +1,220 @@
+name: MoneyPrint — corrigir apenas cenas Opus 07 e 08 na versão Paradee Alex
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - '.github/workflows/five-systems-incremental-fixes.yml'
+      - 'scripts/incremental_opus_editor.py'
+      - 'video-requests/five-systems-visual-fixes.json'
+      - 'tests/test_incremental_opus_editor.py'
+  pull_request:
+    paths:
+      - '.github/workflows/five-systems-incremental-fixes.yml'
+      - 'scripts/incremental_opus_editor.py'
+      - 'video-requests/five-systems-visual-fixes.json'
+      - 'tests/test_incremental_opus_editor.py'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  actions: read
+
+concurrency:
+  group: moneyprint-incremental-opus-paradee
+  cancel-in-progress: false
+
+jobs:
+  tests:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - name: Testar seleção de cenas e offsets exatos da voz Paradee
+        run: |
+          python -m unittest discover -s tests -p 'test_incremental_opus_editor.py' -v
+          python -m compileall -q scripts/incremental_opus_editor.py
+
+  selective-repair:
+    needs: tests
+    if: github.event_name != 'pull_request'
+    runs-on: ubuntu-24.04
+    timeout-minutes: 100
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      # original artifact: approved Portuguese narration + original 25 Opus motions
+      - name: Recuperar master com a voz Paradee aprovada
+        uses: actions/download-artifact@v4
+        with:
+          name: moneyprint-opus-paradee-ptbr
+          run-id: 43062464943
+          github-token: ${{ github.token }}
+          path: paradee-artifact
+      - name: Verificar master e marcar apenas 07 e 08 para render
+        run: |
+          set -euo pipefail
+          test -s paradee-artifact/moneyprint_opus_paradee_alex_ptbr.mp4
+          test -s paradee-artifact/qa_paradee_voz.json
+          python - <<'PY'
+          import json
+          from pathlib import Path
+          qa=json.loads(Path('paradee-artifact/qa_paradee_voz.json').read_text())
+          assert qa['voice']=='alex' and qa['output_frames']==8994
+          assert qa['original_motion_count']==25 and qa['motion_rerender_count']==0
+          print('Paradee Alex master OK:',qa['output_frames'],'frames')
+          PY
+          python -m scripts.incremental_opus_editor prepare \
+            --board video-requests/five-systems-original-opus-2026.json \
+            --patch video-requests/five-systems-visual-fixes.json \
+            --specs "$RUNNER_TEMP/opus-selective-specs"
+          test -s "$RUNNER_TEMP/opus-selective-specs/scene_07.json"
+          test -s "$RUNNER_TEMP/opus-selective-specs/scene_08.json"
+          test "$(find "$RUNNER_TEMP/opus-selective-specs" -name 'scene_*.json' | wc -l)" -eq 2
+      - name: Cache dos cortes já aprovados e do FFmpeg estático
+        uses: actions/cache@v4
+        with:
+          path: |
+            outputs/incremental-scene-cache
+            ~/.local/share/moneyprint-ffmpeg
+          key: opus-paradee-master-43062464943-ffmpeg-crf21-v2
+      - name: FFmpeg e FFprobe (sem apt-get, sha256 da versão fixa)
+        timeout-minutes: 10
+        run: |
+          set -euo pipefail
+          FFMPEG_BIN_DIR="$HOME/.local/share/moneyprint-ffmpeg/bin"
+          mkdir -p "$FFMPEG_BIN_DIR"
+          if test -x "$FFMPEG_BIN_DIR/ffmpeg" && test -x "$FFMPEG_BIN_DIR/ffprobe"; then
+            echo 'FFmpeg estático reutilizado do cache'
+          elif command -v ffmpeg >/dev/null && command -v ffprobe >/dev/null; then
+            echo 'FFmpeg e FFprobe presentes no runner'
+          else
+            VERSION="ffmpeg-N-128532-g5d85b7bfb2-linux64-gpl"
+            RELEASE="https://github.com/FFmpeg-Builds/FFmpeg-Builds/releases/download/autobuild-2026-11-06-12-50"
+            mkdir -p "$RUNNER_TEMP/moneyprint-ffmpeg"
+            cd "$RUNNER_TEMP/moneyprint-ffmpeg"
+            timeout 300s curl --fail --location --show-error --silent \
+              --retry 2 --connect-timeout 25 --max-time 290 \
+              --output "$VERSION.tar.xz" "$RELEASE/$VERSION.tar.xz"
+            timeout 90s curl --fail --location --show-error --silent \
+              --retry 2 --connect-timeout 25 --max-time 80 \
+              --output checksums.sha256 "$RELEASE/checksums.sha256"
+            grep -F "$VERSION.tar.xz" checksums.sha256 | sha256sum -c -
+            tar -xJf "$VERSION.tar.xz" -C "$RUNNER_TEMP/moneyprint-ffmpeg" \
+              "$VERSION/bin/ffmpeg" "$VERSION/bin/ffprobe"
+            install -m755 "$VERSION/bin/ffmpeg" "$FFMPEG_BIN_DIR/ffmpeg"
+            install -m755 "$VERSION/bin/ffprobe" "$FFMPEG_BIN_DIR/ffprobe"
+          fi
+          echo "$FFMPEG_BIN_DIR" >> "$GITHUB_PATH"
+          export PATH="$FFMPEG_BIN_DIR:$PATH"
+          ffmpeg -hide_banner -encoders 2>/dev/null | grep -F 'libx264'
+          ffprobe -hide_banner -version | sed -n '1p'
+      - name: Baixar código dos motions originais Opus v1.2.0
+        timeout-minutes: 18
+        run: |
+          set -euo pipefail
+          git clone --depth 1 --branch v1.2.0 \
+            https://github.com/GovinduSasanka/opus-motion-library.git \
+            "$RUNNER_TEMP/opus-original"
+          cd "$RUNNER_TEMP/opus-original"
+          test "$(git rev-parse HEAD)" = "8f1b78a25d0cf310c9bf904d434285046c4ed25a"
+          npm install --no-audit --no-fund
+      - name: Restaurar captura autêntica do Twenty (sem criar interface falsa)
+        run: |
+          python -m pip install 'Pillow==11.3.0'
+          python - <<'PY'
+          import os
+          from pathlib import Path
+          from scripts.prepare_five_systems_opus import _capture_twenty_readme_asset
+          dest=Path(os.environ['RUNNER_TEMP'])/'opus-original/public/software/twenty/verified.png'
+          dest.parent.mkdir(parents=True,exist_ok=True)
+          result=_capture_twenty_readme_asset(dest)
+          assert (result['width'],result['height'])==(1600,1000)
+          print('Imagem oficial:',result['source_sha256'])
+          PY
+      - name: Renderizar somente cena_07.json com notification-stack original
+        timeout-minutes: 18
+        run: |
+          mkdir -p outputs/incremental-opus/rendered
+          cd "$RUNNER_TEMP/opus-original"
+          node cli/mgl.mjs compose "$RUNNER_TEMP/opus-selective-specs/scene_07.json" \
+            --out "$GITHUB_WORKSPACE/outputs/incremental-opus/rendered/scene_07.mp4" \
+            --concurrency 3
+      - name: Renderizar somente cena_08.json com device-mockup original
+        timeout-minutes: 18
+        run: |
+          cd "$RUNNER_TEMP/opus-original"
+          node cli/mgl.mjs compose "$RUNNER_TEMP/opus-selective-specs/scene_08.json" \
+            --out "$GITHUB_WORKSPACE/outputs/incremental-opus/rendered/scene_08.mp4" \
+            --concurrency 3
+      - name: Remontar com voz Paradee e 23 cenas intactas
+        timeout-minutes: 32
+        run: |
+          python -m scripts.incremental_opus_editor assemble \
+            --board video-requests/five-systems-original-opus-2026.json \
+            --patch video-requests/five-systems-visual-fixes.json \
+            --source paradee-artifact/moneyprint_opus_paradee_alex_ptbr.mp4 \
+            --timing-json paradee-artifact/qa_paradee_voz.json \
+            --rendered-dir outputs/incremental-opus/rendered \
+            --cache-dir outputs/incremental-scene-cache \
+            --out outputs/incremental-opus --no-trim-silence
+          mv outputs/incremental-opus/moneyprint_incremental_opus_sem_silencios.mp4 \
+             outputs/incremental-opus/moneyprint_opus_paradee_alex_cenas_corrigidas_fullhd.mp4
+      - name: Criar versão compatível com iPhone 720p
+        timeout-minutes: 12
+        run: |
+          ffmpeg -hide_banner -loglevel error -nostdin -y \
+            -i outputs/incremental-opus/moneyprint_opus_paradee_alex_cenas_corrigidas_fullhd.mp4 \
+            -map 0:v:0 -map 0:a:0 \
+            -vf 'scale=1280:720:flags=lanczos,format=yuv420p' \
+            -c:v libx264 -preset veryfast -crf 23 -profile:v baseline -level:v 3.1 \
+            -x264-params bframes=0:ref=1 \
+            -c:a aac -b:a 128k -ar 44100 -ac 2 \
+            -movflags +faststart -brand mp42 \
+            outputs/incremental-opus/moneyprint_opus_paradee_alex_cenas_corrigidas_iphone.mp4
+      - name: QA cenas 07/08, 23 reusadas, áudio sincronizado e dois MP4
+        run: |
+          python - <<'PY'
+          import json,subprocess
+          from pathlib import Path
+          out=Path('outputs/incremental-opus')
+          report=json.loads((out/'diagnostico_incremental.json').read_text())
+          assert report['result']=='success'
+          assert report['motion_rerender_count']==2
+          assert report['selected_original_opus_scenes']==[7,8]
+          assert report['untouched_scenes_reused']==23 and report['final_frames']==8994
+          assert report['audio_video_cut_together'] and not report['autopublish']
+          for name,res in [('moneyprint_opus_paradee_alex_cenas_corrigidas_fullhd.mp4',(1920,1080)),
+                           ('moneyprint_opus_paradee_alex_cenas_corrigidas_iphone.mp4',(1280,720))]:
+            f=out/name
+            assert f.stat().st_size>3_000_000
+            d=json.loads(subprocess.check_output(['ffprobe','-v','error',
+              '-show_streams','-show_format','-of','json',str(f)],text=True))
+            v=next(x for x in d['streams'] if x['codec_type']=='video')
+            a=next(x for x in d['streams'] if x['codec_type']=='audio')
+            assert (v['width'],v['height'])==res
+            assert v['codec_name']=='h264' and a['codec_name']=='aac'
+            assert abs(float(d['format']['duration'])-299.8)<.35
+            print(name,round(float(d['format']['duration']),3),'seconds OK')
+          PY
+      - name: Exportar master, iPhone, 2 cenas corrigidas e QA (sem autopublicação)
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: moneyprint-opus-paradee-cenas-07-08-corrigidas
+          path: |
+            outputs/incremental-opus/moneyprint_opus_paradee_alex_cenas_corrigidas_fullhd.mp4
+            outputs/incremental-opus/moneyprint_opus_paradee_alex_cenas_corrigidas_iphone.mp4
+            outputs/incremental-opus/diagnostico_incremental.json
+            outputs/incremental-opus/rendered/scene_07.mp4
+            outputs/incremental-opus/rendered/scene_08.mp4
+          if-no-files-found: warn
+          retention-days: 7
