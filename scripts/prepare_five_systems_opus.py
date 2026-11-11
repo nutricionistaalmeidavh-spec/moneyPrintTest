@@ -116,6 +116,38 @@ def _capture_official_doc(tool,output):
         finally:
             browser.close()
 
+TWENTY_OFFICIAL_README_IMAGE=(
+    "https://raw.githubusercontent.com/twentyhq/twenty/main/"
+    "packages/twenty-website/public/images/readme/v2-crm-tools-light.webp"
+)
+
+def _capture_twenty_readme_asset(output):
+    """Download the actual image published by Twenty's official GitHub README.
+
+    This is NOT a simulated screenshot or a cloned UI. Read-only GitHub asset.
+    """
+    from io import BytesIO
+    from urllib.request import Request, urlopen
+    from PIL import Image
+    url=TWENTY_OFFICIAL_README_IMAGE
+    if not url.startswith("https://raw.githubusercontent.com/twentyhq/twenty/"):
+        raise ValueError("Fonte do Twenty não é oficial")
+    request=Request(url,headers={"User-Agent":"MoneyPrint-original-opus"})
+    with urlopen(request,timeout=30) as res:
+        content_type=res.headers.get("Content-Type","").lower()
+        raw=res.read(8*1024*1024+1)
+        if len(raw)>8*1024*1024 or not content_type.startswith("image/"):
+            raise RuntimeError("Fonte de imagem inválida")
+    with Image.open(BytesIO(raw)) as bitmap:
+        image=bitmap.convert("RGB")
+        if image.width<600 or image.height<300:
+            raise RuntimeError("Imagem real pequena demais")
+        image.save(output,format="PNG")
+    return {"type":"github_official_readme_asset","url":url,
+            "source_sha256":__import__("hashlib").sha256(raw).hexdigest(),
+            "width":image.width,"height":image.height}
+
+
 def _capture_repos(opus):
     """Keep only authentic repository or first-party screenshots, never pretend mock UI."""
     from PIL import Image
@@ -150,6 +182,14 @@ def _capture_repos(opus):
                     report.update(note)
             except Exception as exc:
                 report["official_doc_error"]=str(exc)[:250]
+        if tool=="twenty" and (source is None or source.name!="app_real.png"):
+            try:
+                original=out/"twenty_official_crm.png"
+                note=_capture_twenty_readme_asset(original)
+                source=original
+                report.update(note)
+            except Exception as exc:
+                report["github_asset_error"]=str(exc)[:260]
         try:
             if source is None or not source.is_file():
                 raise RuntimeError("Não foi possível obter imagem real do GitHub nem do site oficial")
