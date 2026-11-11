@@ -41,7 +41,10 @@ class ParadeeVoiceTests(unittest.TestCase):
         self.assertTrue(all(a["end_frame"]==b["start_frame"] for a,b in zip(rows,rows[1:])))
 
     def test_silence_removes_dead_air_but_keeps_natural_short_pauses(self):
-        import numpy as np
+        try:
+            import numpy as np
+        except ImportError:
+            self.skipTest('NumPy optional in global suite; installed by Paradee workflow')
         sr=24000
         tone=np.sin(np.arange(sr,dtype=np.float32)*2*np.pi*220/sr)*.22
         signal=np.concatenate([np.zeros(sr),tone,np.zeros(sr*2),tone,np.zeros(sr)],axis=0)
