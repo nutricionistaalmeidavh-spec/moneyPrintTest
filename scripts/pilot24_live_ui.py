@@ -35,6 +35,29 @@ def is_readable_app(url: str, visible_text: str) -> bool:
         return False
     return True
 
+def has_visible_main_content(image) -> bool:
+    """Reject shells whose menus loaded but app's central workspace is blank.
+
+    Inspect only the main-panel crop: the sidebar/menu and promo strip are NOT
+    sufficient evidence of a functioning interface. No OCR or remote ML.
+    """
+    from PIL import Image, ImageStat
+    if isinstance(image,(str,Path)):
+        with Image.open(image) as loaded:
+            return has_visible_main_content(loaded.convert("RGB"))
+    rgb=image.convert("RGB")
+    w,h=rgb.size
+    main=rgb.crop((round(.24*w),round(.17*h),round(.94*w),round(.92*h)))
+    statistics=ImageStat.Stat(main)
+    if max(statistics.stddev)<6.5:
+        return False
+    # Foreground text/controls must appear inside the central workspace,
+    # not just in the application's navigation sidebar.
+    pixels=main.getdata()
+    visible=sum(1 for r,g,b in pixels if min(r,g,b)<210)
+    return visible/max(1,main.width*main.height) >= .002
+
+
 def capture_demo_views(output: Path, *, width=1440, height=900) -> dict:
     """Try the official public demo; never fabricate a missing screen.
 
@@ -86,10 +109,22 @@ def capture_demo_views(output: Path, *, width=1440, height=900) -> dict:
                         if not any(hint in app_text for hint in app_hints):
                             raise ValueError("Módulos não encontrados na interface")
                         dest=out/f"erpnext_{key}.png"
-                        page.screenshot(path=str(dest),animations="disabled",
-                            full_page=False,timeout=12000)
+                        # SPA sidebars can render while the workspace remains
+                        # completely blank. Inspect pixels and retry briefly.
+                        loaded=False
+                        for attempt in range(5):
+                            page.screenshot(path=str(dest),animations="disabled",
+                                full_page=False,timeout=12000)
+                            if has_visible_main_content(dest):
+                                loaded=True
+                                break
+                            page.wait_for_timeout(1000)
+                        if not loaded:
+                            dest.unlink(missing_ok=True)
+                            raise ValueError("Área central vazia; não exibir UI incompleta")
                         provenance["screens"][key]={"path":str(dest),"url":page.url,
-                             "source":"public_demo","capture":"real_screenshot"}
+                             "source":"public_demo","capture":"real_screenshot",
+                             "validated_main_content":True}
                     except Exception as exc:
                         provenance["errors"].append(f"{key}: {type(exc).__name__}: {str(exc)[:160]}")
             finally:

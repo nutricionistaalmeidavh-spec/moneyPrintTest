@@ -1,9 +1,9 @@
 """Regression contracts for natural app demos with provenance kept off screen."""
 import unittest
 from unittest.mock import patch
-from PIL import Image
+from PIL import Image, ImageDraw
 from scripts.pilot24_editor import Stage, frame_at
-from scripts.pilot24_live_ui import allowed_capture_target, is_readable_app
+from scripts.pilot24_live_ui import allowed_capture_target, is_readable_app, has_visible_main_content
 
 class InterfaceFirstPilotTests(unittest.TestCase):
     def test_demo_navigation_never_visits_unknown_hosts(self):
@@ -34,6 +34,17 @@ class InterfaceFirstPilotTests(unittest.TestCase):
                           "fonte:", "prova de interface", "tela real", "24s",
                           "repositório verificável", "fluxo didático"):
             self.assertNotIn(forbidden,visible)
+
+    def test_empty_app_main_panel_must_be_rejected_even_with_sidebar(self):
+        image=Image.new("RGB",(1440,900),"white")
+        d=ImageDraw.Draw(image)
+        d.rectangle((0,0,300,900),fill=(244,244,244))
+        d.text((70,260),"Selling Stock CRM",fill=(30,30,30))
+        self.assertFalse(has_visible_main_content(image))
+        d.rectangle((360,230,1250,610),fill=(239,244,247))
+        for y in range(258,570,42):
+            d.text((407,y),"Sales orders customer product 2026",fill=(32,45,62))
+        self.assertTrue(has_visible_main_content(image))
 
     def test_live_views_are_optional_and_real_screens_take_main_stage(self):
         repo=Image.new("RGB",(1440,900),(29,40,51))
