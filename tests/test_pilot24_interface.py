@@ -56,6 +56,25 @@ class InterfaceFirstPilotTests(unittest.TestCase):
         self.assertEqual(cropped.getpixel((500,0)),(247,248,249))
         self.assertEqual(cropped.getpixel((500,200)),(233,238,240))
 
+    def test_actual_selling_stock_and_readme_proofs_replace_loading_home(self):
+        repo=Image.new("RGB",(1440,900),(21,24,30))
+        app=Image.new("RGB",(838,534),(230,230,230))
+        home=Image.new("RGB",(1440,900),(250,250,250))
+        selling=Image.new("RGB",(1440,900),(111,40,40))
+        stock=Image.new("RGB",(1440,900),(20,115,35))
+        picks=[]
+        original=Stage.screenshot
+        def spy(self,source,rect,*args,**kwargs):
+            picks.append(source)
+            return original(self,source,rect,*args,**kwargs)
+        with patch.object(Stage,"screenshot",spy):
+            for sec in (16.2,19.0,22.0):
+                frame_at(sec,repo,app,640,360,
+                    ui_screens={"home":home,"selling":selling,"stock":stock})
+        self.assertIs(picks[0],selling)
+        self.assertIs(picks[1],stock)
+        self.assertIs(picks[2],app)
+
     def test_live_views_are_optional_and_real_screens_take_main_stage(self):
         repo=Image.new("RGB",(1440,900),(29,40,51))
         app=Image.new("RGB",(838,534),(242,241,240))
