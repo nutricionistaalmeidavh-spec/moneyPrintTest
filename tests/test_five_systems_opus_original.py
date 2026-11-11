@@ -45,6 +45,26 @@ class OpusOriginalFullTests(unittest.TestCase):
         self.assertIn("Piper",runner)
         self.assertIn("upload-artifact",runner)
 
+    def test_all_22_original_motion_sources_are_checked_into_repository(self):
+        paths=[
+            "text/stamp-slam","camera/board-camera",
+            "ui/ui-accumulation-storm","image/ken-burns",
+            "data/flow-diagram","text/myth-vs-fact",
+            "ui/notification-stack","document/document-zoom-highlight",
+            "data/deploy-pipeline-stages","text/flashcard-flip-deck",
+            "data/network-graph","ui/device-mockup",
+            "ui/chat-bubbles","ui/glass-lesson-card",
+            "ui/card-stack-cascade","fx/magnifier-loupe",
+            "data/gantt-timeline","hud/radial-blueprint",
+            "data/step-process-numbered","text/counting-objects",
+            "product/spec-compare-table","text/end-screen-cards"]
+        self.assertEqual(len(paths),22)
+        for name in paths:
+            source=ROOT/"vendor/opus-motion/src/motions"/(name+".tsx")
+            self.assertTrue(source.is_file(),str(source))
+            self.assertIn("defineMotion",source.read_text(encoding="utf-8"),str(source))
+        self.assertTrue((ROOT/"vendor/opus-motion/LICENSE").is_file())
+
     def test_screen_labels_do_not_expose_capture_metadata(self):
         for scene in self.board["scenes"]:
             strings=str(scene["props"]).lower()
