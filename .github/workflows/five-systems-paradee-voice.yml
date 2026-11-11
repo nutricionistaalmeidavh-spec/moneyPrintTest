@@ -1,0 +1,165 @@
+name: MoneyPrint — Paradee 8M PT-BR (voz nova, reuse do Opus)
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - '.github/workflows/five-systems-paradee-voice.yml'
+      - 'scripts/paradee_voice.py'
+      - 'tests/test_paradee_voice.py'
+  pull_request:
+    paths:
+      - '.github/workflows/five-systems-paradee-voice.yml'
+      - 'scripts/paradee_voice.py'
+      - 'tests/test_paradee_voice.py'
+  workflow_dispatch:
+    inputs:
+      voice:
+        description: 'Voz Paradee: Alex ou Dora'
+        type: choice
+        options: ['alex', 'dora']
+        default: 'alex'
+      speed:
+        description: 'Velocidade de fala natural (0.8–1.25)'
+        type: string
+        default: '1.08'
+
+permissions:
+  contents: read
+  actions: read
+
+concurrency:
+  group: moneyprint-paradee-ptbr
+  cancel-in-progress: false
+
+jobs:
+  tests:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 12
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - name: NumPy para testes de forma de onda
+        run: python -m pip install --prefer-binary 'numpy>=1.26,<3'
+      - name: Validar modelo Apache, texto, pausas e motions preservados
+        run: |
+          python -m unittest discover -s tests -p 'test_paradee_voice.py' -v
+          python -m compileall -q scripts/paradee_voice.py
+
+  render:
+    needs: tests
+    if: github.event_name != 'pull_request'
+    runs-on: ubuntu-24.04
+    timeout-minutes: 55
+    env:
+      PYTHONUNBUFFERED: '1'
+      OMP_NUM_THREADS: '2'
+      OPENBLAS_NUM_THREADS: '2'
+      HF_HUB_DOWNLOAD_TIMEOUT: '120'
+      HF_HUB_DISABLE_XET: '1'
+      PIP_DEFAULT_TIMEOUT: '45'
+      PIP_RETRIES: '2'
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - name: Carregar o MP4 com 25 motions Opus originais, sem render de React
+        uses: actions/download-artifact@v4
+        with:
+          name: moneyprint-five-systems-opus-original
+          run-id: 43040474562
+          github-token: ${{ github.token }}
+          path: original-artifact
+      - name: Conferir original e tempo de roteiro
+        run: |
+          set -euo pipefail
+          test -s original-artifact/outputs/five-systems-original/five-systems-opus-original-5min.mp4
+          python - <<'PY'
+          from pathlib import Path
+          import json
+          original=Path('original-artifact/outputs/five-systems-original/five-systems-opus-original-5min.mp4')
+          assert original.stat().st_size>50_000_000
+          plan=json.loads(Path('video-requests/five-systems-original-opus-2026.json').read_text())
+          assert len(plan['scenes'])==25 and sum(x['min'] for x in plan['scenes'])==9000
+          print('25 motions originais Opus disponíveis para remux, sem renderização.')
+          PY
+      - name: FFmpeg local do wheel FOSS (sem apt-get)
+        timeout-minutes: 5
+        run: |
+          set -euo pipefail
+          python -m pip install --prefer-binary 'imageio-ffmpeg==0.6.0'
+          mkdir -p "$HOME/.local/bin"
+          python - <<'PY'
+          import imageio_ffmpeg
+          from pathlib import Path
+          p=Path.home()/'.local/bin/ffmpeg'
+          if not p.exists(): p.symlink_to(imageio_ffmpeg.get_ffmpeg_exe())
+          PY
+          echo "$HOME/.local/bin" >> "$GITHUB_PATH"
+          "$HOME/.local/bin/ffmpeg" -hide_banner -encoders 2>/dev/null | grep -F 'libx264'
+      - name: Cache dos dois modelos Paradee 8M e trechos de voz
+        uses: actions/cache@v4
+        with:
+          path: |
+            ~/.cache/huggingface/hub
+            outputs/_paradee_voice_cache
+          key: paradee-8m-ptbr-413c93ca-model-and-voice-v1
+      - name: Instalar ONNX, espeak-ng integrado e fonetização brasileira
+        timeout-minutes: 12
+        run: |
+          set -euo pipefail
+          timeout 480s python -m pip install --prefer-binary \
+            'numpy>=1.26,<3' 'onnxruntime>=1.19,<2' \
+            'soundfile>=0.12,<1' 'misaki[pt]' \
+            'espeakng-loader' 'huggingface-hub>=0.25,<2'
+          python - <<'PY'
+          from misaki.espeak import EspeakG2P
+          import espeakng_loader, onnxruntime
+          g=EspeakG2P(language='pt-br')
+          p,_=g('Olá, vamos conhecer cinco sistemas gratuitos para empresas.')
+          assert p and len(p)>25
+          print('G2P pt-BR válido. espeak-ng disponibilizado via pacote Python.')
+          PY
+      - name: Gerar voz Paradee PT-BR e sincronizar o MP4 ORIGINAL sem recriar motions
+        timeout-minutes: 30
+        run: |
+          python -m scripts.paradee_voice \
+            --board video-requests/five-systems-original-opus-2026.json \
+            --original original-artifact/outputs/five-systems-original/five-systems-opus-original-5min.mp4 \
+            --out outputs/five-systems-paradee \
+            --cache outputs/_paradee_voice_cache \
+            --voice '${{ inputs.voice || 'alex' }}' --speed '${{ inputs.speed || '1.08' }}' \
+            --ffmpeg "$HOME/.local/bin/ffmpeg"
+      - name: QA 25 cenas, ONNX local e voz AAC H.264
+        timeout-minutes: 5
+        run: |
+          python - <<'PY'
+          import json,subprocess
+          from pathlib import Path
+          folder=Path('outputs/five-systems-paradee')
+          qa=json.loads((folder/'qa_paradee_voz.json').read_text())
+          video=folder/('moneyprint_opus_paradee_'+qa['voice']+'_ptbr.mp4')
+          assert qa['status']=='produced'
+          assert qa['model']=='eraldohug/Paradee-8M-PtBr'
+          assert qa['original_motion_count']==25 and qa['motion_rerender_count']==0
+          assert qa['core_cost_brl']==0 and qa['no_paid_api'] and not qa['autopublish']
+          assert qa['output_frames']>=4000 and qa['output_seconds']>130
+          assert video.is_file() and video.stat().st_size>3_000_000
+          p=subprocess.run(['ffmpeg','-hide_banner','-i',str(video)],capture_output=True,text=True)
+          assert 'Video: h264' in p.stderr and 'Audio: aac' in p.stderr
+          print('Paradee validado:',qa['voice'],qa['output_seconds'],'s; 0 novos motions renderizados.')
+          PY
+      - name: Pacote de vídeo com voz Paradee, áudio, QA e sem autopublicação
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: moneyprint-opus-paradee-ptbr
+          path: |
+            outputs/five-systems-paradee/moneyprint_opus_paradee_*.mp4
+            outputs/five-systems-paradee/moneyprint_paradee_*_narracao.wav
+            outputs/five-systems-paradee/qa_paradee_voz.json
+          if-no-files-found: warn
+          retention-days: 7
