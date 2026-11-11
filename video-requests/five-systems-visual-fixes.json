@@ -39,17 +39,17 @@
             "at": 242
           }
         ],
-        "platform": "ios",
+        "platform": "android",
         "layout": "list",
         "position": "top",
         "theme": "dark",
         "maxVisible": 4,
-        "badge": true,
-        "clock": "09:41",
-        "date": "Clientes e oportunidades",
+        "badge": false,
+        "clock": "",
+        "date": "",
         "background": "#121A2D"
       },
-      "rationale": "Notificações centralizadas, grandes, em lista progressiva; evita canto vazio."
+      "rationale": "Cartões originais da Opus centralizados em lista de ~960px e 176px de altura por cartão, sem relógio no topo ocultando os últimos."
     },
     "8": {
       "motion": "device-mockup",
@@ -66,19 +66,19 @@
           30,
           90
         ],
-        "tilt": 2,
+        "tilt": 0,
         "flipAt": 10000,
-        "headline": "Twenty",
-        "subline": "CRM open source",
+        "headline": "",
+        "subline": "",
         "bodyColor": "#181d2b",
         "accent": "#6E58A7",
         "background": "#F6F1E7",
         "background2": "#E4DACD",
         "textColor": "#25213F",
-        "size": 1.22,
+        "size": 1.35,
         "brand": "Twenty"
       },
-      "rationale": "Captura Twenty autêntica em tela real, sem destaque roxo cobrindo interface."
+      "rationale": "Notebook original Opus centralizado em tela cheia sem overlays; captura oficial verificada de Twenty com fit contain."
     }
   },
   "silence_cut": {
