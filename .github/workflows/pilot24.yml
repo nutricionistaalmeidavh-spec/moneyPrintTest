@@ -4,15 +4,21 @@ on:
     branches: [main]
     paths:
       - 'scripts/pilot24_editor.py'
+      - 'scripts/opus_motion_adapter.py'
+      - 'vendor/opus-motion/**'
       - 'scripts/pilot24_live_ui.py'
       - 'tests/test_pilot24.py'
+      - 'tests/test_opus_motion_pilot.py'
       - 'tests/test_pilot24_interface.py'
       - '.github/workflows/pilot24.yml'
   pull_request:
     paths:
       - 'scripts/pilot24_editor.py'
+      - 'scripts/opus_motion_adapter.py'
+      - 'vendor/opus-motion/**'
       - 'scripts/pilot24_live_ui.py'
       - 'tests/test_pilot24.py'
+      - 'tests/test_opus_motion_pilot.py'
       - 'tests/test_pilot24_interface.py'
       - '.github/workflows/pilot24.yml'
   workflow_dispatch:
@@ -34,7 +40,8 @@ jobs:
       - name: TDD — cortes, provas reais, duração e quadro visível
         run: |
           python -m unittest discover -s tests -p 'test_pilot24*.py' -v
-          python -m compileall -q scripts/pilot24_editor.py scripts/pilot24_live_ui.py
+          python -m unittest discover -s tests -p 'test_opus_motion_pilot.py' -v
+          python -m compileall -q scripts/pilot24_editor.py scripts/pilot24_live_ui.py scripts/opus_motion_adapter.py
 
   piloto24:
     needs: tests
@@ -65,7 +72,8 @@ jobs:
           python -m scripts.pilot24_editor \
             --project projects/5-sistemas-talkcraft-educacional.json \
             --voice-model /tmp/moneyprint-pilot24-voice/pt_BR-faber-medium.onnx \
-            --out outputs/pilot24
+            --out outputs/pilot24 \
+            --opus-motions
       - name: QA — vídeo de 24 s com AAC e 720 frames, sem publicação
         run: |
           python - <<'PY'
@@ -87,6 +95,9 @@ jobs:
           assert report['talkcraft_dependency'] is False
           assert report['autopublish'] is False
           assert report['on_screen_source_labels'] is False
+          assert report['opus_motions_enabled'] is True
+          assert report['remotion_runtime'] is False
+          assert len(report['opus_motion_timeline']) == 3
           assert 'demo_ui' in report
           assert (p/'qa_8_cortes.jpg').is_file()
           print('PILOTO 24s APROVADO TECNICAMENTE; revisão humana ainda necessária')
