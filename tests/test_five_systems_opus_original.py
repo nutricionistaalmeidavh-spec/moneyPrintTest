@@ -65,6 +65,36 @@ class OpusOriginalFullTests(unittest.TestCase):
             self.assertIn("defineMotion",source.read_text(encoding="utf-8"),str(source))
         self.assertTrue((ROOT/"vendor/opus-motion/LICENSE").is_file())
 
+    def test_official_twenty_screenshot_fallback_when_github_capture_fails(self):
+        import tempfile
+        from unittest.mock import patch
+        from PIL import Image
+        from scripts.prepare_five_systems_opus import _capture_repos, OFFICIAL_APP_DOCS
+
+        self.assertEqual(OFFICIAL_APP_DOCS["twenty"],"https://twenty.com")
+        def github_capture(urls,out):
+            if "twentyhq" in urls[0]:
+                raise RuntimeError("GitHub temporarily unavailable")
+            folder=out/"repo_01"
+            folder.mkdir(parents=True,exist_ok=True)
+            p=folder/"top.png"
+            Image.new("RGB",(1440,900),"#243D5A").save(p)
+            return [[str(p)]]
+        def official_doc(tool,path):
+            path.parent.mkdir(parents=True,exist_ok=True)
+            Image.effect_noise((1200,700),64).convert("RGB").save(path)
+            return {"type":"official_documentation_real_image",
+                    "url":"https://twenty.com","image_source":"verified-image",
+                    "description":"CRM UI"}
+        with tempfile.TemporaryDirectory() as temp:
+            with patch("scripts.repo_stills.capture_repo_stills",side_effect=github_capture):
+                with patch("scripts.prepare_five_systems_opus._capture_official_doc",
+                           side_effect=official_doc):
+                    result=_capture_repos(Path(temp))
+            self.assertIn("twenty",result)
+            self.assertEqual(result["twenty"]["type"],"official_documentation_real_image")
+            self.assertTrue((Path(temp)/"public/software/twenty/verified.png").is_file())
+
     def test_screen_labels_do_not_expose_capture_metadata(self):
         for scene in self.board["scenes"]:
             strings=str(scene["props"]).lower()
