@@ -58,17 +58,48 @@ jobs:
         uses: actions/setup-node@v4
         with:
           node-version: '22'
+      - name: Cache FFmpeg GPL estático
+        uses: actions/cache@v4
+        with:
+          path: ~/.local/share/moneyprint-ffmpeg
+          key: ffmpeg-static-2026-11-06-linux64-gpl-v1
       - name: Verificar FFmpeg e fontes
-        timeout-minutes: 5
+        timeout-minutes: 10
         run: |
           set -euo pipefail
-          if ! command -v ffmpeg >/dev/null || ! command -v ffprobe >/dev/null; then
-            echo "::notice::Runner sem FFmpeg; instalando com tempo limitado"
-            timeout 90s sudo apt-get update -qq
-            timeout 180s sudo env DEBIAN_FRONTEND=noninteractive apt-get install -y ffmpeg
+          FFMPEG_BIN_DIR="$HOME/.local/share/moneyprint-ffmpeg/bin"
+          if command -v ffmpeg >/dev/null && command -v ffprobe >/dev/null; then
+            echo "::notice::FFmpeg e FFprobe disponíveis no runner"
+          elif test -x "$FFMPEG_BIN_DIR/ffmpeg" && test -x "$FFMPEG_BIN_DIR/ffprobe"; then
+            echo "::notice::FFmpeg estático disponível no cache"
+            export PATH="$FFMPEG_BIN_DIR:$PATH"
+          else
+            echo "::notice::FFmpeg ausente; usando build GPL estático do GitHub sem apt-get"
+            # Pin a release by date and verify against its published SHA256.
+            VERSION="ffmpeg-N-128532-g5d85b7bfb2-linux64-gpl"
+            RELEASE="https://github.com/FFmpeg-Builds/FFmpeg-Builds/releases/download/autobuild-2026-11-06-12-50"
+            mkdir -p "$FFMPEG_BIN_DIR" "$RUNNER_TEMP/moneyprint-ffmpeg"
+            cd "$RUNNER_TEMP/moneyprint-ffmpeg"
+            timeout 300s curl --fail --location --show-error --silent \
+              --retry 2 --connect-timeout 25 --max-time 290 \
+              --output "$VERSION.tar.xz" "$RELEASE/$VERSION.tar.xz"
+            timeout 90s curl --fail --location --show-error --silent \
+              --retry 2 --connect-timeout 25 --max-time 80 \
+              --output checksums.sha256 "$RELEASE/checksums.sha256"
+            grep -F "$VERSION.tar.xz" checksums.sha256 | sha256sum -c -
+            tar -xJf "$VERSION.tar.xz" -C "$RUNNER_TEMP/moneyprint-ffmpeg" \
+              "$VERSION/bin/ffmpeg" "$VERSION/bin/ffprobe"
+            install -m755 "$VERSION/bin/ffmpeg" "$FFMPEG_BIN_DIR/ffmpeg"
+            install -m755 "$VERSION/bin/ffprobe" "$FFMPEG_BIN_DIR/ffprobe"
+            export PATH="$FFMPEG_BIN_DIR:$PATH"
+          fi
+          # Expose binaries for every subsequent step, including Piper and Opus.
+          if test -x "$FFMPEG_BIN_DIR/ffmpeg"; then
+            echo "$FFMPEG_BIN_DIR" >> "$GITHUB_PATH"
           fi
           ffmpeg -hide_banner -version | sed -n '1p'
           ffprobe -hide_banner -version | sed -n '1p'
+          ffmpeg -hide_banner -encoders 2>/dev/null | grep -F "libx264"
           fc-match Lato | sed -n '1p' || true
       - name: Instalar dependências Python com limite
         timeout-minutes: 7
