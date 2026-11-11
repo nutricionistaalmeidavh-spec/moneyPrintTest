@@ -65,18 +65,24 @@ def build_scene_spans(board,timing=None):
     # Optional Qwen postproduction timing: source's *actual* scene boundaries,
     # not 12-second assumptions. Retime only the repaired motion to the same
     # final duration as the new narration; cache all untouched Qwen scenes.
-    rows=timing.get("visual_retiming")
-    if not isinstance(rows,list) or len(rows)!=25:raise ValueError("Invalid re-timed timeline")
+    # Qwen used visual_retiming; the approved Paradee ONNX film exposes
+    # original_scenes with new_frames. Either is an explicit, audited map.
+    rows=timing.get("original_scenes") or timing.get("visual_retiming")
+    if not isinstance(rows,list) or len(rows)!=25:
+        raise ValueError("Missing scene-specific timing from approved voice master")
     cursor=0
     revised=[]
     for expected,row in zip(spans,rows):
         if int(row["scene"])!=expected["index"] or row["motion"]!=expected["motion"]:
-            raise ValueError("Timing map belongs to a different Opus storyboard")
+            raise ValueError("Audio timing belongs to a different Opus storyboard")
         new_frames=int(row["new_frames"])
-        if new_frames<45 or new_frames>900:raise ValueError("Retime out of range")
+        if new_frames<45 or new_frames>900:
+            raise ValueError("Retime out of range")
         revised.append({**expected,"start_frame":cursor,"end_frame":cursor+new_frames,
                         "frames":new_frames})
         cursor+=new_frames
+    if "output_frames" in timing and int(timing["output_frames"])!=cursor:
+        raise ValueError("Scene timings do not cover the approved Paradee MP4")
     return revised
 
 def validate_patch(board,patch):
