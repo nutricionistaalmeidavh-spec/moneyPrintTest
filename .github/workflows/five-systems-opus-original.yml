@@ -8,12 +8,14 @@ on:
       - 'video-requests/five-systems-original-opus-2026.json'
       - 'scripts/prepare_five_systems_opus.py'
       - 'tests/test_five_systems_opus_original.py'
+      - 'tests/test_five_systems_opus_bootstrap.py'
   pull_request:
     paths:
       - '.github/workflows/five-systems-opus-original.yml'
       - 'video-requests/five-systems-original-opus-2026.json'
       - 'scripts/prepare_five_systems_opus.py'
       - 'tests/test_five_systems_opus_original.py'
+      - 'tests/test_five_systems_opus_bootstrap.py'
   workflow_dispatch:
 
 permissions:
@@ -21,7 +23,7 @@ permissions:
 
 concurrency:
   group: five-systems-opus-original
-  cancel-in-progress: false
+  cancel-in-progress: true
 
 jobs:
   tests:
@@ -38,6 +40,7 @@ jobs:
         run: |
           python -m unittest discover -s tests -p 'test_five_systems_opus_original.py' -v
           python -m compileall -q scripts/prepare_five_systems_opus.py
+          python -m unittest discover -s tests -p 'test_five_systems_opus_bootstrap.py' -v
 
   render-original:
     needs: tests
@@ -55,12 +58,59 @@ jobs:
         uses: actions/setup-node@v4
         with:
           node-version: '22'
-      - name: Instalar FFmpeg, Piper e navegador (sem API paga)
+      - name: Verificar FFmpeg e fontes
+        timeout-minutes: 5
         run: |
-          sudo apt-get update -qq
-          sudo apt-get install -y ffmpeg fonts-lato fonts-dejavu-core
-          python -m pip install 'Pillow==11.3.0' 'piper-tts==1.8.0' 'playwright==1.56.0'
-          python -m playwright install --with-deps chromium
+          set -euo pipefail
+          if ! command -v ffmpeg >/dev/null || ! command -v ffprobe >/dev/null; then
+            echo "::notice::Runner sem FFmpeg; instalando com tempo limitado"
+            timeout 90s sudo apt-get update -qq
+            timeout 180s sudo env DEBIAN_FRONTEND=noninteractive apt-get install -y ffmpeg
+          fi
+          ffmpeg -hide_banner -version | sed -n '1p'
+          ffprobe -hide_banner -version | sed -n '1p'
+          fc-match Lato | sed -n '1p' || true
+      - name: Instalar dependências Python com limite
+        timeout-minutes: 7
+        env:
+          PIP_DEFAULT_TIMEOUT: '35'
+          PIP_RETRIES: '2'
+          PIP_DISABLE_PIP_VERSION_CHECK: '1'
+        run: |
+          set -euo pipefail
+          echo "::group::Instalando Piper, Pillow e Playwright em Python 3.11"
+          timeout 360s python -m pip install --prefer-binary \
+            'Pillow==11.3.0' 'piper-tts==1.8.0' 'playwright==1.56.0'
+          python -c 'from PIL import Image; from playwright.sync_api import sync_playwright; print("Python e Playwright OK")'
+          echo "::endgroup::"
+      - name: Cache do Chromium headless
+        uses: actions/cache@v4
+        with:
+          path: ~/.cache/ms-playwright
+          key: opus-chromium-shell-1.56.0-linux-amd64
+      - name: Instalar Chromium headless com limite
+        timeout-minutes: 5
+        env:
+          PLAYWRIGHT_DOWNLOAD_CONNECTION_TIMEOUT: '120000'
+        run: |
+          set -euo pipefail
+          echo "::group::Chromium headless shell (sem navegador completo / apt-get adicional)"
+          timeout 240s python -m playwright install chromium --only-shell
+          echo "::endgroup::"
+      - name: Testar Chromium headless
+        timeout-minutes: 2
+        run: |
+          set -euo pipefail
+          python - <<'PY'
+          from playwright.sync_api import sync_playwright
+          with sync_playwright() as p:
+              browser=p.chromium.launch(headless=True)
+              page=browser.new_page()
+              page.goto("about:blank", wait_until="load")
+              assert page.title()=="" and page.url=="about:blank"
+              browser.close()
+          print("Chromium headless inicializado, sem depender de API paga")
+          PY
       - name: Baixar o código ORIGINAL Opus MIT em ambiente isolado
         run: |
           git clone --depth 1 --branch v1.2.0 https://github.com/GovinduSasanka/opus-motion-library.git "$RUNNER_TEMP/opus-motion-library"
