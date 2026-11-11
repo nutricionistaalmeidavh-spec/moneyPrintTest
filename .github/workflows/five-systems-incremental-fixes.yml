@@ -1,0 +1,194 @@
+name: MoneyPrint — reparar só as 2 cenas Opus com erro (reuso + corte de silêncio)
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - '.github/workflows/five-systems-incremental-fixes.yml'
+      - 'scripts/incremental_opus_editor.py'
+      - 'video-requests/five-systems-visual-fixes.json'
+      - 'tests/test_incremental_opus_editor.py'
+  pull_request:
+    paths:
+      - '.github/workflows/five-systems-incremental-fixes.yml'
+      - 'scripts/incremental_opus_editor.py'
+      - 'video-requests/five-systems-visual-fixes.json'
+      - 'tests/test_incremental_opus_editor.py'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  actions: read
+
+concurrency:
+  group: moneyprint-incremental-opus-2-scenes
+  cancel-in-progress: false
+
+jobs:
+  tests:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - name: Testar 25 cortes, cache, 2 motions originais e áudio/vídeo juntos
+        run: |
+          python -m unittest discover -s tests -p 'test_incremental_opus_editor.py' -v
+          python -m compileall -q scripts/incremental_opus_editor.py
+
+  selective-repair:
+    needs: tests
+    if: github.event_name != 'pull_request'
+    runs-on: ubuntu-24.04
+    timeout-minutes: 110
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Baixar original artifact aprovado (sem renderizar cenas já boas)
+        uses: actions/download-artifact@v4
+        with:
+          name: moneyprint-five-systems-opus-original
+          run-id: 43040474562
+          github-token: ${{ github.token }}
+          path: original-artifact
+      - name: Conferir fonte e criar specs somente para cenas 07 e 08
+        run: |
+          set -euo pipefail
+          test -s original-artifact/outputs/five-systems-original/five-systems-opus-original-5min.mp4
+          python -m scripts.incremental_opus_editor prepare \
+            --board video-requests/five-systems-original-opus-2026.json \
+            --patch video-requests/five-systems-visual-fixes.json \
+            --specs "$RUNNER_TEMP/opus-selective-specs"
+          test -s "$RUNNER_TEMP/opus-selective-specs/scene_07.json"
+          test -s "$RUNNER_TEMP/opus-selective-specs/scene_08.json"
+          test "$(find "$RUNNER_TEMP/opus-selective-specs" -name 'scene_*.json' | wc -l)" -eq 2
+      - name: Obter FFmpeg e FFprobe GPL estáticos com SHA-256, sem apt-get
+        timeout-minutes: 10
+        run: |
+          set -euo pipefail
+          FFMPEG_BIN_DIR="$HOME/.local/share/moneyprint-ffmpeg/bin"
+          if command -v ffmpeg >/dev/null && command -v ffprobe >/dev/null; then
+            echo 'FFmpeg runner pre-installed'
+          else
+            VERSION="ffmpeg-N-128532-g5d85b7bfb2-linux64-gpl"
+            RELEASE="https://github.com/FFmpeg-Builds/FFmpeg-Builds/releases/download/autobuild-2026-11-06-12-50"
+            mkdir -p "$FFMPEG_BIN_DIR" "$RUNNER_TEMP/moneyprint-ffmpeg"
+            cd "$RUNNER_TEMP/moneyprint-ffmpeg"
+            timeout 300s curl --fail --location --show-error --silent \
+              --retry 2 --connect-timeout 25 --max-time 290 \
+              --output "$VERSION.tar.xz" "$RELEASE/$VERSION.tar.xz"
+            timeout 90s curl --fail --location --show-error --silent \
+              --retry 2 --connect-timeout 25 --max-time 80 \
+              --output checksums.sha256 "$RELEASE/checksums.sha256"
+            grep -F "$VERSION.tar.xz" checksums.sha256 | sha256sum -c -
+            tar -xJf "$VERSION.tar.xz" -C "$RUNNER_TEMP/moneyprint-ffmpeg" \
+              "$VERSION/bin/ffmpeg" "$VERSION/bin/ffprobe"
+            install -m755 "$VERSION/bin/ffmpeg" "$FFMPEG_BIN_DIR/ffmpeg"
+            install -m755 "$VERSION/bin/ffprobe" "$FFMPEG_BIN_DIR/ffprobe"
+          fi
+          if test -x "$FFMPEG_BIN_DIR/ffmpeg"; then
+            echo "$FFMPEG_BIN_DIR" >> "$GITHUB_PATH"
+          fi
+          ffmpeg -hide_banner -encoders 2>/dev/null | grep -F 'libx264'
+      - name: Cache de cenas aprovadas renderizadas anteriormente
+        uses: actions/cache@v4
+        with:
+          path: outputs/incremental-scene-cache
+          key: approved-opus-run-43040474562-25-scenes-crf21-v2
+      - name: Instalar Opus ORIGINAL (apenas para 2 cenas defeituosas)
+        timeout-minutes: 18
+        run: |
+          set -euo pipefail
+          git clone --depth 1 --branch v1.2.0 \
+            https://github.com/GovinduSasanka/opus-motion-library.git \
+            "$RUNNER_TEMP/opus-original"
+          cd "$RUNNER_TEMP/opus-original"
+          test "$(git rev-parse HEAD)" = "8f1b78a25d0cf310c9bf904d434285046c4ed25a"
+          npm install --no-audit --no-fund
+      - name: Restaurar captura oficial e verdadeira do Twenty
+        run: |
+          python -m pip install 'Pillow==11.3.0'
+          python - <<'PY'
+          import os
+          from pathlib import Path
+          from scripts.prepare_five_systems_opus import _capture_twenty_readme_asset
+          image=Path(os.environ['RUNNER_TEMP'])/'opus-original/public/software/twenty/verified.png'
+          image.parent.mkdir(parents=True,exist_ok=True)
+          result=_capture_twenty_readme_asset(image)
+          assert result['width']==1600 and result['height']==1000
+          print('Fonte Twenty autentica preservada:', result['source_sha256'])
+          PY
+      - name: Opus ORIGINAL: renderizar SOMENTE cena_07.json (notificações)
+        timeout-minutes: 18
+        run: |
+          mkdir -p outputs/incremental-opus/rendered
+          cd "$RUNNER_TEMP/opus-original"
+          node cli/mgl.mjs compose "$RUNNER_TEMP/opus-selective-specs/scene_07.json" \
+            --out "$GITHUB_WORKSPACE/outputs/incremental-opus/rendered/scene_07.mp4" \
+            --concurrency 3
+      - name: Opus ORIGINAL: renderizar SOMENTE cena_08.json (Twenty)
+        timeout-minutes: 18
+        run: |
+          cd "$RUNNER_TEMP/opus-original"
+          node cli/mgl.mjs compose "$RUNNER_TEMP/opus-selective-specs/scene_08.json" \
+            --out "$GITHUB_WORKSPACE/outputs/incremental-opus/rendered/scene_08.mp4" \
+            --concurrency 3
+      - name: Remontar vídeo de 300s com as outras 23 cenas do cache
+        timeout-minutes: 30
+        run: |
+          python -m scripts.incremental_opus_editor assemble \
+            --board video-requests/five-systems-original-opus-2026.json \
+            --patch video-requests/five-systems-visual-fixes.json \
+            --source original-artifact/outputs/five-systems-original/five-systems-opus-original-5min.mp4 \
+            --rendered-dir outputs/incremental-opus/rendered \
+            --cache-dir outputs/incremental-scene-cache \
+            --out outputs/incremental-opus \
+            --no-trim-silence
+          cp outputs/incremental-opus/moneyprint_incremental_opus_sem_silencios.mp4 \
+             outputs/incremental-opus/moneyprint_incremental_opus_300s_base_paradee.mp4
+      - name: Recortar pausas do MP4 antigo sem perder sincronização
+        timeout-minutes: 30
+        run: |
+          python -m scripts.incremental_opus_editor assemble \
+            --board video-requests/five-systems-original-opus-2026.json \
+            --patch video-requests/five-systems-visual-fixes.json \
+            --source original-artifact/outputs/five-systems-original/five-systems-opus-original-5min.mp4 \
+            --rendered-dir outputs/incremental-opus/rendered \
+            --cache-dir outputs/incremental-scene-cache \
+            --out outputs/incremental-opus
+      - name: QA técnica das 2 substituições, 23 reaproveitadas e áudio/cortes
+        run: |
+          python - <<'PY'
+          import json
+          from pathlib import Path
+          p=Path('outputs/incremental-opus')
+          qa=json.loads((p/'diagnostico_incremental.json').read_text())
+          assert qa['result']=='success'
+          assert qa['motion_rerender_count']==2
+          assert qa['untouched_scenes_reused']==23
+          assert qa['selected_original_opus_scenes']==[7,8]
+          assert qa['audio_video_cut_together'] and not qa['autopublish']
+          assert (p/'moneyprint_incremental_opus_300s_base_paradee.mp4').stat().st_size>4_000_000
+          assert (p/'moneyprint_incremental_opus_sem_silencios.mp4').stat().st_size>4_000_000
+          print('Selective Opus patch OK; original 300s version and silence-cut version exported.')
+          PY
+      - name: Publicar APENAS artifact (sem deploy automático)
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: moneyprint-incremental-opus-cenas07-08
+          path: |
+            outputs/incremental-opus/moneyprint_incremental_opus_300s_base_paradee.mp4
+            outputs/incremental-opus/moneyprint_incremental_opus_sem_silencios.mp4
+            outputs/incremental-opus/diagnostico_incremental.json
+            outputs/incremental-opus/rendered/scene_07.mp4
+            outputs/incremental-opus/rendered/scene_08.mp4
+          if-no-files-found: warn
+          retention-days: 7
