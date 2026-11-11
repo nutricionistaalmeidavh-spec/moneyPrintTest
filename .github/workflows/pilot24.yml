@@ -62,7 +62,7 @@ jobs:
             --project projects/5-sistemas-talkcraft-educacional.json \
             --voice-model /tmp/moneyprint-pilot24-voice/pt_BR-faber-medium.onnx \
             --out outputs/pilot24
-      - name: QA: vídeo de 24 s com AAC e 720 frames, sem publicação
+      - name: QA — vídeo de 24 s com AAC e 720 frames, sem publicação
         run: |
           python - <<'PY'
           from pathlib import Path
