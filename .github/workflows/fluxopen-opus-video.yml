@@ -1,0 +1,103 @@
+name: MoneyPrint — FluxOpen Pentest com motions Opus originais
+on:
+  push:
+    branches: [main]
+    paths:
+      - "video-requests/fluxopen-pentest-20261110.json"
+  workflow_dispatch:
+    inputs:
+      storyboard:
+        description: Storyboard aprovado no repositório
+        required: false
+        default: video-requests/fluxopen-pentest-20261110.json
+        type: string
+
+permissions:
+  contents: read
+
+concurrency:
+  group: fluxopen-opus-video-${{ github.run_id }}
+  cancel-in-progress: false
+
+jobs:
+  render-fluxopen:
+    name: Produzir MP4 com Opus Motion Library e Piper
+    runs-on: ubuntu-latest
+    timeout-minutes: 120
+    env:
+      STORYBOARD: video-requests/fluxopen-pentest-20261110.json
+    steps:
+      - name: Checkout MoneyPrint
+        uses: actions/checkout@v4
+      - name: Configurar Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+      - name: Configurar Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+      - name: Validar storyboard aprovado e invariantes
+        run: |
+          python -m unittest discover -s tests -p "test_opus_fluxopen.py" -v
+      - name: Instalar FFmpeg, fontes, Piper e navegador
+        run: |
+          sudo apt-get update -qq
+          sudo apt-get install -y ffmpeg fonts-lato fonts-dejavu-core
+          python -m pip install "piper-tts==1.8.0" "playwright==1.56.0"
+          python -m playwright install --with-deps chromium
+      - name: Baixar a biblioteca original Opus (MIT) isolada do core
+        run: |
+          git clone --depth 1 --branch v1.2.0 https://github.com/GovinduSasanka/opus-motion-library.git "$RUNNER_TEMP/opus-motion-library"
+          cd "$RUNNER_TEMP/opus-motion-library"
+          npm install --no-audit --no-fund
+          git rev-parse HEAD > "$GITHUB_WORKSPACE/opus-source-commit.txt"
+          node cli/mgl.mjs info cause-effect-chain > "$GITHUB_WORKSPACE/opus-motion-verified.txt"
+      - name: Gerar narração brasileira offline e capturas reais do GitHub
+        run: |
+          python - <<'PY'
+          from pathlib import Path
+          from scripts.render_request import download_piper
+          import os
+          model = download_piper(Path(os.environ["RUNNER_TEMP"]) / "moneyprint-piper")
+          print(model)
+          with open(os.environ["GITHUB_ENV"], "a", encoding="utf-8") as f:
+              f.write("PIPER_MODEL=" + str(model) + "\n")
+          PY
+          python scripts/render_pentest_opus.py "$STORYBOARD" "$RUNNER_TEMP/opus-motion-library" "$PIPER_MODEL"
+      - name: Renderizar 25 cenas com código Opus original e áudio Piper
+        run: |
+          mkdir -p outputs/fluxopen
+          cd "$RUNNER_TEMP/opus-motion-library"
+          node cli/direct.mjs "storyboards/fluxopen-pentest-gratuito.json" \
+            --no-voice --no-zones --concurrency 2 \
+            --out "$GITHUB_WORKSPACE/outputs/fluxopen/fluxopen-pentest-5min-opus.mp4"
+      - name: Validar duração, áudio, vídeo e proveniência
+        run: |
+          python - <<'PY'
+          from pathlib import Path
+          import json, subprocess
+          f=Path("outputs/fluxopen/fluxopen-pentest-5min-opus.mp4")
+          assert f.exists() and f.stat().st_size > 1000000, "MP4 ausente ou muito pequeno"
+          data=json.loads(subprocess.check_output(["ffprobe","-v","error","-show_format","-show_streams","-of","json",str(f)],text=True))
+          streams=data["streams"]
+          assert any(x.get("codec_type")=="video" for x in streams), "Vídeo ausente"
+          assert any(x.get("codec_type")=="audio" for x in streams), "Narração ausente"
+          duration=float(data["format"]["duration"])
+          assert 298 <= duration <= 304, f"Duração inesperada: {duration:.2f}s"
+          print(f"MP4 FluxOpen validado: {duration:.2f}s, {f.stat().st_size} bytes")
+          PY
+          cp "$STORYBOARD" outputs/fluxopen/storyboard.json
+          cp opus-source-commit.txt opus-motion-verified.txt outputs/fluxopen/
+          printf "%s\n" "Capturas: GitHub real, sem login e sem dados privados." "Voz: Piper pt_BR-faber-medium offline." "Motions: código oficial Opus Motion Library v1.2.0 (licença MIT)." "Renderizador opcional: Remotion, sujeito às condições da licença do Remotion." "Publicação em redes sociais: desativada." > outputs/fluxopen/proveniencia.txt
+      - name: Entregar vídeo, roteiro e evidências como artefato (sem publicar)
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: moneyprint-fluxopen-opus-${{ github.run_id }}
+          path: |
+            outputs/fluxopen/
+            opus-source-commit.txt
+            opus-motion-verified.txt
+          if-no-files-found: warn
+          retention-days: 7
