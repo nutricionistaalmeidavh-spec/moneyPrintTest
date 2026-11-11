@@ -63,6 +63,12 @@ class ParadeeVoiceTests(unittest.TestCase):
         self.assertIn("concat=n=25",graph["filters"])
         self.assertNotIn("drawtext",graph["filters"])
 
+    def test_misaki_pt_br_installs_its_runtime_phonemizer_explicitly(self):
+        workflow=(ROOT/".github/workflows/five-systems-paradee-voice.yml").read_text()
+        self.assertIn("phonemizer>=3.3,<4",workflow)
+        self.assertIn("espeakng-loader",workflow)
+        self.assertIn("from misaki.espeak import EspeakG2P",workflow)
+
     def test_workflow_uses_original_movie_and_never_rerenders_react(self):
         w=(ROOT/".github/workflows/five-systems-paradee-voice.yml").read_text()
         self.assertIn("43040474562",w)

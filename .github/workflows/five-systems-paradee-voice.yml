@@ -114,7 +114,7 @@ jobs:
           timeout 480s python -m pip install --prefer-binary \
             'numpy>=1.26,<3' 'onnxruntime>=1.19,<2' \
             'soundfile>=0.12,<1' 'misaki[pt]' \
-            'espeakng-loader' 'huggingface-hub>=0.25,<2'
+            'espeakng-loader' 'phonemizer>=3.3,<4' 'huggingface-hub>=0.25,<2'
           python - <<'PY'
           from misaki.espeak import EspeakG2P
           import espeakng_loader, onnxruntime
