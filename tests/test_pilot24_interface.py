@@ -3,7 +3,7 @@ import unittest
 from unittest.mock import patch
 from PIL import Image, ImageDraw
 from scripts.pilot24_editor import Stage, frame_at
-from scripts.pilot24_live_ui import allowed_capture_target, is_readable_app, has_visible_main_content
+from scripts.pilot24_live_ui import allowed_capture_target, is_readable_app, has_visible_main_content, crop_demo_chrome
 
 class InterfaceFirstPilotTests(unittest.TestCase):
     def test_demo_navigation_never_visits_unknown_hosts(self):
@@ -45,6 +45,16 @@ class InterfaceFirstPilotTests(unittest.TestCase):
         for y in range(258,570,42):
             d.text((407,y),"Sales orders customer product 2026",fill=(32,45,62))
         self.assertTrue(has_visible_main_content(image))
+
+    def test_demo_trial_banner_is_cropped_without_changing_app_content(self):
+        image=Image.new("RGB",(1440,900),(247,248,249))
+        d=ImageDraw.Draw(image)
+        d.rectangle((0,40,1439,83),fill=(208,232,243))
+        d.rectangle((300,180,1200,790),fill=(233,238,240))
+        cropped=crop_demo_chrome(image)
+        self.assertLess(cropped.height,900)
+        self.assertEqual(cropped.getpixel((500,0)),(247,248,249))
+        self.assertEqual(cropped.getpixel((500,200)),(233,238,240))
 
     def test_live_views_are_optional_and_real_screens_take_main_stage(self):
         repo=Image.new("RGB",(1440,900),(29,40,51))
