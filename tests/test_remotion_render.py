@@ -75,6 +75,9 @@ class RemotionAdapterTests(unittest.TestCase):
             binary = root / "node_modules" / ".bin" / "remotion"
             binary.parent.mkdir(parents=True)
             binary.touch()
+            entry = root / "src" / "index.tsx"
+            entry.parent.mkdir(parents=True)
+            entry.touch()
             props = root / "props.json"
             props.write_text(json.dumps({"totalFrames": 90}))
             command = make_render_command(root, props, root / "public", root / "out.mp4")
