@@ -95,6 +95,39 @@ class OpusOriginalFullTests(unittest.TestCase):
             self.assertEqual(result["twenty"]["type"],"official_documentation_real_image")
             self.assertTrue((Path(temp)/"public/software/twenty/verified.png").is_file())
 
+    def test_twenty_rejects_small_external_image_and_uses_vendored_real_readme(self):
+        import tempfile
+        from unittest.mock import patch
+        from PIL import Image
+        from scripts.prepare_five_systems_opus import _capture_repos
+
+        def fake_repo_capture(urls,out):
+            folder=out/"repo_01"
+            folder.mkdir(parents=True,exist_ok=True)
+            p=folder/"top.png"
+            Image.new("RGB",(1440,900),"#243D5A").save(p)
+            return [[str(p)]]
+
+        def too_small_official(tool,path):
+            path.parent.mkdir(parents=True,exist_ok=True)
+            if tool=="twenty":
+                # Over 8000 bytes, but not a legible application screenshot.
+                Image.effect_noise((540,260),72).convert("RGB").save(path)
+            else:
+                Image.effect_noise((1200,700),72).convert("RGB").save(path)
+            return {"type":"official_documentation_real_image",
+                    "url":"https://twenty.com","image_source":"test invalid crop"}
+
+        with tempfile.TemporaryDirectory() as temp:
+            with patch("scripts.repo_stills.capture_repo_stills",side_effect=fake_repo_capture), \
+                 patch("scripts.prepare_five_systems_opus._capture_official_doc",
+                       side_effect=too_small_official):
+                results=_capture_repos(Path(temp))
+            twenty=Path(temp)/"public/software/twenty/verified.png"
+            self.assertEqual(results["twenty"]["type"],"github_official_readme_asset_local")
+            with Image.open(twenty) as image:
+                self.assertEqual(image.size,(1600,1000))
+
     def test_direct_twenty_asset_is_genuine_image_only(self):
         import tempfile
         from PIL import Image
