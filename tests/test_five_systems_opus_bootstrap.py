@@ -16,6 +16,15 @@ class FiveSystemsOpusBootstrapTests(unittest.TestCase):
             self.assertIn("name: "+label, self.workflow)
         self.assertNotIn("Instalar FFmpeg, Piper e navegador (sem API paga)",self.workflow)
 
+    def test_ffmpeg_does_not_use_unreachable_apt_mirrors(self):
+        self.assertNotIn("apt-get update",self.workflow)
+        self.assertNotIn("apt-get install",self.workflow)
+        self.assertIn("autobuild-2026-11-06-12-50",self.workflow)
+        self.assertIn("ffmpeg-N-128532-g5d85b7bfb2-linux64-gpl.tar.xz",self.workflow)
+        self.assertIn("checksums.sha256",self.workflow)
+        self.assertIn("sha256sum -c",self.workflow)
+        self.assertIn("libx264",self.workflow)
+
     def test_no_expensive_full_browser_or_unlimited_package_install(self):
         self.assertNotIn("playwright install --with-deps chromium",self.workflow)
         self.assertIn("playwright install chromium --only-shell",self.workflow)
