@@ -1,0 +1,95 @@
+name: MoneyPrint — Piloto 24s dinâmico (open source)
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'scripts/pilot24_editor.py'
+      - 'tests/test_pilot24.py'
+      - '.github/workflows/pilot24.yml'
+  pull_request:
+    paths:
+      - 'scripts/pilot24_editor.py'
+      - 'tests/test_pilot24.py'
+      - '.github/workflows/pilot24.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  tests:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - name: Pillow open source
+        run: python -m pip install 'Pillow==11.3.0'
+      - name: TDD — cortes, provas reais, duração e quadro visível
+        run: |
+          python -m unittest discover -s tests -p test_pilot24.py -v
+          python -m compileall -q scripts/pilot24_editor.py
+
+  piloto24:
+    needs: tests
+    if: github.event_name != 'pull_request'
+    runs-on: ubuntu-latest
+    timeout-minutes: 75
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - name: FFmpeg, fontes e bibliotecas R$0
+        run: |
+          sudo apt-get update -qq
+          sudo apt-get install -y ffmpeg fonts-lato fonts-dejavu-core
+          python -m pip install 'Pillow==11.3.0' 'piper-tts==1.8.0' 'playwright==1.56.0'
+          python -m playwright install --with-deps chromium
+      - name: Baixar Piper pt-BR com SHA256 verificado (sem API)
+        run: |
+          python - <<'PY'
+          from pathlib import Path
+          from scripts.render_request import download_piper
+          model=download_piper(Path('/tmp/moneyprint-pilot24-voice'))
+          print(model)
+          PY
+      - name: Capturas reais, oito cortes, narração e exportação MP4
+        run: |
+          python -m scripts.pilot24_editor \
+            --project projects/5-sistemas-talkcraft-educacional.json \
+            --voice-model /tmp/moneyprint-pilot24-voice/pt_BR-faber-medium.onnx \
+            --out outputs/pilot24
+      - name: QA — vídeo de 24 s com AAC e 720 frames, sem publicação
+        run: |
+          python - <<'PY'
+          from pathlib import Path
+          import json,subprocess
+          p=Path('outputs/pilot24')
+          v=p/'moneyprint_piloto_24s.mp4'
+          info=json.loads(subprocess.check_output([
+              'ffprobe','-v','error','-count_frames','-show_streams',
+              '-show_format','-of','json',str(v)],text=True))
+          video=next(s for s in info['streams'] if s['codec_type']=='video')
+          audio=next(s for s in info['streams'] if s['codec_type']=='audio')
+          report=json.loads((p/'pilot24_diagnostico.json').read_text())
+          assert video['codec_name']=='h264'
+          assert int(video['nb_read_frames'])==720
+          assert video['width']==1920 and video['height']==1080
+          assert audio['codec_name']=='aac'
+          assert abs(float(info['format']['duration'])-24)<.1
+          assert report['talkcraft_dependency'] is False
+          assert report['autopublish'] is False
+          assert (p/'qa_8_cortes.jpg').is_file()
+          print('PILOTO 24s APROVADO TECNICAMENTE; revisão humana ainda necessária')
+          PY
+      - name: Exportar MP4, narração, screenshots e QA para revisão
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: moneyprint-pilot24
+          path: outputs/pilot24/
+          if-no-files-found: warn
+          retention-days: 7
