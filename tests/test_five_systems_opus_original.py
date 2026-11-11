@@ -82,7 +82,7 @@ class OpusOriginalFullTests(unittest.TestCase):
             return [[str(p)]]
         def official_doc(tool,path):
             path.parent.mkdir(parents=True,exist_ok=True)
-            Image.new("RGB",(1200,700),"#234D62").save(path)
+            Image.effect_noise((1200,700),64).convert("RGB").save(path)
             return {"type":"official_documentation_real_image",
                     "url":"https://twenty.com","image_source":"verified-image",
                     "description":"CRM UI"}
