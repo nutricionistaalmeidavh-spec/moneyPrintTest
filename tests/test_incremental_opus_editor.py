@@ -38,6 +38,22 @@ class IncrementalOpusTests(unittest.TestCase):
         self.assertNotIn("piper",w.lower())
         self.assertNotIn("qwen",w.lower())
 
+    def test_ffprobe_accepts_exact_30fps_as_reduced_rational(self):
+        from unittest.mock import patch as mockpatch
+        from scripts.incremental_opus_editor import _video_info
+        fake={"streams":[{"codec_type":"video","codec_name":"h264",
+                          "width":1920,"height":1080,
+                          "avg_frame_rate":"138147840/4604873",
+                          "r_frame_rate":"30/1",
+                          "nb_read_frames":"8994"},
+                         {"codec_type":"audio","codec_name":"aac"}],
+              "format":{"duration":"299.800"}}
+        with mockpatch("scripts.incremental_opus_editor._probe",return_value=fake):
+            result=_video_info("virtual.mp4",count=True)
+        self.assertEqual(result["frames"],8994)
+        self.assertEqual(result["fps"],"30/1")
+        self.assertTrue(result["audio"])
+
     def test_only_two_bad_scenes_selected(self):
         fixes=validate_patch(BOARD,PATCH)
         self.assertEqual(sorted(fixes),[7,8])
