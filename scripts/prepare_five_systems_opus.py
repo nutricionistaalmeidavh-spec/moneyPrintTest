@@ -122,30 +122,33 @@ TWENTY_OFFICIAL_README_IMAGE=(
 )
 
 def _capture_twenty_readme_asset(output):
-    """Download the actual image published by Twenty's official GitHub README.
+    """Restore the ORIGINAL Twenty README image vendored as exact WEBP bytes.
 
-    This is NOT a simulated screenshot or a cloned UI. Read-only GitHub asset.
+    No network, no synthetic UI and no re-created screenshot: the source was
+    fetched from the verified twentyhq/twenty repository and is preserved
+    as base64 (GitHub MCP supports text-only commits).
     """
     from io import BytesIO
-    from urllib.request import Request, urlopen
+    import base64
+    import hashlib
     from PIL import Image
-    url=TWENTY_OFFICIAL_README_IMAGE
-    if not url.startswith("https://raw.githubusercontent.com/twentyhq/twenty/"):
-        raise ValueError("Fonte do Twenty não é oficial")
-    request=Request(url,headers={"User-Agent":"MoneyPrint-original-opus"})
-    with urlopen(request,timeout=30) as res:
-        content_type=res.headers.get("Content-Type","").lower()
-        raw=res.read(8*1024*1024+1)
-        if len(raw)>8*1024*1024 or not content_type.startswith("image/"):
-            raise RuntimeError("Fonte de imagem inválida")
+    original=Path(__file__).resolve().parents[1]/"assets/original_sources/twenty_crm_readme.webp.b64"
+    if not original.is_file():
+        raise FileNotFoundError("Arquivo original Twenty não encontrado no repositório")
+    encoded="".join(original.read_text(encoding="ascii").split())
+    raw=base64.b64decode(encoded,validate=True)
+    if not 5000<len(raw)<8*1024*1024 or not raw.startswith(b"RIFF") or raw[8:12]!=b"WEBP":
+        raise ValueError("Fonte original WEBP inválida")
     with Image.open(BytesIO(raw)) as bitmap:
         image=bitmap.convert("RGB")
         if image.width<600 or image.height<300:
-            raise RuntimeError("Imagem real pequena demais")
+            raise RuntimeError("Fonte original do Twenty pequena demais")
         image.save(output,format="PNG")
-    return {"type":"github_official_readme_asset","url":url,
-            "source_sha256":__import__("hashlib").sha256(raw).hexdigest(),
-            "width":image.width,"height":image.height}
+    return {"type":"github_official_readme_asset_local",
+            "url":TWENTY_OFFICIAL_README_IMAGE,
+            "source_sha256":hashlib.sha256(raw).hexdigest(),
+            "width":image.width,"height":image.height,
+            "source_file":str(original.relative_to(Path(__file__).resolve().parents[1]))}
 
 
 def _capture_repos(opus):
