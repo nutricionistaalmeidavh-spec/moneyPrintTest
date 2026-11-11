@@ -27,7 +27,7 @@ class IncrementalOpusTests(unittest.TestCase):
         self.assertEqual(len(spans),25)
         self.assertEqual(spans[0]["start_frame"],0)
         self.assertEqual(spans[-1]["end_frame"],9000)
-        self.assertEqual([x["index"] for x in spans if x["index"] in PATCH["scene_overrides"]],[7,8])
+        self.assertEqual([x["index"] for x in spans if str(x["index"]) in PATCH["scene_overrides"]],[7,8])
         for a,b in zip(spans,spans[1:]):
             self.assertEqual(a["end_frame"],b["start_frame"])
 
