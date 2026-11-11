@@ -102,7 +102,10 @@ class Stage:
         self.box(x+13,y+14,14,46,color,r=4)
         self.tx(x+48,y+17,title,27,INK)
 
-def frame_at(t,repo,app,w=1920,h=1080,ui_screens=None):
+def frame_at(t,repo,app,w=1920,h=1080,ui_screens=None,opus_motions=False):
+    if opus_motions and 0<=t<12:
+        from scripts.opus_motion_adapter import motion_frame
+        return motion_frame(t,width=w,height=h)
     i=next((k for k,(a,b,_) in enumerate(BEATS) if a<=t<b),7)
     a,b,_=BEATS[i]
     local=t-a
@@ -255,7 +258,7 @@ def capture_proofs(output):
         raise RuntimeError("Não há prova de app publicada no README; não fabricar UI")
     return top,app
 
-def render(project,output,model,width=1920,height=1080):
+def render(project,output,model,width=1920,height=1080,opus_motions=False):
     validate_plan()
     from scripts.studio_render import build_plan
     plan=build_plan(project)
@@ -291,7 +294,7 @@ def render(project,output,model,width=1920,height=1080):
     with subprocess.Popen(cmd,stdin=subprocess.PIPE) as proc:
         try:
             for frame in range(FPS*DURATION):
-                image=frame_at(frame/FPS,repo,app,width,height,ui_screens)
+                image=frame_at(frame/FPS,repo,app,width,height,ui_screens,opus_motions=opus_motions)
                 proc.stdin.write(image.tobytes())
             proc.stdin.close()
             if proc.wait()!=0:raise RuntimeError("Falha ao produzir MP4")
@@ -301,7 +304,7 @@ def render(project,output,model,width=1920,height=1080):
         raise RuntimeError("A duração final diverge da timeline")
     sheet=Image.new("RGB",(1280,1440),PAPER)
     for i,(start,end,_) in enumerate(BEATS):
-        shot=frame_at((start+end)/2,repo,app,640,360,ui_screens)
+        shot=frame_at((start+end)/2,repo,app,640,360,ui_screens,opus_motions=opus_motions)
         sheet.paste(shot,((i%2)*640,(i//2)*360))
     sheet.save(output/"qa_8_cortes.jpg",quality=88)
     report={"engine":"moneyprint_pilot24_ffmpeg_pillow","fps":FPS,
@@ -312,6 +315,11 @@ def render(project,output,model,width=1920,height=1080):
         "demo_ui":demo,"on_screen_source_labels":False,
         "real_navigation_used":bool(ui_screens.get("selling") or ui_screens.get("stock")),
         "talkcraft_dependency":False,"paid_dependencies":[],
+        "opus_motions_enabled":bool(opus_motions),
+        "opus_motion_timeline":([] if not opus_motions else __import__(
+          "scripts.opus_motion_adapter",fromlist=["MOTION_SEGMENTS"]).MOTION_SEGMENTS),
+        "opus_source":"vendor/opus-motion (MIT); motion semantics ported to Pillow",
+        "remotion_runtime":False,
         "autopublish":False,"human_approval_required":True}
     (output/"pilot24_diagnostico.json").write_text(
         json.dumps(report,ensure_ascii=False,indent=2)+"\n",encoding="utf-8")
@@ -322,9 +330,11 @@ def main():
     parser.add_argument("--project",type=Path,required=True)
     parser.add_argument("--voice-model",type=Path,required=True)
     parser.add_argument("--out",type=Path,required=True)
+    parser.add_argument("--opus-motions",action="store_true",
+       help="Usar portas de motion MIT no core gratuito, sem Remotion")
     args=parser.parse_args()
     project=json.loads(args.project.read_text(encoding="utf-8"))
-    result=render(project,args.out,args.voice_model)
+    result=render(project,args.out,args.voice_model,opus_motions=args.opus_motions)
     print("PILOTO 24s GERADO:",result)
 
 if __name__=="__main__":main()
