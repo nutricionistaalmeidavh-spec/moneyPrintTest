@@ -28,6 +28,7 @@ function studioDraw(){
   var scenes=studio.scenes,scene=scenes[studioIndex]||scenes[0];if(!scene)return;
   by("studioName").textContent=studio.topic;
   by("studioProjectTheme").value=studio.visual_style||"classic";
+  by("studioRenderEngine").value=studio.render_engine||"ffmpeg";
   by("studioSummary").textContent="Revisão "+studio.revision+" · "+studio.aspect+" · "+(studio.total_frames/30).toFixed(1)+"s · "+scenes.length+" cenas";
   var stage=by("studioStage");stage.style.aspectRatio=studio.aspect.replace(":"," / ");
   by("studioStageTitle").textContent=scene.title;
@@ -58,6 +59,7 @@ by("studioTimeline").addEventListener("click",function(e){var button=e.target.cl
 by("studioPrevious").addEventListener("click",function(){studioSelect(studioIndex-1)});
 by("studioNext").addEventListener("click",function(){studioSelect(studioIndex+1)});
 by("studioProjectTheme").addEventListener("change",function(){if(!studio)return;studioStop();studioSnapshot();studio.visual_style=this.value;studioInfo("Estilo alterado localmente. Salve antes de renderizar.");studioDraw()});
+by("studioRenderEngine").addEventListener("change",function(){if(!studio)return;studioStop();studioSnapshot();studio.render_engine=this.value;studioInfo("Motor alterado. Verifique a licença do Remotion e salve a revisão.");studioDraw()});
 by("studioSceneTitle").addEventListener("change",function(){studioChange("title",this.value.trim())});
 by("studioSceneText").addEventListener("change",function(){studioChange("text",this.value.trim())});
 by("studioSceneSeconds").addEventListener("change",function(){var n=Math.round(Number(this.value)*30);if(!Number.isInteger(n)||n<1){notice("Informe duração maior que zero");return}studioChange("duration_frames",n)});
@@ -81,7 +83,7 @@ by("studioPlay").addEventListener("click",function(){
 });
 by("studioCreateForm").addEventListener("submit",async function(e){
  e.preventDefault();var btn=by("studioCreateButton");btn.disabled=true;
- try{var body={topic:by("studioTopic").value.trim(),script:by("studioScript").value.trim(),duration_seconds:Number(by("studioDuration").value),aspect:by("studioAspect").value,visual_style:by("studioVisualStyle").value};
+ try{var body={topic:by("studioTopic").value.trim(),script:by("studioScript").value.trim(),duration_seconds:Number(by("studioDuration").value),aspect:by("studioAspect").value,visual_style:by("studioVisualStyle").value,render_engine:by("studioRenderEngineCreate").value};
  var created=await request("/api/studio/projects","POST",body);
  studioLoad(created.project);await studioList();by("studioProjectSelect").value=created.project.id;
  notice("Storyboard criado. Edite as cenas na timeline.");
@@ -107,7 +109,7 @@ by("studioAddAsset").addEventListener("click",function(){
 by("studioSave").addEventListener("click",async function(){
  if(!studio)return;var btn=this;btn.disabled=true;
  try{var result=await request("/api/studio/projects/"+encodeURIComponent(studio.id)+"/save","POST",
-   {revision:studio.revision,scenes:studio.scenes,assets:studio.assets,visual_style:studio.visual_style||"classic"});
+   {revision:studio.revision,scenes:studio.scenes,assets:studio.assets,visual_style:studio.visual_style||"classic",render_engine:studio.render_engine||"ffmpeg"});
  studioLoad(result.project);await studioList();by("studioProjectSelect").value=result.project.id;
  notice("Revisão "+result.project.revision+" salva no banco.");
  }catch(err){studioInfo("Não salvo: "+err.message);notice(err.message)}finally{btn.disabled=false}
