@@ -23,7 +23,15 @@ jobs:
           python-version: "3.12"
       - name: Instalar motor local CPU sem APIs pagas
         run: |
-          command -v ffmpeg
+          python -m pip install 'imageio-ffmpeg==0.6.0'
+          mkdir -p "$HOME/.local/bin"
+          python - <<'PY'
+          import imageio_ffmpeg
+          from pathlib import Path
+          Path.home().joinpath(".local/bin/ffmpeg").symlink_to(imageio_ffmpeg.get_ffmpeg_exe())
+          PY
+          echo "$HOME/.local/bin" >> "$GITHUB_PATH"
+          export PATH="$HOME/.local/bin:$PATH"
           ffmpeg -version | head -n 1
           python -m pip install --upgrade pip
           python -m pip install --index-url https://download.pytorch.org/whl/cpu 'torch==2.6.0' 'torchaudio==2.6.0'
