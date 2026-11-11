@@ -4,6 +4,7 @@ on:
     branches: [main]
     paths:
       - "video-requests/fluxopen-pentest-20261110.json"
+      - ".github/workflows/fluxopen-opus-video.yml"
   workflow_dispatch:
     inputs:
       storyboard:
@@ -22,7 +23,7 @@ concurrency:
 jobs:
   render-fluxopen:
     name: Produzir MP4 com Opus Motion Library e Piper
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     timeout-minutes: 120
     env:
       STORYBOARD: video-requests/fluxopen-pentest-20261110.json
