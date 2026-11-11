@@ -65,7 +65,7 @@ class OpusOriginalFullTests(unittest.TestCase):
             self.assertIn("defineMotion",source.read_text(encoding="utf-8"),str(source))
         self.assertTrue((ROOT/"vendor/opus-motion/LICENSE").is_file())
 
-    def test_official_twenty_screenshot_fallback_when_github_capture_fails(self):
+    def test_vendored_twenty_screenshot_preferred_when_github_capture_fails(self):
         import tempfile
         from unittest.mock import patch
         from PIL import Image
@@ -92,7 +92,7 @@ class OpusOriginalFullTests(unittest.TestCase):
                            side_effect=official_doc):
                     result=_capture_repos(Path(temp))
             self.assertIn("twenty",result)
-            self.assertEqual(result["twenty"]["type"],"official_documentation_real_image")
+            self.assertEqual(result["twenty"]["type"],"github_official_readme_asset_local")
             self.assertTrue((Path(temp)/"public/software/twenty/verified.png").is_file())
 
     def test_twenty_rejects_small_external_image_and_uses_vendored_real_readme(self):
