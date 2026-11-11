@@ -96,27 +96,23 @@ class OpusOriginalFullTests(unittest.TestCase):
             self.assertTrue((Path(temp)/"public/software/twenty/verified.png").is_file())
 
     def test_direct_twenty_asset_is_genuine_image_only(self):
-        import io
         import tempfile
         from PIL import Image
-        from unittest.mock import patch
         from scripts.prepare_five_systems_opus import (
             _capture_twenty_readme_asset, TWENTY_OFFICIAL_README_IMAGE,
         )
         self.assertTrue(TWENTY_OFFICIAL_README_IMAGE.startswith(
             "https://raw.githubusercontent.com/twentyhq/twenty/"))
-        buffer=io.BytesIO()
-        Image.effect_noise((760,460),45).convert("RGB").save(buffer,format="WEBP")
-        source=io.BytesIO(buffer.getvalue())
-        source.headers={"Content-Type":"image/webp"}
+        source=ROOT/"assets/original_sources/twenty_crm_readme.webp.b64"
+        self.assertTrue(source.is_file())
         with tempfile.TemporaryDirectory() as temp:
             out=Path(temp)/"verified.png"
-            with patch("urllib.request.urlopen",return_value=source):
-                metadata=_capture_twenty_readme_asset(out)
-            self.assertTrue(out.is_file())
-            self.assertEqual(metadata["type"],"github_official_readme_asset")
-            self.assertEqual(metadata["width"],760)
-            self.assertEqual(metadata["height"],460)
+            meta=_capture_twenty_readme_asset(out)
+            self.assertEqual(meta["type"],"github_official_readme_asset_local")
+            with Image.open(out) as authentic:
+                self.assertEqual(authentic.size,(1600,1000))
+            self.assertEqual(len(meta["source_sha256"]),64)
+            self.assertEqual(meta["source_file"],"assets/original_sources/twenty_crm_readme.webp.b64")
 
     def test_screen_labels_do_not_expose_capture_metadata(self):
         for scene in self.board["scenes"]:
