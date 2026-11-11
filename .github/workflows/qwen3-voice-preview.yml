@@ -10,7 +10,7 @@ permissions:
 jobs:
   preview:
     runs-on: ubuntu-24.04
-    timeout-minutes: 55
+    timeout-minutes: 90
     env:
       OMP_NUM_THREADS: "4"
       MKL_NUM_THREADS: "4"
@@ -23,7 +23,8 @@ jobs:
           python-version: "3.12"
       - name: Instalar motor local CPU sem APIs pagas
         run: |
-          sudo apt-get update -qq && sudo apt-get install -y ffmpeg
+          command -v ffmpeg
+          ffmpeg -version | head -n 1
           python -m pip install --upgrade pip
           python -m pip install --index-url https://download.pytorch.org/whl/cpu 'torch==2.6.0' 'torchaudio==2.6.0'
           python -m pip install 'qwen-tts==0.1.1'
@@ -49,7 +50,7 @@ jobs:
               ("01_jovem_dinamico","Create a natural male Brazilian Portuguese voice, age 24 to 29, authentic São Paulo / southeast Brazil pronunciation. Energetic, charismatic technology explainer, slightly quick conversational rhythm, articulate, expressive with subtle excitement. No European Portuguese accent, no American accent, no artificial broadcaster intonation, no singing."),
               ("02_narrador_descontraido","Create a Brazilian Portuguese-speaking male voice, age 28 to 35, authentic Brazilian accent with neutral Southeast Brazilian pronunciation. Natural popular short-form video storyteller, warm and confident mid-range voice, friendly and animated with excellent storytelling rhythm. Human pauses and emphasis, never robotic, no European Portuguese accent, no imitation of a real person.")
           ]
-          model=Qwen3TTSModel.from_pretrained("Qwen/Qwen3-TTS-12Hz-1.7B-VoiceDesign",device_map="cpu",dtype=torch.float32,attn_implementation="sdpa")
+          model=Qwen3TTSModel.from_pretrained("Qwen/Qwen3-TTS-12Hz-1.7B-VoiceDesign",device_map="cpu",dtype=torch.bfloat16,attn_implementation="sdpa")
           report=[]
           for name,instruct in styles:
               wavs,sr=model.generate_voice_design(text=text,language="Portuguese",instruct=instruct)
