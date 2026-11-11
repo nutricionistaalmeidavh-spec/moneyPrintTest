@@ -267,13 +267,17 @@ def render(project,output,model,width=1920,height=1080):
     repo_file,app_file=capture_proofs(capture_root)
     repo=Image.open(repo_file).convert("RGB")
     app=Image.open(app_file).convert("RGB")
-    from scripts.pilot24_live_ui import capture_demo_views
+    from scripts.pilot24_live_ui import capture_demo_views, crop_demo_chrome
     demo=capture_demo_views(output/"demo_ui")
     ui_screens={}
     for key,item in demo.get("screens",{}).items():
         path=Path(item["path"])
         if path.is_file():
-            ui_screens[key]=Image.open(path).convert("RGB")
+            # Keep the original captured PNG unchanged in the artifact.
+            # Only frame/crop the promotional top strip for the video.
+            with Image.open(path) as original:
+                ui_screens[key]=crop_demo_chrome(original.convert("RGB"))
+            item["editorial_crop"]="top 9.5% banner; unaltered capture retained"
     audio=output/"narracao_piper.wav"
     subprocess.run(["ffmpeg","-v","error","-y","-i",str(clips[0]),"-i",str(clips[1]),
         "-filter_complex","[0:a][1:a]concat=n=2:v=0:a=1[a]",
