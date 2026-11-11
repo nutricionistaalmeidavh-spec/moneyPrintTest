@@ -29,3 +29,9 @@ description: Criação de storyboards animados, ganchos e B-roll verificado para
 ```
 
 Esse objeto é para `visual_mode: github_cinematic`. O arquivo local deve existir antes do envio ao GitHub.
+
+## Diversidade visual e entrada de personagens — regra editorial
+
+9. **Não repetir IDs de motion entre cenas** por padrão. Para uma única produção, selecionar um motion original diferente por take; recorrer a repetições somente quando forem indispensáveis à continuidade narrativa e justificar cada exceção no storyboard. Nunca repetir por conveniência ou para preencher tempo. Consultar catálogo e exemplos reais em vez de reconstruir um motion com formas próprias.
+10. Quando houver personagem animado que serve de explicador (chat-bubbles, box-bot, etc.), introduzi-lo **no início do bloco explicativo**, com fala ou pergunta desde os primeiros frames. Não guardar o personagem apenas para o último take ou para os segundos finais.
+11. Verificar no QA a lista de IDs, a posição temporal do personagem, os frames iniciais e a relação entre narração e animação. A prévia deve ser inspecionada visualmente antes de aprovar o vídeo.
