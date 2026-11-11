@@ -148,6 +148,16 @@ def _chain(t):
             r=80+65*smooth((u-4.25)/.7)
             d.ellipse((x+161-r,cy+185-r,x+161+r,cy+185+r),
                       outline=CORAL,width=6)
+    # An animated orbit remains active between successive card reveals;
+    # it conveys the travelling cause rather than adding a QA progress bar.
+    active=min(3,max(0,int((u-.08)/1.10)))
+    if u>.15:
+        xx,yy=points[active]
+        cy=yy+round((1-smooth((u-(.08+active*1.10))/.43))*88)
+        rr=43+8*sin(2*pi*u*1.9)
+        d.arc((xx+58-rr,cy+68-rr,xx+58+rr,cy+68+rr),
+              start=int((u*130)%360),end=int((u*130+270)%360),
+              fill=colors[active],width=6)
     if u>4.8:
         p=smooth((u-4.80)/.60)
         text(d,674,893,"O retrabalho custa caro.",55,rgba_mix(NAVY,IVORY,p))
