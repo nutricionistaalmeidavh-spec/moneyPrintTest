@@ -67,9 +67,9 @@ jobs:
             timeout 90s sudo apt-get update -qq
             timeout 180s sudo env DEBIAN_FRONTEND=noninteractive apt-get install -y ffmpeg
           fi
-          ffmpeg -hide_banner -version | head -n 1
-          ffprobe -hide_banner -version | head -n 1
-          fc-match Lato | head -n 1 || true
+          ffmpeg -hide_banner -version | sed -n '1p'
+          ffprobe -hide_banner -version | sed -n '1p'
+          fc-match Lato | sed -n '1p' || true
       - name: Instalar dependências Python com limite
         timeout-minutes: 7
         env:
