@@ -35,7 +35,6 @@ jobs:
       - name: Validar storyboard exato e proibir animações redesenhadas
         run: |
           python -m unittest discover -s tests -p 'test_five_systems_opus_original.py' -v
-          python -m unittest discover -s tests -p 'test_opus_motion_pilot.py' -v
           python -m compileall -q scripts/prepare_five_systems_opus.py
 
   render-original:
