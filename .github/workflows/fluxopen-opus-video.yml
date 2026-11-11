@@ -64,7 +64,7 @@ jobs:
           with open(os.environ["GITHUB_ENV"], "a", encoding="utf-8") as f:
               f.write("PIPER_MODEL=" + str(model) + "\n")
           PY
-          python scripts/render_pentest_opus.py "$STORYBOARD" "$RUNNER_TEMP/opus-motion-library" "$PIPER_MODEL"
+          python scripts/render_pentest_opus.py "$STORYBOARD" "$RUNNER_TEMP/opus-motion-library" "$RUNNER_TEMP/moneyprint-piper/pt_BR-faber-medium.onnx"
       - name: Renderizar 25 cenas com código Opus original e áudio Piper
         run: |
           mkdir -p outputs/fluxopen
