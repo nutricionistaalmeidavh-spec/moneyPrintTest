@@ -37,7 +37,7 @@ permissions:
   contents: read
 jobs:
   video-talkcraft:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     timeout-minutes: 120
     env:
       TALKCRAFT_SHA: "501708856fbfdf596e27dba3200e12cf95da57be"
