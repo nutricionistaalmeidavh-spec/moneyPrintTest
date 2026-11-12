@@ -1,0 +1,46 @@
+name: MoneyPrint V4 - Colab QA
+
+on:
+  push:
+    branches:
+      - feat/moneyprint-v4-colab-lab
+    paths:
+      - 'scripts/colab_v4.py'
+      - 'tests/test_colab_v4.py'
+      - 'notebooks/MoneyPrint_V4_Colab.ipynb'
+      - '.github/workflows/colab-v4-qa.yml'
+  pull_request:
+    paths:
+      - 'scripts/colab_v4.py'
+      - 'tests/test_colab_v4.py'
+      - 'notebooks/MoneyPrint_V4_Colab.ipynb'
+      - '.github/workflows/colab-v4-qa.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  unit-and-notebook:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - name: Teste deterministico do V4
+        run: python -m unittest discover -s tests -p 'test_colab_v4.py' -v
+      - name: Validar JSON e contrato de celulas do Colab
+        run: |
+          python - <<'PY'
+          import json
+          from pathlib import Path
+          p = Path('notebooks/MoneyPrint_V4_Colab.ipynb')
+          nb = json.loads(p.read_text(encoding='utf-8'))
+          assert nb['nbformat'] == 4
+          assert len(nb['cells']) >= 15
+          assert all(c['cell_type'] in ('code', 'markdown') for c in nb['cells'])
+          assert all('source' in c for c in nb['cells'])
+          print(f'Notebook válido: {len(nb["cells"])} células')
+          PY
