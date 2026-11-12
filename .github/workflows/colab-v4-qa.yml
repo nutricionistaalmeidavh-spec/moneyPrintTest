@@ -44,3 +44,37 @@ jobs:
           assert all('source' in c for c in nb['cells'])
           print(f'Notebook válido: {len(nb["cells"])} células')
           PY
+      - name: Smoke CPU end-to-end de duas cenas com cache
+        run: |
+          python -m pip install -q 'pillow>=10,<12'
+          python - <<'PY'
+          from pathlib import Path
+          import tempfile
+          import subprocess
+          from scripts.colab_v4 import (create_board, sync_frames, render_incremental,
+                                        media_info)
+          with tempfile.TemporaryDirectory() as td:
+              root = Path('.').resolve()
+              work = Path(td)
+              board = create_board('Teste integrado', 'Primeira cena. Segunda cena!',
+                                   visual_style='classic', aspect='16:9')
+              board = sync_frames(board, [0.8, 0.9])
+              duration = board['total_frames'] / board['fps']
+              voice = work / 'voz.wav'
+              subprocess.run(['ffmpeg', '-v', 'error', '-y', '-f', 'lavfi',
+                              '-i', f'sine=frequency=440:duration={duration}',
+                              '-ar', '24000', '-ac', '1', str(voice)], check=True)
+              first = render_incremental(board, voice, root, work / 'output',
+                                         cache_dir=work / 'cache',
+                                         width=320, height=180)
+              assert len(first['scenes_rendered']) == 2, first
+              second = render_incremental(board, voice, root, work / 'output',
+                                          cache_dir=work / 'cache',
+                                          width=320, height=180)
+              assert len(second['scenes_reused']) == 2, second
+              probe = media_info(second['output'])
+              assert probe['audio'] and probe['video'], probe
+              assert probe['frames'] == board['total_frames'], probe
+              assert (probe['width'], probe['height']) == (320, 180), probe
+              print('E2E CPU aprovado:', probe)
+          PY
