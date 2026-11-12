@@ -255,6 +255,30 @@ def render_incremental(board, narration, root, output_dir, cache_dir=None,
     call(["ffmpeg", "-hide_banner", "-loglevel", "error", "-nostdin", "-y",
           "-f", "concat", "-safe", "0", "-i", playlist, "-map", "0:v:0",
           "-c:v", "copy", "-an", picture])
+    # MP4 concat demuxer may drop boundary frames due to varying edit lists.
+    # Retain all cached scene content: only re-encode the *join*, never
+    # re-render unchanged animations. Test the actual decoded frame count.
+    joined = media_info(picture)
+    if joined["frames"] != board["total_frames"]:
+        normalized = output_dir / "visual_cfr_exato.mp4"
+        graph = []
+        args = ["ffmpeg", "-hide_banner", "-loglevel", "error", "-nostdin", "-y"]
+        for idx, (clip, scene) in enumerate(zip(clips, board["scenes"])):
+            args.extend(["-i", clip])
+            graph.append(
+                f"[{idx}:v:0]trim=start_frame=0:end_frame={scene['duration_frames']},"
+                f"setpts=PTS-STARTPTS[v{idx}]")
+        graph.append("".join(f"[v{idx}]" for idx in range(len(clips))) +
+                     f"concat=n={len(clips)}:v=1:a=0[v]")
+        args.extend(["-filter_complex", ";".join(graph), "-map", "[v]",
+                     "-frames:v", str(board["total_frames"]),
+                     "-r", str(board["fps"]), "-an", "-c:v", "libx264",
+                     "-preset", "veryfast", "-crf", "20", "-threads", "3",
+                     "-pix_fmt", "yuv420p", "-movflags", "+faststart", normalized])
+        call(args)
+        picture = normalized
+    if media_info(picture)["frames"] != board["total_frames"]:
+        raise RuntimeError("Scene join lost frames; refusing to publish")
     final = output_dir / "MoneyPrint_V4_Final.mp4"
     call(["ffmpeg", "-hide_banner", "-loglevel", "error", "-nostdin", "-y",
           "-i", picture, "-i", narration, "-map", "0:v:0", "-map", "1:a:0",
