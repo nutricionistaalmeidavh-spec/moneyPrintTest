@@ -46,6 +46,8 @@ jobs:
           PY
       - name: Smoke CPU end-to-end de duas cenas com cache
         run: |
+          sudo apt-get update -qq >/dev/null
+          sudo apt-get install -y -qq ffmpeg fonts-dejavu-core >/dev/null
           python -m pip install -q 'pillow>=10,<12'
           python - <<'PY'
           from pathlib import Path
