@@ -60,7 +60,7 @@ def sha_file(path):
     return digest.hexdigest()
 
 
-def visual_cache_key(scene, board, root):
+def visual_cache_key(scene, board, root, width=None, height=None):
     """Key changes when scene data, a verified asset, or renderer changes."""
     asset = next((a for a in board.get("assets", [])
                   if a["id"] == scene.get("asset_id")), None)
@@ -73,12 +73,18 @@ def visual_cache_key(scene, board, root):
         asset_sig = sha_file(candidate)
     renderer = Path(root) / "scripts" / "studio_render.py"
     engine_sig = sha_file(renderer)
+    if board.get("visual_style") == "light_motion":
+        light = Path(root) / "scripts" / "studio_light_motion.py"
+        if light.exists():
+            engine_sig += ":" + sha_file(light)
+    default_width, default_height = ALLOWED_ASPECTS[board["aspect"]]
+    width, height = width or default_width, height or default_height
     # Absolute position is not visual content: do not invalidate following scenes.
     visual_scene = {key: value for key, value in scene.items() if key != "start_frame"}
     payload = {"scene": visual_scene, "aspect": board["aspect"], "fps": board["fps"],
                "style": board["visual_style"], "assets": asset,
                "file_sha256": asset_sig, "renderer_sha256": engine_sig,
-               "colab_pipeline_version": 4}
+               "width": width, "height": height, "colab_pipeline_version": 4}
     return hashlib.sha256(json.dumps(payload, sort_keys=True,
                                      ensure_ascii=False).encode()).hexdigest()
 
@@ -231,7 +237,7 @@ def render_incremental(board, narration, root, output_dir, cache_dir=None,
     height = height or dims[1]
     clips, reused, rendered = [], [], []
     for scene in board["scenes"]:
-        key = visual_cache_key(scene, board, root)
+        key = visual_cache_key(scene, board, root, width=width, height=height)
         cached = cache_dir / (key + ".mp4")
         if not cached.is_file() or media_info(cached)["frames"] != scene["duration_frames"]:
             one = copy.deepcopy(board)
