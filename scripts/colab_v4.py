@@ -73,7 +73,9 @@ def visual_cache_key(scene, board, root):
         asset_sig = sha_file(candidate)
     renderer = Path(root) / "scripts" / "studio_render.py"
     engine_sig = sha_file(renderer)
-    payload = {"scene": scene, "aspect": board["aspect"], "fps": board["fps"],
+    # Absolute position is not visual content: do not invalidate following scenes.
+    visual_scene = {key: value for key, value in scene.items() if key != "start_frame"}
+    payload = {"scene": visual_scene, "aspect": board["aspect"], "fps": board["fps"],
                "style": board["visual_style"], "assets": asset,
                "file_sha256": asset_sig, "renderer_sha256": engine_sig,
                "colab_pipeline_version": 4}
