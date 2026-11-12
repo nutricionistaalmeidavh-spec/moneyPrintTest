@@ -283,7 +283,8 @@ def render_incremental(board, narration, root, output_dir, cache_dir=None,
     call(["ffmpeg", "-hide_banner", "-loglevel", "error", "-nostdin", "-y",
           "-i", picture, "-i", narration, "-map", "0:v:0", "-map", "1:a:0",
           "-c:v", "copy", "-c:a", "aac", "-b:a", "192k", "-ar", "48000",
-          "-ac", "2", "-movflags", "+faststart", "-shortest", final])
+          "-ac", "2", "-movflags", "+faststart",
+          "-t", f"{board['total_frames'] / board['fps']:.6f}", final])
     info = media_info(final)
     expected = board["total_frames"] / board["fps"]
     if not info["audio"] or not info["video"] or info["frames"] != board["total_frames"]:
