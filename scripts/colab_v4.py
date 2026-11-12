@@ -263,7 +263,7 @@ def render_incremental(board, narration, root, output_dir, cache_dir=None,
     info = media_info(final)
     expected = board["total_frames"] / board["fps"]
     if not info["audio"] or not info["video"] or info["frames"] != board["total_frames"]:
-        raise RuntimeError("Rendered movie failed the frame/audio QA")
+        raise RuntimeError(f"Rendered movie failed the frame/audio QA: actual={info}, expected_frames={board['total_frames']}")
     if abs(info["duration"] - expected) > .25:
         raise RuntimeError("Narration/video sync exceeded 250ms")
     summary = {"output": str(final), "scenes_rendered": rendered,
