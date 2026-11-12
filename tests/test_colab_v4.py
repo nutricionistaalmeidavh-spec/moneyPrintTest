@@ -57,6 +57,17 @@ class ColabV4UnitTests(unittest.TestCase):
             renderer.write_text("renderer version two")
             self.assertNotEqual(initial, visual_cache_key(board["scenes"][0], board, root))
 
+    def test_cache_changes_when_resolution_changes(self):
+        board = create_board("Vídeo", "Cena única.")
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            (root / "scripts").mkdir()
+            (root / "scripts" / "studio_render.py").write_text("renderer")
+            scene = board["scenes"][0]
+            preview = visual_cache_key(scene, board, root, width=320, height=180)
+            fullhd = visual_cache_key(scene, board, root, width=1920, height=1080)
+            self.assertNotEqual(preview, fullhd)
+
     def test_generic_shorts_validates_requested_count(self):
         with self.assertRaises(ValueError):
             export_generic_shorts("/missing.mp4", "/tmp/unused", [], count=0)
