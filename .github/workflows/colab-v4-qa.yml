@@ -1,0 +1,146 @@
+name: MoneyPrint V4 - Colab QA
+
+on:
+  push:
+    branches:
+      - feat/moneyprint-v4-colab-lab
+    paths:
+      - 'scripts/colab_v4.py'
+      - 'scripts/paradee_voice.py'
+      - 'tests/test_colab_v4.py'
+      - 'tests/test_espeak_result_compat.py'
+      - 'notebooks/MoneyPrint_V4_Colab.ipynb'
+      - '.github/workflows/colab-v4-qa.yml'
+  pull_request:
+    paths:
+      - 'scripts/colab_v4.py'
+      - 'scripts/paradee_voice.py'
+      - 'tests/test_colab_v4.py'
+      - 'tests/test_espeak_result_compat.py'
+      - 'notebooks/MoneyPrint_V4_Colab.ipynb'
+      - '.github/workflows/colab-v4-qa.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  unit-and-notebook:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - name: Teste deterministico do V4
+        run: |
+          python -m unittest discover -s tests -p 'test_colab_v4.py' -v
+          python -m unittest discover -s tests -p 'test_espeak_result_compat.py' -v
+      - name: Validar JSON e contrato de celulas do Colab
+        run: |
+          python - <<'PY'
+          import json
+          from pathlib import Path
+          p = Path('notebooks/MoneyPrint_V4_Colab.ipynb')
+          nb = json.loads(p.read_text(encoding='utf-8'))
+          assert nb['nbformat'] == 4
+          assert len(nb['cells']) >= 15
+          assert all(c['cell_type'] in ('code', 'markdown') for c in nb['cells'])
+          assert all('source' in c for c in nb['cells'])
+          import ast
+          for i, cell in enumerate(nb['cells']):
+              if cell['cell_type'] == 'code':
+                  ast.parse(''.join(cell['source']), filename=f'cell_{i}')
+          print(f'Notebook válido e Python parseável: {len(nb["cells"])} células')
+          PY
+      - name: Smoke CPU end-to-end de duas cenas com cache
+        run: |
+          sudo apt-get update -qq >/dev/null
+          sudo apt-get install -y -qq ffmpeg fonts-dejavu-core >/dev/null
+          python -m pip install -q 'pillow>=10,<12'
+          python - <<'PY'
+          from pathlib import Path
+          import tempfile
+          import subprocess
+          from scripts.colab_v4 import (create_board, sync_frames, render_incremental,
+                                        media_info)
+          with tempfile.TemporaryDirectory() as td:
+              root = Path('.').resolve()
+              work = Path(td)
+              board = create_board('Teste integrado', 'Primeira cena. Segunda cena!',
+                                   visual_style='classic', aspect='16:9')
+              board = sync_frames(board, [0.8, 0.9])
+              duration = board['total_frames'] / board['fps']
+              voice = work / 'voz.wav'
+              subprocess.run(['ffmpeg', '-v', 'error', '-y', '-f', 'lavfi',
+                              '-i', f'sine=frequency=440:duration={duration}',
+                              '-ar', '24000', '-ac', '1', str(voice)], check=True)
+              first = render_incremental(board, voice, root, work / 'output',
+                                         cache_dir=work / 'cache',
+                                         width=320, height=180)
+              assert len(first['scenes_rendered']) == 2, first
+              second = render_incremental(board, voice, root, work / 'output',
+                                          cache_dir=work / 'cache',
+                                          width=320, height=180)
+              assert len(second['scenes_reused']) == 2, second
+              probe = media_info(second['output'])
+              assert probe['audio'] and probe['video'], probe
+              assert probe['frames'] == board['total_frames'], probe
+              assert (probe['width'], probe['height']) == (320, 180), probe
+              print('E2E CPU aprovado:', probe)
+          PY
+
+  paradee-real-smoke:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 18
+    env:
+      HF_HUB_DOWNLOAD_TIMEOUT: '120'
+      HF_HUB_DISABLE_XET: '1'
+      OMP_NUM_THREADS: '2'
+      OPENBLAS_NUM_THREADS: '2'
+      PYTHONUNBUFFERED: '1'
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Dependências PT-BR e FFmpeg
+        run: |
+          sudo apt-get update -qq >/dev/null
+          sudo apt-get install -y -qq ffmpeg espeak-ng libespeak-ng1 fonts-lato fonts-dejavu-core >/dev/null
+          python -m pip install --prefer-binary \
+            'numpy>=1.26,<3' 'onnxruntime>=1.19,<2' 'soundfile>=0.12,<1' \
+            'scipy>=1.11' 'misaki[pt]' 'espeakng-loader' 'phonemizer>=3.3,<4' \
+            'huggingface-hub>=0.25,<2' 'pillow>=10,<12'
+      - name: Voz ONNX real + motion + MP4 final
+        run: |
+          python - <<'PY'
+          from pathlib import Path
+          from scripts.colab_v4 import create_board, create_narration, render_incremental, media_info, audiovisual_qa
+          work = Path('/tmp/moneyprint-v4-real')
+          board = create_board('Voz real',
+              'Você sabia que é possível criar vídeos usando ferramentas de código aberto? '
+              'O MoneyPrint organiza o roteiro e produz cenas para revisão.',
+              visual_style='light_motion', aspect='16:9')
+          board, wav, report = create_narration(board, work, engine='paradee')
+          assert wav.is_file() and len(report) == 2, report
+          video = render_incremental(board, wav, Path('.'), work/'out',
+                                     cache_dir=work/'cache', width=960, height=540)
+          info = media_info(video['output'])
+          qa = audiovisual_qa(video['output'], board, work/'out', expected_size=(960,540))
+          assert info['frames'] == board['total_frames'], (info, board['total_frames'])
+          assert qa['pass'], qa
+          print('V4 REAL NOTEBOOK PREVIEW PASS', info, report, qa)
+          PY
+      - name: Guardar evidências de voz e vídeo para revisão
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: moneyprint-v4-real-paradee-smoke
+          path: |
+            /tmp/moneyprint-v4-real/narracao_ptbr.wav
+            /tmp/moneyprint-v4-real/out/MoneyPrint_V4_Final.mp4
+            /tmp/moneyprint-v4-real/voz_diagnostico.json
+          retention-days: 5
+          if-no-files-found: warn
