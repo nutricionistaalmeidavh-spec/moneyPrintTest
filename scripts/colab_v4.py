@@ -111,12 +111,23 @@ def sync_frames(board, durations):
     return updated
 
 
-def _speech_engine(engine, reference_audio=None, reference_text=None):
+def _speech_engine(engine, reference_audio=None, reference_text=None, voice_instruction=None):
     """Explicit, non-silent choice of offline text-to-speech backend."""
     if engine == "paradee":
         from scripts.paradee_voice import _build_engine
         sess, g2p, vocab = _build_engine("alex")
         return ("paradee", (sess, g2p, vocab))
+    if engine == "qwen3_design":
+        if not isinstance(voice_instruction, str) or not voice_instruction.strip():
+            raise ValueError("VoiceDesign requires a nonempty voice description")
+        import torch
+        if not torch.cuda.is_available():
+            raise RuntimeError("Qwen3 VoiceDesign requires a CUDA GPU; Paradee works on CPU")
+        from qwen_tts import Qwen3TTSModel
+        model = Qwen3TTSModel.from_pretrained(
+            "Qwen/Qwen3-TTS-12Hz-1.7B-VoiceDesign", device_map="cuda:0",
+            dtype=torch.float16, attn_implementation="sdpa")
+        return ("qwen3_design", (model, voice_instruction.strip()))
     if engine == "qwen3":
         if not reference_audio or not Path(reference_audio).is_file() or not reference_text:
             raise ValueError("Qwen3 needs an authorized reference WAV and exact transcript")
@@ -135,7 +146,8 @@ def _speech_engine(engine, reference_audio=None, reference_text=None):
 
 
 def create_narration(board, workdir, engine="paradee", speed=1.06,
-                     reference_audio=None, reference_text=None):
+                     reference_audio=None, reference_text=None,
+                     voice_instruction=None):
     """Generate, silence-compact, frame-align and cache each speech scene."""
     import numpy as np
     import soundfile as sf
@@ -147,14 +159,18 @@ def create_narration(board, workdir, engine="paradee", speed=1.06,
     workdir = Path(workdir)
     speech_dir = workdir / "speech"
     speech_dir.mkdir(parents=True, exist_ok=True)
-    kind, impl = _speech_engine(engine, reference_audio, reference_text)
+    kind, impl = _speech_engine(engine, reference_audio, reference_text,
+                                voice_instruction=voice_instruction)
     target_rate = 24000
     all_audio, scene_reports, exact_durations = [], [], []
     ref_sig = sha_file(reference_audio) if engine == "qwen3" else ""
+    model_key = {"paradee": MODEL_REVISION, "qwen3": "qwen3-tts-0.6b-base",
+                 "qwen3_design": "qwen3-tts-1.7b-voicedesign"}[engine]
     for number, scene in enumerate(board["scenes"], 1):
         statement = scene["text"].strip()
-        signature = (engine + "|" + MODEL_REVISION + "|" + str(speed) + "|" +
-                     ref_sig + "|" + (reference_text or "") + "|" + statement)
+        signature = (engine + "|" + model_key + "|" + str(speed) + "|" +
+                     ref_sig + "|" + (reference_text or "") + "|" +
+                     (voice_instruction or "") + "|" + statement)
         key = hashlib.sha256(signature.encode()).hexdigest()
         cached = speech_dir / (key + ".wav")
         if cached.is_file():
@@ -177,8 +193,13 @@ def create_narration(board, workdir, engine="paradee", speed=1.06,
                 model, prompt = impl
                 chunks = []
                 for section in split_text(statement, max_chars=175):
-                    result, sample_rate = model.generate_voice_clone(
-                        text=section, language="Portuguese", voice_clone_prompt=prompt)
+                    if kind == "qwen3_design":
+                        result, sample_rate = model.generate_voice_design(
+                            text=section, language="Portuguese", instruct=prompt,
+                            max_new_tokens=2048)
+                    else:
+                        result, sample_rate = model.generate_voice_clone(
+                            text=section, language="Portuguese", voice_clone_prompt=prompt)
                     arr = np.asarray(result[0], dtype=np.float32).reshape(-1)
                     if sample_rate != target_rate:
                         gcd = math.gcd(sample_rate, target_rate)
@@ -305,7 +326,7 @@ def render_incremental(board, narration, root, output_dir, cache_dir=None,
     return summary
 
 
-def transcribe_words(movie, output_dir, model_size="small"):
+def transcribe_words(movie, output_dir, model_size="tiny"):
     """Observed timestamps, never estimated words presented as actual."""
     from faster_whisper import WhisperModel
     output_dir = Path(output_dir)
@@ -324,11 +345,11 @@ def transcribe_words(movie, output_dir, model_size="small"):
     return rows
 
 
-def audiovisual_qa(movie, board, output_dir, silence_limit=.75):
+def audiovisual_qa(movie, board, output_dir, silence_limit=.75, expected_size=None):
     """Report objective media properties and long silences; no inflated claims."""
     output_dir = Path(output_dir)
     info = media_info(movie)
-    width, height = ALLOWED_ASPECTS[board["aspect"]]
+    width, height = expected_size or ALLOWED_ASPECTS[board["aspect"]]
     expected = board["total_frames"] / board["fps"]
     cmd = ["ffmpeg", "-hide_banner", "-nostdin", "-i", str(movie),
            "-af", f"silencedetect=noise=-42dB:d={silence_limit}",
