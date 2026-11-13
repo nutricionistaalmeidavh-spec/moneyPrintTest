@@ -153,7 +153,8 @@ def create_narration(board, workdir, engine="paradee", speed=1.06,
     import soundfile as sf
     from scipy.signal import resample_poly
     from scripts.paradee_voice import (MODEL_REVISION, make_tokens,
-                                       split_text, silence_compact)
+                                       split_text, silence_compact,
+                                       phonemes_from_g2p_result)
     if not .8 <= speed <= 1.25:
         raise ValueError("Voice speed out of range")
     workdir = Path(workdir)
@@ -182,7 +183,7 @@ def create_narration(board, workdir, engine="paradee", speed=1.06,
             if kind == "paradee":
                 sess, g2p, vocab = impl
                 for section in split_text(statement, max_chars=175):
-                    phonemes, _ = g2p(section)
+                    phonemes = phonemes_from_g2p_result(g2p(section))
                     tokens = make_tokens(phonemes, vocab)
                     result = sess.run(None, {
                         "input_ids": np.array([tokens], dtype=np.int64),
