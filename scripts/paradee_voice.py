@@ -26,6 +26,18 @@ VOICE_FILES={
 AUDIO_RATE=24000
 FPS=30
 
+def phonemes_from_g2p_result(result) -> str:
+    """Normalize Misaki EspeakG2P variants returning text or (text, metadata).
+
+    Some runtime versions return a plain phoneme string; unpacking it into
+    `phonemes, _` raises ValueError when the string has >2 characters.
+    """
+    value = result[0] if isinstance(result, (tuple, list)) and result else result
+    if not isinstance(value, str) or not value.strip():
+        raise ValueError("EspeakG2P returned empty or invalid phonemes")
+    return value
+
+
 def make_tokens(phonemes:str,vocab:dict)->list[int]:
     """Original model-card tokenization; never truncate text silently."""
     token_ids=[int(vocab[c]) for c in phonemes if c in vocab]
@@ -169,7 +181,7 @@ def synthesize(board,voice,speed,output,*,cache=None):
         if not cached.exists():
             pieces=[]
             for chunk in split_text(text):
-                phonemes,_=g2p(chunk)
+                phonemes=phonemes_from_g2p_result(g2p(chunk))
                 tokens=make_tokens(phonemes,vocab)
                 waveform=engine.run(None,{"input_ids":np.asarray([tokens],dtype=np.int64),
                                           "speed":np.asarray([speed],dtype=np.float32)})[0][0]
