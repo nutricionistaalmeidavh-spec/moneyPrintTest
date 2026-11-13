@@ -80,3 +80,55 @@ jobs:
               assert (probe['width'], probe['height']) == (320, 180), probe
               print('E2E CPU aprovado:', probe)
           PY
+
+  paradee-real-smoke:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 18
+    env:
+      HF_HUB_DOWNLOAD_TIMEOUT: '120'
+      HF_HUB_DISABLE_XET: '1'
+      OMP_NUM_THREADS: '2'
+      OPENBLAS_NUM_THREADS: '2'
+      PYTHONUNBUFFERED: '1'
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - name: Dependências PT-BR e FFmpeg
+        run: |
+          sudo apt-get update -qq >/dev/null
+          sudo apt-get install -y -qq ffmpeg espeak-ng libespeak-ng1 fonts-lato fonts-dejavu-core >/dev/null
+          python -m pip install --prefer-binary \
+            'numpy>=1.26,<3' 'onnxruntime>=1.19,<2' 'soundfile>=0.12,<1' \
+            'scipy>=1.11' 'misaki[pt]' 'espeakng-loader' 'phonemizer>=3.3,<4' \
+            'huggingface-hub>=0.25,<2' 'pillow>=10,<12'
+      - name: Voz ONNX real + motion + MP4 final
+        run: |
+          python - <<'PY'
+          from pathlib import Path
+          from scripts.colab_v4 import create_board, create_narration, render_incremental, media_info
+          work = Path('/tmp/moneyprint-v4-real')
+          board = create_board('Voz real', 'O teste começa com autorização e planejamento.',
+                               visual_style='light_motion', aspect='16:9')
+          board, wav, report = create_narration(board, work, engine='paradee')
+          assert wav.is_file() and len(report) == 1, report
+          video = render_incremental(board, wav, Path('.'), work/'out',
+                                     cache_dir=work/'cache', width=640, height=360)
+          info = media_info(video['output'])
+          assert info['audio'] and info['video']
+          assert info['frames'] == board['total_frames']
+          assert (info['width'], info['height']) == (640, 360)
+          print('V4 REAL PIPELINE PASS', info, report)
+          PY
+      - name: Guardar evidências de voz e vídeo para revisão
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: moneyprint-v4-real-paradee-smoke
+          path: |
+            /tmp/moneyprint-v4-real/narracao_ptbr.wav
+            /tmp/moneyprint-v4-real/out/MoneyPrint_V4_Final.mp4
+            /tmp/moneyprint-v4-real/voz_diagnostico.json
+          retention-days: 5
+          if-no-files-found: warn
