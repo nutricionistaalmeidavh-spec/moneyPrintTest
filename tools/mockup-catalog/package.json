@@ -1,0 +1,9 @@
+{
+  "name": "moneyprint-3d-mockup",
+  "private": true,
+  "version": "0.1.0",
+  "description": "Local Three.js device mockup renderer",
+  "dependencies": {
+    "three": "0.170.0"
+  }
+}
