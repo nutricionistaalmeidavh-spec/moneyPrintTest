@@ -187,6 +187,36 @@
               "cover",
               "center"
             ]
+          },
+          "layout": {
+            "type": "string",
+            "enum": [
+              "hero",
+              "browser",
+              "flow",
+              "split",
+              "quote",
+              "minimal",
+              "device_mockup_3d"
+            ]
+          },
+          "mockup_device": {
+            "type": "string",
+            "enum": [
+              "laptop",
+              "monitor"
+            ],
+            "description": "Optional open-source Three.js device; default laptop."
+          },
+          "mockup_motion": {
+            "type": "string",
+            "enum": [
+              "enter",
+              "orbit",
+              "zoom",
+              "float"
+            ],
+            "description": "Optional camera preset; default enter."
           }
         }
       }

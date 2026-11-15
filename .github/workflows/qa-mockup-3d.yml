@@ -1,0 +1,62 @@
+name: QA — MoneyPrint Mockups 3D locais
+on:
+  pull_request:
+    paths:
+      - 'tools/mockup-catalog/**'
+      - 'scripts/mockup_3d.py'
+      - 'scripts/studio_render.py'
+      - 'panel/**'
+      - 'tests/test_mockup_3d.py'
+      - '.github/workflows/qa-mockup-3d.yml'
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  threejs-mockup:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 25
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Testes de contrato
+        run: |
+          python -m unittest discover -s tests -p 'test_mockup_3d.py' -v
+          node --check tools/mockup-catalog/scene.mjs
+          node --check panel/studio-ui.mjs
+          node panel/bundle.mjs --check
+      - name: Instalar dependências locais somente para QA 3D
+        run: |
+          sudo apt-get update -qq
+          sudo apt-get install -y ffmpeg
+          python -m pip install 'playwright==1.56.0'
+          python -m playwright install --with-deps chromium
+          npm install --prefix tools/mockup-catalog --ignore-scripts --no-audit --no-fund
+      - name: Render WebGL real e validação FFprobe
+        run: |
+          mkdir -p outputs
+          ffmpeg -hide_banner -loglevel error -nostdin -f lavfi -i testsrc2=size=640x360:rate=24 -t 2 -an -c:v libx264 -pix_fmt yuv420p -y outputs/input.mp4
+          python -m scripts.mockup_3d --input outputs/input.mp4 --output outputs/laptop.mp4 --device laptop --motion enter --aspect 16:9 --fps 24 --frames 12 --width 640 --height 360
+          python -m scripts.mockup_3d --input outputs/input.mp4 --output outputs/monitor.mp4 --device monitor --motion orbit --aspect 9:16 --fps 24 --frames 12 --width 360 --height 640
+          python - <<'PY'
+          import json,subprocess
+          from pathlib import Path
+          for name in ('laptop','monitor'):
+              path=Path('outputs')/(name+'.mp4')
+              assert path.stat().st_size>10000, 'vídeo vazio'
+              info=json.loads(subprocess.check_output(['ffprobe','-v','error','-count_frames','-select_streams','v:0','-show_entries','stream=nb_read_frames,width,height','-of','json',str(path)],text=True))
+              assert int(info['streams'][0]['nb_read_frames'])==12,'quantidade de quadros divergente'
+              print(name,info['streams'][0])
+          PY
+      - name: MP4s de prova
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: moneyprint-mockup3d-qa
+          path: outputs/
+          retention-days: 3
+          if-no-files-found: warn

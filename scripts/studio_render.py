@@ -21,7 +21,7 @@ class RenderError(ValueError):
 SAFE_MEDIA = re.compile(r"^assets/[A-Za-z0-9_.\/-]{1,200}$")
 VIDEO_EXT = {".mp4", ".mov", ".webm", ".mkv", ".gif"}
 IMAGE_EXT = {".png", ".jpg", ".jpeg", ".webp"}
-LAYOUTS = {"hero", "browser", "flow", "split", "quote", "minimal"}
+LAYOUTS = {"hero", "browser", "flow", "split", "quote", "minimal", "device_mockup_3d"}
 REPO_URL = re.compile(r"^https://github\.com/[A-Za-z0-9_.-]+/[A-Za-z0-9_.-]+/?$")
 
 
@@ -76,6 +76,13 @@ def build_plan(project: dict) -> dict:
         layout = raw.get("layout", "hero")
         if layout not in LAYOUTS:
             raise RenderError("Layout de cena não suportado")
+        if layout == "device_mockup_3d":
+            if asset_id is None or PurePosixPath(indexed[asset_id]["path"]).suffix.lower() not in {".mp4", ".webm"}:
+                raise RenderError("Mockup 3D exige vídeo MP4/WebM aprovado")
+            if raw.get("mockup_device", "laptop") not in {"laptop", "monitor"}:
+                raise RenderError("Dispositivo 3D desconhecido")
+            if raw.get("mockup_motion", "enter") not in {"enter", "orbit", "zoom", "float"}:
+                raise RenderError("Motion 3D desconhecido")
         if raw.get("animation", "cut") not in {"cut", "fade", "slide"}:
             raise RenderError("Animação não suportada")
         prepared.append({**raw, "layout": layout, "end_frame": cursor + count,
@@ -318,6 +325,30 @@ def render_project(project: dict, root: Path, output_dir: Path, *, voice: str="n
             if tempo>2.0:
                 raise RenderError("Narração longa demais para a cena "+scene["id"]+"; aumente a duração")
         out=scratch/f"clip_{index:03d}.mp4"
+        if scene["layout"] == "device_mockup_3d":
+            from scripts.mockup_3d import render_mockup
+            mockup_video=scratch/f"mockup_{index:03d}.mp4"
+            render_mockup(asset, mockup_video,
+                          device=scene.get("mockup_device", "laptop"),
+                          motion=scene.get("mockup_motion", "enter"),
+                          aspect=ratio, fps=fps, frames=count,
+                          width=width, height=height)
+            command=["ffmpeg","-hide_banner","-loglevel","error","-nostdin","-y",
+                     "-i",str(mockup_video)]
+            if narration:
+                command+=["-i",str(narration)]
+                af=f"[1:a]aresample=48000,atempo={tempo:.5f},apad,atrim=0:{duration:.6f}[a]"
+            else:
+                command+=["-f","lavfi","-i","anullsrc=r=48000:cl=stereo"]
+                af=f"[1:a]atrim=0:{duration:.6f}[a]"
+            _run(command+["-filter_complex",af,"-map","0:v:0","-map","[a]",
+                          "-frames:v",str(count),"-t",f"{duration:.6f}",
+                          "-c:v","copy","-c:a","aac","-b:a","128k","-ar","48000",
+                          "-movflags","+faststart",str(out)])
+            total_beats+=1
+            playlist.append(out)
+            all_cues.extend(word_cues(scene["text"],scene["start_frame"]/fps,duration))
+            continue
         if plan["visual_style"]=="light_motion":
             from scripts.studio_light_motion import render_light_scene
             motion=render_light_scene(scene,out,scratch,index,fps,count,width,height,

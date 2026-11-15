@@ -19,7 +19,7 @@ permissions:
   contents: read
 jobs:
   studio-render:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     timeout-minutes: 120
     env:
       PROJECT_PATH: ${{ inputs.project_path || 'projects/5-sistemas-empresas-github-v3.json' }}
@@ -52,6 +52,20 @@ jobs:
           python -m pip install 'Pillow==11.3.0' 'piper-tts==1.8.0' 'playwright==1.56.0'
           python -m playwright install --with-deps chromium
           if [ "$ALIGN_WORDS" = 'true' ]; then python -m pip install 'faster-whisper==1.2.1'; fi
+      - name: Verificar se existem cenas WebGL opcionais
+        id: mockup
+        run: |
+          python - <<'PY'
+          import json,os
+          from pathlib import Path
+          data=json.loads(Path(os.environ['PROJECT_PATH']).read_text(encoding='utf-8'))
+          needed=any(s.get('layout')=='device_mockup_3d' for s in data.get('scenes',[]))
+          with open(os.environ['GITHUB_OUTPUT'],'a',encoding='utf-8') as f:
+              f.write('needed='+str(needed).lower()+'\\n')
+          PY
+      - name: Instalar Three.js somente para cenas 3D
+        if: steps.mockup.outputs.needed == 'true'
+        run: npm install --prefix tools/mockup-catalog --ignore-scripts --no-audit --no-fund
       - name: Baixar voz Piper com verificação SHA256
         run: |
           python - <<'PY'
