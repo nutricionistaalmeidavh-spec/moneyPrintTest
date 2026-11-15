@@ -1,0 +1,900 @@
+{
+  "project": "PDV ArtiSys — vídeo ilustrado",
+  "schema_version": "1.0",
+  "video_engine": "local Python Pillow/FFmpeg",
+  "editable_level": "source scene scripts and independent media; not keyframe editing in MoneyPrint Studio UI",
+  "aspect": "9:16",
+  "fps": 30,
+  "frame_canvas": [
+    720,
+    1280
+  ],
+  "total_frames": 2460,
+  "total_seconds": 82,
+  "source_reference": "assets/pdv/referencia.jpeg",
+  "autopublish": false,
+  "narration_status": "planned only; Paradee not installed; ambient instrumental included",
+  "core_cost": "R$ 0, no paid dependency",
+  "scenes": [
+    {
+      "id": "01",
+      "start_seconds": 0,
+      "end_seconds": 6,
+      "duration_seconds": 6,
+      "start_frame": 0,
+      "duration_frames": 180,
+      "scene_action": "Um sistema construído para acompanhar a operação real.",
+      "layers": [
+        {
+          "id": "backdrop_01",
+          "kind": "illustration-background",
+          "asset": "referencia painel 1 com blur e gradiente",
+          "z": 0
+        },
+        {
+          "id": "typography_01",
+          "kind": "text",
+          "title": "Criei meu próprio\nsistema de PDV.",
+          "subtitle": "Do salão à cozinha.",
+          "footer": "Um sistema construído para acompanhar a operação real.",
+          "z": 5
+        },
+        {
+          "id": "real_pdv_01",
+          "kind": "video",
+          "asset": "assets/pdv/balcao.mp4",
+          "source_seek_seconds": 0,
+          "loop": true,
+          "z": 2,
+          "device": "laptop",
+          "autoplay": true
+        },
+        {
+          "id": "character_desenvolvedor_1_1",
+          "kind": "illustrated-character",
+          "asset": "assets/pdv/personagens/desenvolvedor.png",
+          "x": 20,
+          "y": 560,
+          "scale": 0.98,
+          "motion": {
+            "body_sway_degrees": 2.2,
+            "head_nod_degrees": 6.2,
+            "idle_loop_seconds": 2,
+            "float_x_amplitude_px": 7,
+            "float_y_amplitude_px": 4
+          },
+          "z": 3
+        },
+        {
+          "id": "prop_1_1",
+          "kind": "animated-title-chip",
+          "text": "BALCÃO",
+          "appears_at_scene_seconds": 0.6,
+          "motion": "scene-contextual-illustrated-object",
+          "z": 4
+        },
+        {
+          "id": "prop_1_2",
+          "kind": "animated-title-chip",
+          "text": "COZINHA",
+          "appears_at_scene_seconds": 1.1,
+          "motion": "scene-contextual-illustrated-object",
+          "z": 4
+        }
+      ]
+    },
+    {
+      "id": "02",
+      "start_seconds": 6,
+      "end_seconds": 13,
+      "duration_seconds": 7,
+      "start_frame": 180,
+      "duration_frames": 210,
+      "scene_action": "Caixa, comandas, cozinha e cardápio em fluxos diferentes.",
+      "layers": [
+        {
+          "id": "backdrop_02",
+          "kind": "illustration-background",
+          "asset": "referencia painel 2 com blur e gradiente",
+          "z": 0
+        },
+        {
+          "id": "typography_02",
+          "kind": "text",
+          "title": "O problema",
+          "subtitle": "Ferramentas separadas\natrasam o atendimento.",
+          "footer": "Caixa, comandas, cozinha e cardápio em fluxos diferentes.",
+          "z": 5
+        },
+        {
+          "id": "character_garcom_2_1",
+          "kind": "illustrated-character",
+          "asset": "assets/pdv/personagens/garcom.png",
+          "x": -42,
+          "y": 665,
+          "scale": 0.7,
+          "motion": {
+            "body_sway_degrees": 2.2,
+            "head_nod_degrees": 6.2,
+            "idle_loop_seconds": 2,
+            "float_x_amplitude_px": 7,
+            "float_y_amplitude_px": 4
+          },
+          "z": 3
+        },
+        {
+          "id": "character_caixa_2_2",
+          "kind": "illustrated-character",
+          "asset": "assets/pdv/personagens/caixa.png",
+          "x": 238,
+          "y": 730,
+          "scale": 0.63,
+          "motion": {
+            "body_sway_degrees": 2.2,
+            "head_nod_degrees": 6.2,
+            "idle_loop_seconds": 2,
+            "float_x_amplitude_px": 7,
+            "float_y_amplitude_px": 4
+          },
+          "z": 3
+        },
+        {
+          "id": "character_cozinheiro_2_3",
+          "kind": "illustrated-character",
+          "asset": "assets/pdv/personagens/cozinheiro.png",
+          "x": 463,
+          "y": 667,
+          "scale": 0.7,
+          "motion": {
+            "body_sway_degrees": 2.2,
+            "head_nod_degrees": 6.2,
+            "idle_loop_seconds": 2,
+            "float_x_amplitude_px": 7,
+            "float_y_amplitude_px": 4
+          },
+          "z": 3
+        },
+        {
+          "id": "prop_2_1",
+          "kind": "animated-title-chip",
+          "text": "CAIXA",
+          "appears_at_scene_seconds": 0.6,
+          "motion": "scene-contextual-illustrated-object",
+          "z": 4
+        },
+        {
+          "id": "prop_2_2",
+          "kind": "animated-title-chip",
+          "text": "COMANDAS",
+          "appears_at_scene_seconds": 1.1,
+          "motion": "scene-contextual-illustrated-object",
+          "z": 4
+        },
+        {
+          "id": "prop_2_3",
+          "kind": "animated-title-chip",
+          "text": "COZINHA",
+          "appears_at_scene_seconds": 1.6,
+          "motion": "scene-contextual-illustrated-object",
+          "z": 4
+        }
+      ]
+    },
+    {
+      "id": "03",
+      "start_seconds": 13,
+      "end_seconds": 20,
+      "duration_seconds": 7,
+      "start_frame": 390,
+      "duration_frames": 210,
+      "scene_action": "Vendas, atendimento, equipe e gestão no mesmo lugar.",
+      "layers": [
+        {
+          "id": "backdrop_03",
+          "kind": "illustration-background",
+          "asset": "referencia painel 3 com blur e gradiente",
+          "z": 0
+        },
+        {
+          "id": "typography_03",
+          "kind": "text",
+          "title": "A solução",
+          "subtitle": "Tudo em um só sistema.",
+          "footer": "Vendas, atendimento, equipe e gestão no mesmo lugar.",
+          "z": 5
+        },
+        {
+          "id": "real_pdv_03",
+          "kind": "video",
+          "asset": "assets/pdv/balcao.mp4",
+          "source_seek_seconds": 0,
+          "loop": true,
+          "z": 2,
+          "device": "laptop",
+          "autoplay": true
+        },
+        {
+          "id": "character_desenvolvedor_3_1",
+          "kind": "illustrated-character",
+          "asset": "assets/pdv/personagens/desenvolvedor.png",
+          "x": 4,
+          "y": 590,
+          "scale": 0.95,
+          "motion": {
+            "body_sway_degrees": 2.2,
+            "head_nod_degrees": 6.2,
+            "idle_loop_seconds": 2,
+            "float_x_amplitude_px": 7,
+            "float_y_amplitude_px": 4
+          },
+          "z": 3
+        },
+        {
+          "id": "prop_3_1",
+          "kind": "animated-title-chip",
+          "text": "BALCÃO",
+          "appears_at_scene_seconds": 0.6,
+          "motion": "scene-contextual-illustrated-object",
+          "z": 4
+        },
+        {
+          "id": "prop_3_2",
+          "kind": "animated-title-chip",
+          "text": "CAIXA",
+          "appears_at_scene_seconds": 1.1,
+          "motion": "scene-contextual-illustrated-object",
+          "z": 4
+        },
+        {
+          "id": "prop_3_3",
+          "kind": "animated-title-chip",
+          "text": "GESTÃO",
+          "appears_at_scene_seconds": 1.6,
+          "motion": "scene-contextual-illustrated-object",
+          "z": 4
+        }
+      ]
+    },
+    {
+      "id": "04",
+      "start_seconds": 20,
+      "end_seconds": 26,
+      "duration_seconds": 6,
+      "start_frame": 600,
+      "duration_frames": 180,
+      "scene_action": "Da abertura da mesa até o QR Code.",
+      "layers": [
+        {
+          "id": "backdrop_04",
+          "kind": "illustration-background",
+          "asset": "referencia painel 4 com blur e gradiente",
+          "z": 0
+        },
+        {
+          "id": "typography_04",
+          "kind": "text",
+          "title": "Operação no salão",
+          "subtitle": "Mesas, comandas\ne pedidos.",
+          "footer": "Da abertura da mesa até o QR Code.",
+          "z": 5
+        },
+        {
+          "id": "real_pdv_04",
+          "kind": "video",
+          "asset": "assets/pdv/mesas.mp4",
+          "source_seek_seconds": 5,
+          "loop": true,
+          "z": 2,
+          "device": "laptop",
+          "autoplay": true
+        },
+        {
+          "id": "character_garcom_4_1",
+          "kind": "illustrated-character",
+          "asset": "assets/pdv/personagens/garcom.png",
+          "x": 3,
+          "y": 605,
+          "scale": 0.88,
+          "motion": {
+            "body_sway_degrees": 2.2,
+            "head_nod_degrees": 6.2,
+            "idle_loop_seconds": 2,
+            "float_x_amplitude_px": 7,
+            "float_y_amplitude_px": 4
+          },
+          "z": 3
+        },
+        {
+          "id": "prop_4_1",
+          "kind": "animated-title-chip",
+          "text": "MESA 01",
+          "appears_at_scene_seconds": 0.6,
+          "motion": "scene-contextual-illustrated-object",
+          "z": 4
+        },
+        {
+          "id": "prop_4_2",
+          "kind": "animated-title-chip",
+          "text": "QR CODE",
+          "appears_at_scene_seconds": 1.1,
+          "motion": "scene-contextual-illustrated-object",
+          "z": 4
+        }
+      ]
+    },
+    {
+      "id": "05",
+      "start_seconds": 26,
+      "end_seconds": 33,
+      "duration_seconds": 7,
+      "start_frame": 780,
+      "duration_frames": 210,
+      "scene_action": "Navegação visual e escolha dos produtos.",
+      "layers": [
+        {
+          "id": "backdrop_05",
+          "kind": "illustration-background",
+          "asset": "referencia painel 5 com blur e gradiente",
+          "z": 0
+        },
+        {
+          "id": "typography_05",
+          "kind": "text",
+          "title": "Cardápio digital",
+          "subtitle": "O cliente faz o pedido\npelo celular.",
+          "footer": "Navegação visual e escolha dos produtos.",
+          "z": 5
+        },
+        {
+          "id": "real_pdv_05",
+          "kind": "video",
+          "asset": "assets/pdv/cliente-qr.mp4",
+          "source_seek_seconds": 0,
+          "loop": true,
+          "z": 2,
+          "device": "phone",
+          "autoplay": true
+        },
+        {
+          "id": "character_cliente_5_1",
+          "kind": "illustrated-character",
+          "asset": "assets/pdv/personagens/cliente.png",
+          "x": 20,
+          "y": 600,
+          "scale": 0.87,
+          "motion": {
+            "body_sway_degrees": 2.2,
+            "head_nod_degrees": 6.2,
+            "idle_loop_seconds": 2,
+            "float_x_amplitude_px": 7,
+            "float_y_amplitude_px": 4
+          },
+          "z": 3
+        },
+        {
+          "id": "prop_5_1",
+          "kind": "animated-title-chip",
+          "text": "X-BACON",
+          "appears_at_scene_seconds": 0.6,
+          "motion": "scene-contextual-illustrated-object",
+          "z": 4
+        },
+        {
+          "id": "prop_5_2",
+          "kind": "animated-title-chip",
+          "text": "PEDIDO",
+          "appears_at_scene_seconds": 1.1,
+          "motion": "scene-contextual-illustrated-object",
+          "z": 4
+        }
+      ]
+    },
+    {
+      "id": "06",
+      "start_seconds": 33,
+      "end_seconds": 40,
+      "duration_seconds": 7,
+      "start_frame": 990,
+      "duration_frames": 210,
+      "scene_action": "O atendimento acompanha o pedido no celular.",
+      "layers": [
+        {
+          "id": "backdrop_06",
+          "kind": "illustration-background",
+          "asset": "referencia painel 6 com blur e gradiente",
+          "z": 0
+        },
+        {
+          "id": "typography_06",
+          "kind": "text",
+          "title": "Garçom conectado",
+          "subtitle": "Pedidos e chamados\nem tempo real.",
+          "footer": "O atendimento acompanha o pedido no celular.",
+          "z": 5
+        },
+        {
+          "id": "real_pdv_06",
+          "kind": "video",
+          "asset": "assets/pdv/garcom.mp4",
+          "source_seek_seconds": 10,
+          "loop": true,
+          "z": 2,
+          "device": "phone",
+          "autoplay": true
+        },
+        {
+          "id": "character_garcom_6_1",
+          "kind": "illustrated-character",
+          "asset": "assets/pdv/personagens/garcom.png",
+          "x": 20,
+          "y": 615,
+          "scale": 0.88,
+          "motion": {
+            "body_sway_degrees": 2.2,
+            "head_nod_degrees": 6.2,
+            "idle_loop_seconds": 2,
+            "float_x_amplitude_px": 7,
+            "float_y_amplitude_px": 4
+          },
+          "z": 3
+        },
+        {
+          "id": "prop_6_1",
+          "kind": "animated-title-chip",
+          "text": "NOVO PEDIDO",
+          "appears_at_scene_seconds": 0.6,
+          "motion": "scene-contextual-illustrated-object",
+          "z": 4
+        },
+        {
+          "id": "prop_6_2",
+          "kind": "animated-title-chip",
+          "text": "MESA 08",
+          "appears_at_scene_seconds": 1.1,
+          "motion": "scene-contextual-illustrated-object",
+          "z": 4
+        }
+      ]
+    },
+    {
+      "id": "07",
+      "start_seconds": 40,
+      "end_seconds": 47,
+      "duration_seconds": 7,
+      "start_frame": 1200,
+      "duration_frames": 210,
+      "scene_action": "Novo, em preparo e pronto: cada etapa visível.",
+      "layers": [
+        {
+          "id": "backdrop_07",
+          "kind": "illustration-background",
+          "asset": "referencia painel 7 com blur e gradiente",
+          "z": 0
+        },
+        {
+          "id": "typography_07",
+          "kind": "text",
+          "title": "Cozinha organizada",
+          "subtitle": "Da comanda ao KDS.",
+          "footer": "Novo, em preparo e pronto: cada etapa visível.",
+          "z": 5
+        },
+        {
+          "id": "real_pdv_07",
+          "kind": "video",
+          "asset": "assets/pdv/kds.mp4",
+          "source_seek_seconds": 12,
+          "loop": true,
+          "z": 2,
+          "device": "laptop",
+          "autoplay": true
+        },
+        {
+          "id": "character_cozinheiro_7_1",
+          "kind": "illustrated-character",
+          "asset": "assets/pdv/personagens/cozinheiro.png",
+          "x": 12,
+          "y": 610,
+          "scale": 0.89,
+          "motion": {
+            "body_sway_degrees": 2.2,
+            "head_nod_degrees": 6.2,
+            "idle_loop_seconds": 2,
+            "float_x_amplitude_px": 7,
+            "float_y_amplitude_px": 4
+          },
+          "z": 3
+        },
+        {
+          "id": "prop_7_1",
+          "kind": "animated-title-chip",
+          "text": "NOVO",
+          "appears_at_scene_seconds": 0.6,
+          "motion": "scene-contextual-illustrated-object",
+          "z": 4
+        },
+        {
+          "id": "prop_7_2",
+          "kind": "animated-title-chip",
+          "text": "EM PREPARO",
+          "appears_at_scene_seconds": 1.1,
+          "motion": "scene-contextual-illustrated-object",
+          "z": 4
+        },
+        {
+          "id": "prop_7_3",
+          "kind": "animated-title-chip",
+          "text": "PRONTO",
+          "appears_at_scene_seconds": 1.6,
+          "motion": "scene-contextual-illustrated-object",
+          "z": 4
+        }
+      ]
+    },
+    {
+      "id": "08",
+      "start_seconds": 47,
+      "end_seconds": 54,
+      "duration_seconds": 7,
+      "start_frame": 1410,
+      "duration_frames": 210,
+      "scene_action": "A comanda segue para o fechamento.",
+      "layers": [
+        {
+          "id": "backdrop_08",
+          "kind": "illustration-background",
+          "asset": "referencia painel 8 com blur e gradiente",
+          "z": 0
+        },
+        {
+          "id": "typography_08",
+          "kind": "text",
+          "title": "Do pedido ao caixa",
+          "subtitle": "Pagamento sem\nretrabalho.",
+          "footer": "A comanda segue para o fechamento.",
+          "z": 5
+        },
+        {
+          "id": "real_pdv_08",
+          "kind": "video",
+          "asset": "assets/pdv/caixa.mp4",
+          "source_seek_seconds": 11,
+          "loop": true,
+          "z": 2,
+          "device": "laptop",
+          "autoplay": true
+        },
+        {
+          "id": "character_caixa_8_1",
+          "kind": "illustrated-character",
+          "asset": "assets/pdv/personagens/caixa.png",
+          "x": 15,
+          "y": 595,
+          "scale": 0.9,
+          "motion": {
+            "body_sway_degrees": 2.2,
+            "head_nod_degrees": 6.2,
+            "idle_loop_seconds": 2,
+            "float_x_amplitude_px": 7,
+            "float_y_amplitude_px": 4
+          },
+          "z": 3
+        },
+        {
+          "id": "prop_8_1",
+          "kind": "animated-title-chip",
+          "text": "COMANDA",
+          "appears_at_scene_seconds": 0.6,
+          "motion": "scene-contextual-illustrated-object",
+          "z": 4
+        },
+        {
+          "id": "prop_8_2",
+          "kind": "animated-title-chip",
+          "text": "PAGAMENTO",
+          "appears_at_scene_seconds": 1.1,
+          "motion": "scene-contextual-illustrated-object",
+          "z": 4
+        }
+      ]
+    },
+    {
+      "id": "09",
+      "start_seconds": 54,
+      "end_seconds": 60,
+      "duration_seconds": 6,
+      "start_frame": 1620,
+      "duration_frames": 180,
+      "scene_action": "Administrador, operador e garçom com funções definidas.",
+      "layers": [
+        {
+          "id": "backdrop_09",
+          "kind": "illustration-background",
+          "asset": "referencia painel 9 com blur e gradiente",
+          "z": 0
+        },
+        {
+          "id": "typography_09",
+          "kind": "text",
+          "title": "Equipe e permissões",
+          "subtitle": "Cada pessoa,\nseu acesso.",
+          "footer": "Administrador, operador e garçom com funções definidas.",
+          "z": 5
+        },
+        {
+          "id": "character_gerente_9_1",
+          "kind": "illustrated-character",
+          "asset": "assets/pdv/personagens/gerente.png",
+          "x": -17,
+          "y": 600,
+          "scale": 0.78,
+          "motion": {
+            "body_sway_degrees": 2.2,
+            "head_nod_degrees": 6.2,
+            "idle_loop_seconds": 2,
+            "float_x_amplitude_px": 7,
+            "float_y_amplitude_px": 4
+          },
+          "z": 3
+        },
+        {
+          "id": "character_caixa_9_2",
+          "kind": "illustrated-character",
+          "asset": "assets/pdv/personagens/caixa.png",
+          "x": 249,
+          "y": 600,
+          "scale": 0.76,
+          "motion": {
+            "body_sway_degrees": 2.2,
+            "head_nod_degrees": 6.2,
+            "idle_loop_seconds": 2,
+            "float_x_amplitude_px": 7,
+            "float_y_amplitude_px": 4
+          },
+          "z": 3
+        },
+        {
+          "id": "character_garcom_9_3",
+          "kind": "illustrated-character",
+          "asset": "assets/pdv/personagens/garcom.png",
+          "x": 473,
+          "y": 600,
+          "scale": 0.76,
+          "motion": {
+            "body_sway_degrees": 2.2,
+            "head_nod_degrees": 6.2,
+            "idle_loop_seconds": 2,
+            "float_x_amplitude_px": 7,
+            "float_y_amplitude_px": 4
+          },
+          "z": 3
+        },
+        {
+          "id": "prop_9_1",
+          "kind": "animated-title-chip",
+          "text": "ADMIN",
+          "appears_at_scene_seconds": 0.6,
+          "motion": "scene-contextual-illustrated-object",
+          "z": 4
+        },
+        {
+          "id": "prop_9_2",
+          "kind": "animated-title-chip",
+          "text": "OPERADOR",
+          "appears_at_scene_seconds": 1.1,
+          "motion": "scene-contextual-illustrated-object",
+          "z": 4
+        },
+        {
+          "id": "prop_9_3",
+          "kind": "animated-title-chip",
+          "text": "GARÇOM",
+          "appears_at_scene_seconds": 1.6,
+          "motion": "scene-contextual-illustrated-object",
+          "z": 4
+        }
+      ]
+    },
+    {
+      "id": "10",
+      "start_seconds": 60,
+      "end_seconds": 67,
+      "duration_seconds": 7,
+      "start_frame": 1800,
+      "duration_frames": 210,
+      "scene_action": "Organização dos ingredientes, itens e cardápio.",
+      "layers": [
+        {
+          "id": "backdrop_10",
+          "kind": "illustration-background",
+          "asset": "referencia painel 10 com blur e gradiente",
+          "z": 0
+        },
+        {
+          "id": "typography_10",
+          "kind": "text",
+          "title": "Estoque e cadastros",
+          "subtitle": "Ficha técnica\n+ produtos.",
+          "footer": "Organização dos ingredientes, itens e cardápio.",
+          "z": 5
+        },
+        {
+          "id": "real_pdv_10",
+          "kind": "video",
+          "asset": "assets/pdv/ficha.mp4",
+          "source_seek_seconds": 9,
+          "loop": true,
+          "z": 2,
+          "device": "laptop",
+          "autoplay": true
+        },
+        {
+          "id": "character_cozinheiro_10_1",
+          "kind": "illustrated-character",
+          "asset": "assets/pdv/personagens/cozinheiro.png",
+          "x": 3,
+          "y": 620,
+          "scale": 0.83,
+          "motion": {
+            "body_sway_degrees": 2.2,
+            "head_nod_degrees": 6.2,
+            "idle_loop_seconds": 2,
+            "float_x_amplitude_px": 7,
+            "float_y_amplitude_px": 4
+          },
+          "z": 3
+        },
+        {
+          "id": "prop_10_1",
+          "kind": "animated-title-chip",
+          "text": "RECEITA",
+          "appears_at_scene_seconds": 0.6,
+          "motion": "scene-contextual-illustrated-object",
+          "z": 4
+        },
+        {
+          "id": "prop_10_2",
+          "kind": "animated-title-chip",
+          "text": "ESTOQUE",
+          "appears_at_scene_seconds": 1.1,
+          "motion": "scene-contextual-illustrated-object",
+          "z": 4
+        }
+      ]
+    },
+    {
+      "id": "11",
+      "start_seconds": 67,
+      "end_seconds": 73,
+      "duration_seconds": 6,
+      "start_frame": 2010,
+      "duration_frames": 180,
+      "scene_action": "Um software que continua evoluindo.",
+      "layers": [
+        {
+          "id": "backdrop_11",
+          "kind": "illustration-background",
+          "asset": "referencia painel 11 com blur e gradiente",
+          "z": 0
+        },
+        {
+          "id": "typography_11",
+          "kind": "text",
+          "title": "Por trás do produto",
+          "subtitle": "Código, testes\ne evolução.",
+          "footer": "Um software que continua evoluindo.",
+          "z": 5
+        },
+        {
+          "id": "real_pdv_11",
+          "kind": "video",
+          "asset": "assets/pdv/relatorio.mp4",
+          "source_seek_seconds": 8,
+          "loop": true,
+          "z": 2,
+          "device": "laptop",
+          "autoplay": true
+        },
+        {
+          "id": "character_desenvolvedor_11_1",
+          "kind": "illustrated-character",
+          "asset": "assets/pdv/personagens/desenvolvedor.png",
+          "x": 10,
+          "y": 618,
+          "scale": 0.84,
+          "motion": {
+            "body_sway_degrees": 2.2,
+            "head_nod_degrees": 6.2,
+            "idle_loop_seconds": 2,
+            "float_x_amplitude_px": 7,
+            "float_y_amplitude_px": 4
+          },
+          "z": 3
+        },
+        {
+          "id": "prop_11_1",
+          "kind": "animated-title-chip",
+          "text": "CÓDIGO",
+          "appears_at_scene_seconds": 0.6,
+          "motion": "scene-contextual-illustrated-object",
+          "z": 4
+        },
+        {
+          "id": "prop_11_2",
+          "kind": "animated-title-chip",
+          "text": "TESTES",
+          "appears_at_scene_seconds": 1.1,
+          "motion": "scene-contextual-illustrated-object",
+          "z": 4
+        }
+      ]
+    },
+    {
+      "id": "12",
+      "start_seconds": 73,
+      "end_seconds": 82,
+      "duration_seconds": 9,
+      "start_frame": 2190,
+      "duration_frames": 270,
+      "scene_action": "Série: sistemas que construí · ArtiSys",
+      "layers": [
+        {
+          "id": "backdrop_12",
+          "kind": "illustration-background",
+          "asset": "referencia painel 12 com blur e gradiente",
+          "z": 0
+        },
+        {
+          "id": "typography_12",
+          "kind": "text",
+          "title": "Curtiu o projeto?",
+          "subtitle": "Segue e salva para ver\nos próximos sistemas.",
+          "footer": "Série: sistemas que construí · ArtiSys",
+          "z": 5
+        },
+        {
+          "id": "real_pdv_12",
+          "kind": "video",
+          "asset": "assets/pdv/balcao.mp4",
+          "source_seek_seconds": 0,
+          "loop": true,
+          "z": 2,
+          "device": "laptop",
+          "autoplay": true
+        },
+        {
+          "id": "character_desenvolvedor_12_1",
+          "kind": "illustrated-character",
+          "asset": "assets/pdv/personagens/desenvolvedor.png",
+          "x": 9,
+          "y": 622,
+          "scale": 0.8,
+          "motion": {
+            "body_sway_degrees": 2.2,
+            "head_nod_degrees": 6.2,
+            "idle_loop_seconds": 2,
+            "float_x_amplitude_px": 7,
+            "float_y_amplitude_px": 4
+          },
+          "z": 3
+        },
+        {
+          "id": "prop_12_1",
+          "kind": "animated-title-chip",
+          "text": "SEGUIR",
+          "appears_at_scene_seconds": 0.6,
+          "motion": "scene-contextual-illustrated-object",
+          "z": 4
+        },
+        {
+          "id": "prop_12_2",
+          "kind": "animated-title-chip",
+          "text": "SALVAR",
+          "appears_at_scene_seconds": 1.1,
+          "motion": "scene-contextual-illustrated-object",
+          "z": 4
+        }
+      ]
+    }
+  ]
+}
