@@ -122,11 +122,14 @@ def main():
     parser.add_argument("--aspect", choices=sorted(ASPECTS), default="16:9")
     parser.add_argument("--fps", type=int, default=30)
     parser.add_argument("--frames", type=int, default=120)
+    parser.add_argument("--width", type=int)
+    parser.add_argument("--height", type=int)
     args = parser.parse_args()
     import json
     print(json.dumps(render_mockup(args.input, args.output, device=args.device,
                                    motion=args.motion, aspect=args.aspect,
-                                   fps=args.fps, frames=args.frames),
+                                   fps=args.fps, frames=args.frames,
+                                   width=args.width, height=args.height),
                      ensure_ascii=False, indent=2))
 
 
