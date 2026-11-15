@@ -25,7 +25,7 @@ async function audit(env,action,detail){await env.DB.prepare("INSERT INTO audit(
 /* MoneyPrint Studio V3 - isolated additive model; no GitHub token or paid API. */
 const STUDIO_ID=/^[0-9a-f-]{36}$/;
 const STUDIO_ASPECTS=new Set(["9:16","16:9","1:1"]);
-const STUDIO_LAYOUTS=new Set(["hero","browser","flow","split","quote","minimal"]);
+const STUDIO_LAYOUTS=new Set(["hero","browser","flow","split","quote","minimal","device_mockup_3d"]);
 const STUDIO_REPO=/^https:\/\/github\.com\/[A-Za-z0-9_.-]+\/[A-Za-z0-9_.-]+\/?$/;
 function studioError(reason){throw new Error("Studio: "+reason)}
 function studioMediaOk(a){
@@ -80,6 +80,13 @@ function studioValidate(project){
        (scene.repo_url!==undefined&&scene.repo_url!==""&&(!STUDIO_REPO.test(scene.repo_url)||scene.repo_url.length>200))||
        (scene.eyebrow!==undefined&&(typeof scene.eyebrow!=="string"||scene.eyebrow.length>80))||
        (scene.asset_id!==null&&!media.has(scene.asset_id)))studioError("cena inválida ou timeline com lacuna");
+    if(scene.layout==="device_mockup_3d"){
+      const file=project.assets.find(a=>a.id===scene.asset_id);
+      if(!file||file.verified!==true||!/\.(mp4|webm)$/i.test(file.path))studioError("Mockup 3D exige vídeo MP4/WebM aprovado");
+      if(!["laptop","monitor"].includes(scene.mockup_device??"laptop"))studioError("Dispositivo 3D inválido");
+      if(!["enter","orbit","zoom","float"].includes(scene.mockup_motion??"enter"))studioError("Motion 3D inválido");
+      if(project.render_engine==="remotion")studioError("Mockup 3D usa adaptador Three.js + FFmpeg, não Remotion");
+    }
     ids.add(scene.id);
     start+=scene.duration_frames;
   }
@@ -206,6 +213,8 @@ async function studioRoute(req,env,path){
         animation:["cut","fade","slide"].includes(s.animation)?s.animation:"cut",
         framing:["contain","cover","center"].includes(s.framing)?s.framing:"contain",
         layout:STUDIO_LAYOUTS.has(s.layout)?s.layout:"hero",
+        mockup_device:typeof s.mockup_device==="string"?s.mockup_device:"laptop",
+        mockup_motion:typeof s.mockup_motion==="string"?s.mockup_motion:"enter",
         repo_url:typeof s.repo_url==="string"&&STUDIO_REPO.test(s.repo_url)?s.repo_url:"",
         eyebrow:typeof s.eyebrow==="string"?s.eyebrow.slice(0,80):""
       })),revision:row.revision+1};
