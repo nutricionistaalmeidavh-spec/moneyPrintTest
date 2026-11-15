@@ -39,6 +39,9 @@ function studioDraw(){
   by("studioSceneSeconds").value=Number((scene.duration_frames/30).toFixed(2));
   by("studioSceneAnimation").value=scene.animation||"cut";
   by("studioSceneLayout").value=scene.layout||"hero";
+  by("studioMockupOptions").classList.toggle("hidden",scene.layout!=="device_mockup_3d");
+  by("studioMockupDevice").value=scene.mockup_device||"laptop";
+  by("studioMockupMotion").value=scene.mockup_motion||"enter";
   by("studioSceneRepoUrl").value=scene.repo_url||"";
   by("studioSceneAsset").innerHTML='<option value="">Sem mídia</option>'+studio.assets.filter(function(a){return a.verified}).map(function(a){return '<option value="'+esc(a.id)+'">'+esc(a.title)+'</option>'}).join("");
   by("studioSceneAsset").value=scene.asset_id||"";
@@ -66,6 +69,8 @@ by("studioSceneSeconds").addEventListener("change",function(){var n=Math.round(N
 by("studioSceneAnimation").addEventListener("change",function(){studioChange("animation",this.value)});
 by("studioSceneAsset").addEventListener("change",function(){studioChange("asset_id",this.value||null)});
 by("studioSceneLayout").addEventListener("change",function(){studioChange("layout",this.value)});
+by("studioMockupDevice").addEventListener("change",function(){studioChange("mockup_device",this.value)});
+by("studioMockupMotion").addEventListener("change",function(){studioChange("mockup_motion",this.value)});
 by("studioSceneRepoUrl").addEventListener("change",function(){var url=this.value.trim();if(url&&!/^https:\/\/github\.com\/[A-Za-z0-9_.-]+\/[A-Za-z0-9_.-]+\/?$/.test(url)){notice("URL deve apontar para repositório público no GitHub");this.value=studio.scenes[studioIndex].repo_url||"";return}studioChange("repo_url",url)});
 function studioMove(dir){
  if(!studio)return;var next=studioIndex+dir;if(next<0||next>=studio.scenes.length)return;
