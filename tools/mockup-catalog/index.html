@@ -1,40 +1,23 @@
-<!doctype html>
-<html lang="pt-BR"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
-<title>MoneyPrint | Catálogo de Mockups</title>
+<!doctype html><html lang="pt-BR"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>MoneyPrint — Mockups 3D</title>
 <style>
-:root{font-family:Inter,system-ui,sans-serif;color:#e8e8f0;background:#101117}*{box-sizing:border-box}
-body{margin:0;padding:20px}main{max-width:1050px;margin:auto}h1{font-size:clamp(24px,4vw,38px);margin:0 0 6px}p{color:#a7a9b7}
-.controls{display:flex;gap:12px;flex-wrap:wrap;margin:24px 0}label{display:grid;gap:7px;font-size:13px;color:#c7c7d3}
-select,input,button{border:1px solid #404354;border-radius:10px;padding:11px;background:#20212d;color:white;max-width:100%}
-button{cursor:pointer;background:#6454ce;border-color:#6454ce}button:focus-visible,select:focus-visible,input:focus-visible{outline:2px solid #bbb3ff}
-.stage{height:min(65vw,510px);min-height:270px;display:grid;place-items:center;perspective:1000px;overflow:hidden;border:1px solid #353744;border-radius:20px;background:radial-gradient(circle at 45% 35%,#35344e,#191a25 65%);position:relative}
-.device{width:min(75%,650px);transform-style:preserve-3d;animation:enter 5s ease-in-out infinite alternate;filter:drop-shadow(0 24px 24px #0008)}
-.screen{background:#080a0f;border:10px solid #272a34;border-radius:12px;aspect-ratio:16/9;overflow:hidden;position:relative}
-.screen video{width:100%;height:100%;object-fit:cover;display:block}.placeholder{position:absolute;inset:0;display:grid;place-items:center;color:#b7b9d2;text-align:center;padding:20px;background:linear-gradient(135deg,#252b48,#101521)}
-.base{height:15px;background:linear-gradient(#aeb0bd,#626577);border-radius:3px 3px 40% 40%;margin:0 -7%;box-shadow:0 3px 1px #444}
-.monitor .base{height:75px;width:18%;margin:auto;background:linear-gradient(90deg,#515461,#8d90a0,#515461);border-radius:0;clip-path:polygon(36% 0,64% 0,76% 90%,100% 95%,100% 100%,0 100%,0 95%,24% 90%)}
-.monitor .screen{border-width:13px}.monitor{width:min(72%,600px)}
-.motion-orbit{animation:orbit 6s ease-in-out infinite alternate}.motion-zoom{animation:zoom 5s ease-in-out infinite alternate}.motion-float{animation:float 4s ease-in-out infinite alternate}.motion-enter{animation:enter 5s ease-in-out infinite alternate}
-@keyframes orbit{from{transform:rotateY(-23deg) rotateX(7deg)}to{transform:rotateY(22deg) rotateX(-4deg)}}
-@keyframes zoom{from{transform:scale(.76)}to{transform:scale(1.23)}}@keyframes float{from{transform:translateY(15px) rotateZ(-2deg)}to{transform:translateY(-16px) rotateZ(2deg)}}
-@keyframes enter{from{transform:translateY(90px) scale(.68) rotateY(-18deg);opacity:.4}to{transform:translateY(0) scale(1) rotateY(0);opacity:1}}
-@media(prefers-reduced-motion:reduce){.device{animation:none!important}}.note{font-size:13px}code{color:#c9bdff}
-</style></head>
-<body><main><h1>Catálogo de mockups</h1><p>Prévia local de notebook e monitor com gravação real e presets de movimento. Nenhuma API externa.</p>
-<div class="controls">
-<label>Dispositivo<select id="device"><option value="laptop">Notebook</option><option value="monitor">Monitor</option></select></label>
-<label>Motion<select id="motion"><option value="enter">Entrada cinematográfica</option><option value="orbit">Órbita 3D</option><option value="zoom">Zoom na tela</option><option value="float">Flutuação</option></select></label>
-<label>Vídeo local (MP4/WebM)<input id="videoFile" type="file" accept="video/mp4,video/webm,video/quicktime"></label>
-<button id="restart">Reiniciar animação</button>
-</div>
-<section class="stage" aria-label="Prévia do mockup"><div id="mockup" class="device laptop motion-enter"><div class="screen"><video id="video" muted loop playsinline autoplay></video><div class="placeholder" id="placeholder">Selecione um vídeo para visualizar na tela</div></div><div class="base"></div></div></section>
-<p class="note">Prévia CSS 3D, não um modelo físico 3D. Para renderizar em vídeo, capture esta página com Chromium/Playwright e FFmpeg. Arquivos ficam no navegador; nenhum upload é realizado.</p>
-</main><script>
-const device=document.getElementById('device'),motion=document.getElementById('motion'),mockup=document.getElementById('mockup'),video=document.getElementById('video'),placeholder=document.getElementById('placeholder');
-let objectUrl=null;
-function refresh(){mockup.className='device '+device.value+' motion-'+motion.value}
-device.addEventListener('change',refresh);motion.addEventListener('change',refresh);
-document.getElementById('restart').addEventListener('click',()=>{mockup.style.animation='none';void mockup.offsetWidth;mockup.style.animation=''});
-document.getElementById('videoFile').addEventListener('change',e=>{if(objectUrl)URL.revokeObjectURL(objectUrl);const file=e.target.files[0];if(!file)return;objectUrl=URL.createObjectURL(file);video.src=objectUrl;placeholder.hidden=true;video.play().catch(()=>{})});
-window.addEventListener('pagehide',()=>{if(objectUrl)URL.revokeObjectURL(objectUrl)});
-</script></body></html>
+:root{font:14px/1.45 system-ui,sans-serif;color:#eef2fb;background:#111320}*{box-sizing:border-box}body{margin:0}
+header{padding:19px clamp(15px,4vw,36px);background:#17192a;display:flex;flex-wrap:wrap;align-items:center;gap:13px;justify-content:space-between}
+h1{font-size:clamp(19px,4vw,29px);margin:0}.sub{font-size:12px;color:#b8bed5}main{max-width:1440px;margin:auto;padding:15px}
+.controls{display:grid;grid-template-columns:repeat(auto-fit,minmax(145px,1fr));gap:12px;margin-bottom:12px}
+label{font-size:12px;display:grid;gap:4px;color:#cbd2e5}select,input,button{min-height:42px;border:1px solid #545c79;border-radius:9px;background:#232a41;color:#fff;padding:7px;max-width:100%}
+button{cursor:pointer;background:#6558bd}button:focus-visible,select:focus-visible,input:focus-visible{outline:2px solid #c6b7ff}
+#viewport{position:relative;overflow:hidden;min-height:270px;height:min(75vh,750px);border-radius:18px;background:#e9e5db}
+canvas{display:block;width:100%;height:100%}#message{margin-top:10px;font-size:12px;color:#c7cfe2}
+body.render header,body.render .controls,body.render #message{display:none}body.render main{margin:0;padding:0;max-width:none}body.render #viewport{height:100vh;min-height:100vh;border-radius:0}
+</style></head><body><header><div><h1>MoneyPrint · Mockups 3D</h1><span class="sub">Geometria tridimensional real, textura de vídeo e câmera animada</span></div><strong class="sub">Three.js (MIT) + FFmpeg</strong></header>
+<main><div class="controls">
+<label>Dispositivo<select id="device"><option value="laptop">Notebook 3D</option><option value="monitor">Monitor 3D</option></select></label>
+<label>Motion<select id="motion"><option value="enter">Entrada</option><option value="orbit">Órbita</option><option value="zoom">Zoom na tela</option><option value="float">Flutuação</option></select></label>
+<label>Formato<select id="aspect"><option value="16:9">YouTube 16:9</option><option value="9:16">Shorts 9:16</option><option value="1:1">Quadrado 1:1</option></select></label>
+<label>Gravação (MP4/WebM)<input id="videoFile" type="file" accept="video/mp4,video/webm"></label>
+<button id="replay" type="button">Reiniciar</button></div>
+<div id="viewport"><canvas id="view" aria-label="Dispositivo 3D com gravação real na tela"></canvas></div>
+<p id="message">Escolha um vídeo local. Nenhum arquivo é enviado a terceiros. Para renderizar em MP4, utilize o adaptador do MoneyPrint.</p></main>
+<video id="screenVideo" muted playsinline preload="auto" loop style="display:none"></video>
+<script type="module" src="./scene.mjs"></script></body></html>
