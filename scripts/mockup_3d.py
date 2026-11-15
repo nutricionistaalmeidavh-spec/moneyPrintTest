@@ -62,6 +62,16 @@ def render_mockup(
     url = f"http://127.0.0.1:{server.server_port}/index.html?{query}"
     with tempfile.TemporaryDirectory(prefix="moneyprint_mockup_") as tmp:
         log_path = Path(tmp) / "ffmpeg.log"
+        # Chromium/Playwright Linux may not decode H.264 in a local blob.
+        # VP8 is universally supported by bundled Chromium; normalize with FFmpeg.
+        browser_media = Path(tmp) / "screen.webm"
+        normalized = ["ffmpeg", "-hide_banner", "-loglevel", "error", "-nostdin",
+                      "-y", "-i", str(media), "-t", f"{frames/fps+1.5:.3f}",
+                      "-an", "-vf", f"fps={fps},scale='min(1280,iw)':-2",
+                      "-c:v", "libvpx", "-deadline", "realtime", "-cpu-used", "5",
+                      "-b:v", "2200k", str(browser_media)]
+        subprocess.run(normalized, check=True, stdout=subprocess.DEVNULL,
+                       stderr=subprocess.PIPE, timeout=300)
         try:
             with log_path.open("wb") as log, sync_playwright() as playwright:
                 browser = playwright.chromium.launch(headless=True, args=[
@@ -75,9 +85,18 @@ def render_mockup(
                     page.on("pageerror", lambda e: errors.append(str(e)))
                     page.goto(url, wait_until="networkidle", timeout=60000)
                     page.wait_for_function("window.mockupReady === true", timeout=60000)
-                    page.locator("#videoFile").set_input_files(str(media))
-                    page.wait_for_function("document.querySelector('#screenVideo').readyState >= 2",
-                                           timeout=30000)
+                    page.locator("#videoFile").set_input_files(str(browser_media))
+                    try:
+                        page.wait_for_function("document.querySelector('#screenVideo').readyState >= 2",
+                                               timeout=30000)
+                    except Exception as exc:
+                        state = page.evaluate("""() => ({
+                           ready: document.querySelector('#screenVideo').readyState,
+                           videoError: document.querySelector('#screenVideo').error?.code,
+                           message: document.querySelector('#message').textContent
+                        })""")
+                        raise RuntimeError("Vídeo WebM não carregou: " + str(state) +
+                                           "; erros do navegador: " + "; ".join(errors)) from exc
                     if errors:
                         raise RuntimeError("Erro WebGL no navegador: " + "; ".join(errors))
                     cmd = ["ffmpeg", "-hide_banner", "-loglevel", "error", "-nostdin", "-y",
