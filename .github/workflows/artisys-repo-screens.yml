@@ -1,0 +1,88 @@
+name: MoneyPrint - 8 capturas reais do GitHub para Shorts
+
+on:
+  pull_request:
+    paths:
+      - 'scripts/capture_artisys_repos.py'
+      - 'tests/test_capture_artisys_repos.py'
+      - '.github/workflows/artisys-repo-screens.yml'
+  workflow_dispatch:
+    inputs:
+      include_overview:
+        description: 'Incluir navegação GitHub Topics para o trecho O que é GitHub'
+        required: false
+        type: boolean
+        default: true
+      duration:
+        description: 'Duração em segundos por repo (5 a 20)'
+        type: choice
+        default: '8'
+        options: ['6', '8', '10', '12']
+
+permissions:
+  contents: read
+
+jobs:
+  test:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 7
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - name: Provar lista e invariantes de segurança
+        run: |
+          python -m unittest discover -s tests -p 'test_capture_artisys_repos.py' -v
+          python -m scripts.capture_artisys_repos --plan-only
+
+  capture:
+    needs: test
+    runs-on: ubuntu-24.04
+    timeout-minutes: 40
+    env:
+      PYTHONUNBUFFERED: '1'
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - name: Instalar somente ferramentas livres, sem APIs pagas
+        run: |
+          sudo apt-get update -qq
+          sudo apt-get install -y -qq ffmpeg
+          python -m pip install 'playwright==1.56.0'
+          python -m playwright install --with-deps chromium
+      - name: Capturar repositórios oficiais e GitHub em tela real
+        run: |
+          ARGS=''
+          if [[ '${{ github.event_name }}' == 'pull_request' || '${{ inputs.include_overview }}' == 'true' ]]; then ARGS='--include-overview'; fi
+          python -m scripts.capture_artisys_repos \
+            --output outputs/artisys-repo-captures \
+            --duration '${{ inputs.duration || '8' }}' ${ARGS}
+      - name: QA automático das saídas e resolução nativa para Shorts
+        if: always()
+        run: |
+          python - <<'PY'
+          from pathlib import Path
+          import json,subprocess
+          folder=Path('outputs/artisys-repo-captures')
+          report=folder/'captures.json'
+          if not report.is_file():
+              raise SystemExit('Relatório não produzido')
+          data=json.loads(report.read_text())
+          for item in data['clips']:
+              if item['status'] != 'captured': continue
+              path=folder/item['file']
+              payload=json.loads(subprocess.check_output(['ffprobe','-v','error','-show_streams','-of','json',str(path)],text=True))
+              assert any(s.get('codec_name')=='h264' and s.get('width')==1080 and s.get('height')==1920 for s in payload['streams'])
+          print('Vídeos capturados:',data['captured'],'/',len(data['clips']))
+          PY
+      - name: Publicar somente artifacts para revisão; nunca publicar nas redes
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: moneyprint-repos-shorts-${{ github.run_id }}
+          path: outputs/artisys-repo-captures/
+          retention-days: 7
+          if-no-files-found: warn
