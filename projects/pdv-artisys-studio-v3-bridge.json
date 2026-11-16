@@ -1,0 +1,695 @@
+{
+  "schema_version": 3,
+  "id": "pdv-artisys-blender-82s",
+  "revision": 1,
+  "topic": "Sistemas que construí — PDV ArtiSys (Blender)",
+  "script": "Do salão à cozinha. \nFerramentas separadas atrasam o atendimento. \nTudo em um só sistema. \nMesas, comandas e pedidos em tempo real. \nO cliente faz o pedido pelo celular. \nPedidos e chamados em tempo real. \nDa comanda ao KDS. \nPagamento sem retrabalho. \nCada pessoa com seu acesso. \nFicha técnica, produtos e estoque conectados. \nCódigo, testes e evolução. \nSegue e salva para ver os próximos sistemas. ",
+  "fps": 30,
+  "aspect": "9:16",
+  "total_frames": 2460,
+  "tracks": [
+    {
+      "id": "video",
+      "kind": "video"
+    },
+    {
+      "id": "voice",
+      "kind": "audio"
+    },
+    {
+      "id": "effects",
+      "kind": "audio"
+    },
+    {
+      "id": "graphics",
+      "kind": "overlay"
+    }
+  ],
+  "assets": [
+    {
+      "id": "balcao",
+      "path": "assets/balcao.mp4",
+      "title": "Tutorial real: balcao",
+      "description": "Vídeo original do PDV ArtiSys fornecido pelo proprietário",
+      "license": "Proprietary; use by owner only",
+      "attribution": "ArtiSys — tutorial oficial",
+      "verified": true,
+      "tags": [
+        "pdv",
+        "artisys",
+        "tutorial"
+      ]
+    },
+    {
+      "id": "caixa",
+      "path": "assets/caixa.mp4",
+      "title": "Tutorial real: caixa",
+      "description": "Vídeo original do PDV ArtiSys fornecido pelo proprietário",
+      "license": "Proprietary; use by owner only",
+      "attribution": "ArtiSys — tutorial oficial",
+      "verified": true,
+      "tags": [
+        "pdv",
+        "artisys",
+        "tutorial"
+      ]
+    },
+    {
+      "id": "cardapio",
+      "path": "assets/cardapio.mp4",
+      "title": "Tutorial real: cardapio",
+      "description": "Vídeo original do PDV ArtiSys fornecido pelo proprietário",
+      "license": "Proprietary; use by owner only",
+      "attribution": "ArtiSys — tutorial oficial",
+      "verified": true,
+      "tags": [
+        "pdv",
+        "artisys",
+        "tutorial"
+      ]
+    },
+    {
+      "id": "cliente_qr",
+      "path": "assets/cliente-qr.mp4",
+      "title": "Tutorial real: cliente qr",
+      "description": "Vídeo original do PDV ArtiSys fornecido pelo proprietário",
+      "license": "Proprietary; use by owner only",
+      "attribution": "ArtiSys — tutorial oficial",
+      "verified": true,
+      "tags": [
+        "pdv",
+        "artisys",
+        "tutorial"
+      ]
+    },
+    {
+      "id": "equipe",
+      "path": "assets/equipe.mp4",
+      "title": "Tutorial real: equipe",
+      "description": "Vídeo original do PDV ArtiSys fornecido pelo proprietário",
+      "license": "Proprietary; use by owner only",
+      "attribution": "ArtiSys — tutorial oficial",
+      "verified": true,
+      "tags": [
+        "pdv",
+        "artisys",
+        "tutorial"
+      ]
+    },
+    {
+      "id": "ficha",
+      "path": "assets/ficha.mp4",
+      "title": "Tutorial real: ficha",
+      "description": "Vídeo original do PDV ArtiSys fornecido pelo proprietário",
+      "license": "Proprietary; use by owner only",
+      "attribution": "ArtiSys — tutorial oficial",
+      "verified": true,
+      "tags": [
+        "pdv",
+        "artisys",
+        "tutorial"
+      ]
+    },
+    {
+      "id": "garcom",
+      "path": "assets/garcom.mp4",
+      "title": "Tutorial real: garcom",
+      "description": "Vídeo original do PDV ArtiSys fornecido pelo proprietário",
+      "license": "Proprietary; use by owner only",
+      "attribution": "ArtiSys — tutorial oficial",
+      "verified": true,
+      "tags": [
+        "pdv",
+        "artisys",
+        "tutorial"
+      ]
+    },
+    {
+      "id": "gerar_qr",
+      "path": "assets/gerar-qr.mp4",
+      "title": "Tutorial real: gerar qr",
+      "description": "Vídeo original do PDV ArtiSys fornecido pelo proprietário",
+      "license": "Proprietary; use by owner only",
+      "attribution": "ArtiSys — tutorial oficial",
+      "verified": true,
+      "tags": [
+        "pdv",
+        "artisys",
+        "tutorial"
+      ]
+    },
+    {
+      "id": "kds_sync",
+      "path": "assets/kds-sync.mp4",
+      "title": "Tutorial real: kds sync",
+      "description": "Vídeo original do PDV ArtiSys fornecido pelo proprietário",
+      "license": "Proprietary; use by owner only",
+      "attribution": "ArtiSys — tutorial oficial",
+      "verified": true,
+      "tags": [
+        "pdv",
+        "artisys",
+        "tutorial"
+      ]
+    },
+    {
+      "id": "kds",
+      "path": "assets/kds.mp4",
+      "title": "Tutorial real: kds",
+      "description": "Vídeo original do PDV ArtiSys fornecido pelo proprietário",
+      "license": "Proprietary; use by owner only",
+      "attribution": "ArtiSys — tutorial oficial",
+      "verified": true,
+      "tags": [
+        "pdv",
+        "artisys",
+        "tutorial"
+      ]
+    },
+    {
+      "id": "mesas",
+      "path": "assets/mesas.mp4",
+      "title": "Tutorial real: mesas",
+      "description": "Vídeo original do PDV ArtiSys fornecido pelo proprietário",
+      "license": "Proprietary; use by owner only",
+      "attribution": "ArtiSys — tutorial oficial",
+      "verified": true,
+      "tags": [
+        "pdv",
+        "artisys",
+        "tutorial"
+      ]
+    },
+    {
+      "id": "relatorio",
+      "path": "assets/relatorio.mp4",
+      "title": "Tutorial real: relatorio",
+      "description": "Vídeo original do PDV ArtiSys fornecido pelo proprietário",
+      "license": "Proprietary; use by owner only",
+      "attribution": "ArtiSys — tutorial oficial",
+      "verified": true,
+      "tags": [
+        "pdv",
+        "artisys",
+        "tutorial"
+      ]
+    }
+  ],
+  "scenes": [
+    {
+      "id": "scene-01",
+      "track_id": "video",
+      "title": "Criei meu próprio sistema de PDV.",
+      "text": "Do salão à cozinha. ",
+      "kind": "media",
+      "asset_id": "balcao",
+      "start_frame": 0,
+      "duration_frames": 180,
+      "animation": "cut",
+      "framing": "contain",
+      "layout": "browser",
+      "blender_scene_id": "01",
+      "blender_source": "output/pdv_artisys_scene_01.blend",
+      "character_actions": [
+        {
+          "role": "desenvolvedor",
+          "action": "present",
+          "start_frame": 1,
+          "end_frame": 180,
+          "action_source": "Quaternius Standard UAL base + manually authored bone keyframes"
+        }
+      ],
+      "media_screens": [
+        "assets/balcao.mp4",
+        "assets/cliente-qr.mp4",
+        "assets/garcom.mp4"
+      ],
+      "overlay_layers": [
+        "overlays/scene_01/eyebrow.png",
+        "overlays/scene_01/title.png",
+        "overlays/scene_01/accent.png",
+        "overlays/scene_01/footer.png",
+        "overlays/scene_01/scene_number.png"
+      ]
+    },
+    {
+      "id": "scene-02",
+      "track_id": "video",
+      "title": "O problema",
+      "text": "Ferramentas separadas atrasam o atendimento. ",
+      "kind": "text",
+      "asset_id": null,
+      "start_frame": 180,
+      "duration_frames": 210,
+      "animation": "cut",
+      "framing": "contain",
+      "layout": "browser",
+      "blender_scene_id": "02",
+      "blender_source": "output/pdv_artisys_scene_02.blend",
+      "character_actions": [
+        {
+          "role": "garcom",
+          "action": "confused",
+          "start_frame": 1,
+          "end_frame": 210,
+          "action_source": "Quaternius Standard UAL base + manually authored bone keyframes"
+        },
+        {
+          "role": "cozinheiro",
+          "action": "waiting",
+          "start_frame": 1,
+          "end_frame": 210,
+          "action_source": "Quaternius Standard UAL base + manually authored bone keyframes"
+        },
+        {
+          "role": "caixa",
+          "action": "check",
+          "start_frame": 1,
+          "end_frame": 210,
+          "action_source": "Quaternius Standard UAL base + manually authored bone keyframes"
+        }
+      ],
+      "media_screens": [],
+      "overlay_layers": [
+        "overlays/scene_02/eyebrow.png",
+        "overlays/scene_02/title.png",
+        "overlays/scene_02/accent.png",
+        "overlays/scene_02/footer.png",
+        "overlays/scene_02/scene_number.png"
+      ]
+    },
+    {
+      "id": "scene-03",
+      "track_id": "video",
+      "title": "A solução",
+      "text": "Tudo em um só sistema. ",
+      "kind": "media",
+      "asset_id": "balcao",
+      "start_frame": 390,
+      "duration_frames": 210,
+      "animation": "cut",
+      "framing": "contain",
+      "layout": "browser",
+      "blender_scene_id": "03",
+      "blender_source": "output/pdv_artisys_scene_03.blend",
+      "character_actions": [
+        {
+          "role": "gerente",
+          "action": "present",
+          "start_frame": 1,
+          "end_frame": 210,
+          "action_source": "Quaternius Standard UAL base + manually authored bone keyframes"
+        },
+        {
+          "role": "garcom",
+          "action": "relief",
+          "start_frame": 1,
+          "end_frame": 210,
+          "action_source": "Quaternius Standard UAL base + manually authored bone keyframes"
+        }
+      ],
+      "media_screens": [
+        "assets/balcao.mp4",
+        "assets/mesas.mp4"
+      ],
+      "overlay_layers": [
+        "overlays/scene_03/eyebrow.png",
+        "overlays/scene_03/title.png",
+        "overlays/scene_03/accent.png",
+        "overlays/scene_03/footer.png",
+        "overlays/scene_03/scene_number.png"
+      ]
+    },
+    {
+      "id": "scene-04",
+      "track_id": "video",
+      "title": "Operação no salão",
+      "text": "Mesas, comandas e pedidos em tempo real. ",
+      "kind": "media",
+      "asset_id": "mesas",
+      "start_frame": 600,
+      "duration_frames": 180,
+      "animation": "cut",
+      "framing": "contain",
+      "layout": "browser",
+      "blender_scene_id": "04",
+      "blender_source": "output/pdv_artisys_scene_04.blend",
+      "character_actions": [
+        {
+          "role": "garcom",
+          "action": "walk_point",
+          "start_frame": 1,
+          "end_frame": 180,
+          "action_source": "Quaternius Standard UAL base + manually authored bone keyframes"
+        },
+        {
+          "role": "cliente",
+          "action": "scan",
+          "start_frame": 1,
+          "end_frame": 180,
+          "action_source": "Quaternius Standard UAL base + manually authored bone keyframes"
+        }
+      ],
+      "media_screens": [
+        "assets/mesas.mp4",
+        "assets/gerar-qr.mp4"
+      ],
+      "overlay_layers": [
+        "overlays/scene_04/eyebrow.png",
+        "overlays/scene_04/title.png",
+        "overlays/scene_04/accent.png",
+        "overlays/scene_04/footer.png",
+        "overlays/scene_04/scene_number.png"
+      ]
+    },
+    {
+      "id": "scene-05",
+      "track_id": "video",
+      "title": "Cardápio digital",
+      "text": "O cliente faz o pedido pelo celular. ",
+      "kind": "media",
+      "asset_id": "cliente_qr",
+      "start_frame": 780,
+      "duration_frames": 210,
+      "animation": "cut",
+      "framing": "contain",
+      "layout": "browser",
+      "blender_scene_id": "05",
+      "blender_source": "output/pdv_artisys_scene_05.blend",
+      "character_actions": [
+        {
+          "role": "cliente",
+          "action": "phone_tap",
+          "start_frame": 1,
+          "end_frame": 210,
+          "action_source": "Quaternius Standard UAL base + manually authored bone keyframes"
+        }
+      ],
+      "media_screens": [
+        "assets/cliente-qr.mp4"
+      ],
+      "overlay_layers": [
+        "overlays/scene_05/eyebrow.png",
+        "overlays/scene_05/title.png",
+        "overlays/scene_05/accent.png",
+        "overlays/scene_05/footer.png",
+        "overlays/scene_05/scene_number.png"
+      ]
+    },
+    {
+      "id": "scene-06",
+      "track_id": "video",
+      "title": "Garçom conectado",
+      "text": "Pedidos e chamados em tempo real. ",
+      "kind": "media",
+      "asset_id": "garcom",
+      "start_frame": 990,
+      "duration_frames": 210,
+      "animation": "cut",
+      "framing": "contain",
+      "layout": "browser",
+      "blender_scene_id": "06",
+      "blender_source": "output/pdv_artisys_scene_06.blend",
+      "character_actions": [
+        {
+          "role": "garcom",
+          "action": "notification",
+          "start_frame": 1,
+          "end_frame": 210,
+          "action_source": "Quaternius Standard UAL base + manually authored bone keyframes"
+        }
+      ],
+      "media_screens": [
+        "assets/garcom.mp4",
+        "assets/mesas.mp4"
+      ],
+      "overlay_layers": [
+        "overlays/scene_06/eyebrow.png",
+        "overlays/scene_06/title.png",
+        "overlays/scene_06/accent.png",
+        "overlays/scene_06/footer.png",
+        "overlays/scene_06/scene_number.png"
+      ]
+    },
+    {
+      "id": "scene-07",
+      "track_id": "video",
+      "title": "Cozinha organizada",
+      "text": "Da comanda ao KDS. ",
+      "kind": "media",
+      "asset_id": "kds",
+      "start_frame": 1200,
+      "duration_frames": 210,
+      "animation": "cut",
+      "framing": "contain",
+      "layout": "browser",
+      "blender_scene_id": "07",
+      "blender_source": "output/pdv_artisys_scene_07.blend",
+      "character_actions": [
+        {
+          "role": "cozinheiro",
+          "action": "cook",
+          "start_frame": 1,
+          "end_frame": 210,
+          "action_source": "Quaternius Standard UAL base + manually authored bone keyframes"
+        },
+        {
+          "role": "garcom",
+          "action": "deliver_plate",
+          "start_frame": 1,
+          "end_frame": 210,
+          "action_source": "Quaternius Standard UAL base + manually authored bone keyframes"
+        }
+      ],
+      "media_screens": [
+        "assets/kds.mp4",
+        "assets/kds-sync.mp4"
+      ],
+      "overlay_layers": [
+        "overlays/scene_07/eyebrow.png",
+        "overlays/scene_07/title.png",
+        "overlays/scene_07/accent.png",
+        "overlays/scene_07/footer.png",
+        "overlays/scene_07/scene_number.png"
+      ]
+    },
+    {
+      "id": "scene-08",
+      "track_id": "video",
+      "title": "Do pedido ao caixa",
+      "text": "Pagamento sem retrabalho. ",
+      "kind": "media",
+      "asset_id": "caixa",
+      "start_frame": 1410,
+      "duration_frames": 210,
+      "animation": "cut",
+      "framing": "contain",
+      "layout": "browser",
+      "blender_scene_id": "08",
+      "blender_source": "output/pdv_artisys_scene_08.blend",
+      "character_actions": [
+        {
+          "role": "caixa",
+          "action": "checkout",
+          "start_frame": 1,
+          "end_frame": 210,
+          "action_source": "Quaternius Standard UAL base + manually authored bone keyframes"
+        },
+        {
+          "role": "cliente",
+          "action": "relief",
+          "start_frame": 1,
+          "end_frame": 210,
+          "action_source": "Quaternius Standard UAL base + manually authored bone keyframes"
+        }
+      ],
+      "media_screens": [
+        "assets/caixa.mp4",
+        "assets/balcao.mp4"
+      ],
+      "overlay_layers": [
+        "overlays/scene_08/eyebrow.png",
+        "overlays/scene_08/title.png",
+        "overlays/scene_08/accent.png",
+        "overlays/scene_08/footer.png",
+        "overlays/scene_08/scene_number.png"
+      ]
+    },
+    {
+      "id": "scene-09",
+      "track_id": "video",
+      "title": "Equipe e permissões",
+      "text": "Cada pessoa com seu acesso. ",
+      "kind": "media",
+      "asset_id": "equipe",
+      "start_frame": 1620,
+      "duration_frames": 180,
+      "animation": "cut",
+      "framing": "contain",
+      "layout": "browser",
+      "blender_scene_id": "09",
+      "blender_source": "output/pdv_artisys_scene_09.blend",
+      "character_actions": [
+        {
+          "role": "gerente",
+          "action": "assign_roles",
+          "start_frame": 1,
+          "end_frame": 180,
+          "action_source": "Quaternius Standard UAL base + manually authored bone keyframes"
+        },
+        {
+          "role": "garcom",
+          "action": "nod",
+          "start_frame": 1,
+          "end_frame": 180,
+          "action_source": "Quaternius Standard UAL base + manually authored bone keyframes"
+        },
+        {
+          "role": "caixa",
+          "action": "confirm",
+          "start_frame": 1,
+          "end_frame": 180,
+          "action_source": "Quaternius Standard UAL base + manually authored bone keyframes"
+        }
+      ],
+      "media_screens": [
+        "assets/equipe.mp4"
+      ],
+      "overlay_layers": [
+        "overlays/scene_09/eyebrow.png",
+        "overlays/scene_09/title.png",
+        "overlays/scene_09/accent.png",
+        "overlays/scene_09/footer.png",
+        "overlays/scene_09/scene_number.png"
+      ]
+    },
+    {
+      "id": "scene-10",
+      "track_id": "video",
+      "title": "Estoque e cardápio",
+      "text": "Ficha técnica, produtos e estoque conectados. ",
+      "kind": "media",
+      "asset_id": "ficha",
+      "start_frame": 1800,
+      "duration_frames": 210,
+      "animation": "cut",
+      "framing": "contain",
+      "layout": "browser",
+      "blender_scene_id": "10",
+      "blender_source": "output/pdv_artisys_scene_10.blend",
+      "character_actions": [
+        {
+          "role": "cozinheiro",
+          "action": "cook",
+          "start_frame": 1,
+          "end_frame": 210,
+          "action_source": "Quaternius Standard UAL base + manually authored bone keyframes"
+        },
+        {
+          "role": "gerente",
+          "action": "point",
+          "start_frame": 1,
+          "end_frame": 210,
+          "action_source": "Quaternius Standard UAL base + manually authored bone keyframes"
+        }
+      ],
+      "media_screens": [
+        "assets/ficha.mp4",
+        "assets/cardapio.mp4"
+      ],
+      "overlay_layers": [
+        "overlays/scene_10/eyebrow.png",
+        "overlays/scene_10/title.png",
+        "overlays/scene_10/accent.png",
+        "overlays/scene_10/footer.png",
+        "overlays/scene_10/scene_number.png"
+      ]
+    },
+    {
+      "id": "scene-11",
+      "track_id": "video",
+      "title": "Por trás do produto",
+      "text": "Código, testes e evolução. ",
+      "kind": "media",
+      "asset_id": "relatorio",
+      "start_frame": 2010,
+      "duration_frames": 180,
+      "animation": "cut",
+      "framing": "contain",
+      "layout": "browser",
+      "blender_scene_id": "11",
+      "blender_source": "output/pdv_artisys_scene_11.blend",
+      "character_actions": [
+        {
+          "role": "desenvolvedor",
+          "action": "type",
+          "start_frame": 1,
+          "end_frame": 180,
+          "action_source": "Quaternius Standard UAL base + manually authored bone keyframes"
+        }
+      ],
+      "media_screens": [
+        "assets/relatorio.mp4"
+      ],
+      "overlay_layers": [
+        "overlays/scene_11/eyebrow.png",
+        "overlays/scene_11/title.png",
+        "overlays/scene_11/accent.png",
+        "overlays/scene_11/footer.png",
+        "overlays/scene_11/scene_number.png"
+      ]
+    },
+    {
+      "id": "scene-12",
+      "track_id": "video",
+      "title": "Curtiu o projeto?",
+      "text": "Segue e salva para ver os próximos sistemas. ",
+      "kind": "media",
+      "asset_id": "balcao",
+      "start_frame": 2190,
+      "duration_frames": 270,
+      "animation": "cut",
+      "framing": "contain",
+      "layout": "browser",
+      "blender_scene_id": "12",
+      "blender_source": "output/pdv_artisys_scene_12.blend",
+      "character_actions": [
+        {
+          "role": "desenvolvedor",
+          "action": "wave",
+          "start_frame": 1,
+          "end_frame": 270,
+          "action_source": "Quaternius Standard UAL base + manually authored bone keyframes"
+        },
+        {
+          "role": "garcom",
+          "action": "nod",
+          "start_frame": 1,
+          "end_frame": 270,
+          "action_source": "Quaternius Standard UAL base + manually authored bone keyframes"
+        },
+        {
+          "role": "cliente",
+          "action": "relief",
+          "start_frame": 1,
+          "end_frame": 270,
+          "action_source": "Quaternius Standard UAL base + manually authored bone keyframes"
+        }
+      ],
+      "media_screens": [
+        "assets/balcao.mp4",
+        "assets/cliente-qr.mp4",
+        "assets/garcom.mp4"
+      ],
+      "overlay_layers": [
+        "overlays/scene_12/eyebrow.png",
+        "overlays/scene_12/title.png",
+        "overlays/scene_12/accent.png",
+        "overlays/scene_12/footer.png",
+        "overlays/scene_12/scene_number.png"
+      ]
+    }
+  ],
+  "blender_delivery": "This file links Blender shots but the Studio editor does NOT edit bone keyframes.",
+  "autopublish": false
+}
