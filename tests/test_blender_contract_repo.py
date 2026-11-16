@@ -5,7 +5,9 @@ import unittest
 from pathlib import Path
 import importlib.util
 ROOT=Path(__file__).resolve().parents[1]
-spec=importlib.util.spec_from_file_location('blender_builder',ROOT/'scripts'/'build_blender.py')
+builder=ROOT/'scripts'/'blender_pdv'/'build_blender.py'
+if not builder.is_file(): builder=ROOT/'scripts'/'build_blender.py'
+spec=importlib.util.spec_from_file_location('blender_builder',builder)
 blender_builder=importlib.util.module_from_spec(spec);spec.loader.exec_module(blender_builder)
 
 class BlenderContractCI(unittest.TestCase):
