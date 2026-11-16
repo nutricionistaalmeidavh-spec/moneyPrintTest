@@ -9,7 +9,7 @@ on:
       - ".github/workflows/carousel.yml"
       - "carousel_requests/*.json"
   push:
-    branches: [main, feat/carrosseis-fotos-gratis]
+    branches: [main]
     paths:
       - "carousel_requests/*.json"
   workflow_dispatch:
