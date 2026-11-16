@@ -16,12 +16,16 @@ def main():
     ap=argparse.ArgumentParser()
     ap.add_argument('--scene',default='05',help='01..12 or all')
     ap.add_argument('--quality',choices=('preview','final'),default='preview')
+    ap.add_argument('--project',default='projects/pdv-artisys-quaternius-v1.json',help='JSON canônico; etapa 5 é um opt-in separado')
     ap.add_argument('--render-video',action='store_true')
     ap.add_argument('--render-passes',action='store_true')
     ap.add_argument('--posters',action='store_true')
     ap.add_argument('--out',default='output')
     opts=ap.parse_args()
-    spec=json.loads((ROOT/'projects/pdv-artisys-quaternius-v1.json').read_text(encoding='utf8'))
+    project_path=(ROOT/opts.project).resolve()
+    if ROOT != project_path and ROOT not in project_path.parents:
+        raise SystemExit('Caminho de projeto fora do workspace proibido')
+    spec=json.loads(project_path.read_text(encoding='utf8'))
     if HERE.parent.name=='blender_pdv':
         from scripts.blender_pdv.build_blender import validate_plan
     else:
@@ -35,7 +39,7 @@ def main():
     blender=shutil.which('blender')
     if not blender:raise SystemExit('Blender 4.2+ não encontrado: .blend/MP4 não gerados')
     args=[blender,'-b','--factory-startup','--python',str(HERE.parent/'layered_scene.py'),'--',
-          '--scene',opts.scene,'--project',str(ROOT/'projects/pdv-artisys-quaternius-v1.json'),
+          '--scene',opts.scene,'--project',str(project_path),
           '--quality',opts.quality,'--output-dir',str((ROOT/opts.out).resolve())]
     if opts.render_video:args.append('--render-video')
     if opts.render_passes:args.append('--render-passes')
