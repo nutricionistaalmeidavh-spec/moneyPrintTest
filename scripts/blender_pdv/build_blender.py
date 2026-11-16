@@ -39,7 +39,7 @@ def validate_plan(project,folder=ROOT,*,require_media=True):
     seen=set();cursor=0
     scenes=project.get('scenes',[])
     if len(scenes)!=12:raise ValueError('Expected 12 scenes')
-    valid_actions={'present','confused','waiting','check','relief','walk_point','scan','phone_tap','notification','cook','checkout','assign_roles','nod','confirm','point','type','wave'}
+    valid_actions={'present','confused','waiting','check','relief','walk_point','scan','phone_tap','notification','cook','checkout','assign_roles','nod','confirm','point','type','wave','deliver_plate'}
     roles={'desenvolvedor','garcom','cliente','cozinheiro','caixa','gerente'}
     devices={'laptop','phone','tablet','monitor'}
     for s in scenes:
@@ -377,6 +377,9 @@ def make_blender_scene(project,scene_data,quality,output_dir,still=False,animate
     output_dir.mkdir(parents=True,exist_ok=True)
     # Save Blender-editable files, one per scene, no merged dependency or publication.
     filename=output_dir/f'pdv_artisys_scene_{shot}.blend'
+    scene['pdv_scene_id'] = shot
+    scene['pdv_source_project'] = 'pdv-artisys-quaternius-v1.json'
+    scene['core_paid_dependencies'] = False
     bpy.ops.wm.save_as_mainfile(filepath=str(filename))
     if still:
         scene.frame_set(max(1,scene_data['duration_frames']//2))
