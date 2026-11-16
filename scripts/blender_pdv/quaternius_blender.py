@@ -103,23 +103,12 @@ def import_quaternius_actor(*, root: Path, role: str, index: int, x: float,
                 # Standard _in-place_ source; forbid root drift during camera shot.
                 dest_bone.location=(0,0,0)
             dest_bone.keyframe_insert(data_path='rotation_quaternion',frame=fr,group='Quaternius UAL Standard')
-    # Hand gesture overlay for scene 05: a real 3D bone animation, not sprites.
-    if action_name=='phone_tap':
-        lower=next((b for name,b in dst.items() if 'lowerarmr' in name or 'forearmr' in name),None)
-        upper=next((b for name,b in dst.items() if 'upperarmr' in name),None)
-        head=next((b for name,b in dst.items() if name in ('head','head01')),None)
-        if not (lower and upper):raise AssetError('Rig sem braço direito; impossível animar uso do celular')
-        for fr,angle in [(1,0.0),(16,-.22),(30,-.46),(46,-.20),(61,-.53),(76,-.27),(92,-.49),(frame_count,0.0)]:
-            if fr>frame_count:continue
-            for bone,amount in [(upper,angle*.45),(lower,angle)]:
-                bone.rotation_mode='QUATERNION'
-                base=bone.rotation_quaternion.copy()
-                bone.rotation_quaternion=base@Quaternion((1,0,0),amount)
-                bone.keyframe_insert(data_path='rotation_quaternion',frame=fr,group='PDV phone tap')
-            if head:
-                head.rotation_mode='QUATERNION'
-                head.rotation_quaternion=Quaternion((1,0,0),.10)
-                head.keyframe_insert(data_path='rotation_quaternion',frame=fr,group='PDV head focus')
+    # Motion acting layer on the authentic Quaternius Standard skin/armature.
+    # Includes expressive gestures, walk, phone, cooking, payment and plate.
+    # phone_tap and every other gesture are now authored inside rig_acting.py.
+    from .rig_acting import apply_acting
+    actor_acting=apply_acting(target, action_name, frame_count)
+    target['acting_verified']=actor_acting['action']
 
     # Source objects kept hidden in viewport only AFTER baking, so visual shot
     # uses real character without duplicate animation mannequin.
