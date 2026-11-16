@@ -15,14 +15,17 @@ def probe(path):
     if len(streams)!=1:raise ValueError(f'No usable video stream: {path}')
     return streams[0]
 
-def render(project,output,quality,selected,rendering=False):
+def render(project,output,quality,selected,rendering=False,project_path=None):
     if not rendering:return
     blender=shutil.which('blender')
     if not blender:raise RuntimeError('Blender not installed. Install Blender 4.2+ locally (GPL). No fallback to 2D.')
     for s in project['scenes']:
         if selected not in ('all',s['id']):continue
-        run([blender,'-b','--factory-startup','--python',str(ROOT/'scripts'/'build_blender.py'),'--',
-             '--scene',s['id'],'--quality',quality,'--animate','--output-dir',str(output)])
+        builder=ROOT/'scripts'/'blender_pdv'/'build_blender.py'
+        if not builder.is_file():builder=ROOT/'scripts'/'build_blender.py'
+        run([blender,'-b','--factory-startup','--python',str(builder),'--',
+             '--scene',s['id'],'--quality',quality,'--animate','--output-dir',str(output),
+             '--project',str(project_path or ROOT/'projects'/'pdv-artisys-blender-v1.json')])
 
 def assemble(project,output,quality):
     clips=[]
@@ -46,14 +49,15 @@ def assemble(project,output,quality):
 def main():
     p=argparse.ArgumentParser()
     p.add_argument('--quality',choices=['preview','final'],default='preview')
+    p.add_argument('--project',type=Path,default=ROOT/'projects'/'pdv-artisys-blender-v1.json')
     p.add_argument('--scene',default='all')
     p.add_argument('--render',action='store_true')
     p.add_argument('--assemble',action='store_true')
     p.add_argument('--output-dir',default=str(ROOT/'outputs'))
     opt=p.parse_args()
-    project=json.loads((ROOT/'projects'/'pdv-artisys-blender-v1.json').read_text())
+    project=json.loads(opt.project.read_text(encoding='utf8'))
     output=Path(opt.output_dir).resolve();output.mkdir(parents=True,exist_ok=True)
-    render(project,output,opt.quality,opt.scene,opt.render)
+    render(project,output,opt.quality,opt.scene,opt.render,project_path=opt.project)
     if opt.assemble:print('Final assembled:',assemble(project,output,opt.quality))
     elif not opt.render:print('No action: specify --render and optionally --assemble.')
 
