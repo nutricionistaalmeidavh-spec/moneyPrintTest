@@ -12,7 +12,8 @@ import math
 from pathlib import Path
 import sys
 
-ROOT=Path(__file__).resolve().parents[1]
+HERE=Path(__file__).resolve()
+ROOT=HERE.parents[2] if HERE.parent.name=='blender_pdv' else HERE.parents[1]
 CONFIG=ROOT/'projects'/'pdv-artisys-blender-v1.json'
 
 
