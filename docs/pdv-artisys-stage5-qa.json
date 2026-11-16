@@ -28,11 +28,12 @@
     ]
   },
   "qa": {
-    "python_tests_passed": 37,
+    "python_tests_passed": 41,
     "python_tests_failed": 0,
     "ffprobe": "passed",
     "contact_sheet": "qa/pilot05_contact.png",
-    "layer_render_controls": "fixed_and_unit_tested"
+    "layer_render_controls": "fixed_and_unit_tested",
+    "public_no_media_tests_passed": 4
   },
   "runtime": {
     "blender_executable_available": false,
