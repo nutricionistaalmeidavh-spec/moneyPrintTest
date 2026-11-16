@@ -3,7 +3,8 @@
 from __future__ import annotations
 import argparse,json,shutil,subprocess,sys
 from pathlib import Path
-ROOT=Path(__file__).resolve().parents[1]
+HERE=Path(__file__).resolve()
+ROOT=HERE.parents[2] if HERE.parent.name=='blender_pdv' else HERE.parents[1]
 
 def run(command):return subprocess.run(command,check=True,text=True)
 
