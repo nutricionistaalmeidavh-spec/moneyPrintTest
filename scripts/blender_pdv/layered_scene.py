@@ -209,12 +209,15 @@ def enhance_stage(bpy,scene,project,entry):
 def render_pass(bpy,scene,layer_name,out,*,full_sequence=False):
     """Render transparent independent pass; not destructive to .blend file."""
     if layer_name not in COLLECTIONS:raise ValueError('Unknown pass')
+    if layer_name in ('00_WORLD','60_LIGHTS','70_CAMERA','90_SOURCE_ANIMATIONS_HIDDEN'):
+        raise ValueError('Environment, cameras and lights are controls, not isolated visual passes')
     state={co.name:co.hide_render for co in scene.collection.children}
     engine=scene.render.engine
     try:
         for co in scene.collection.children:
             if co.name in COLLECTIONS:
-                co.hide_render=(co.name!=layer_name)
+                # Camera and illumination stay active while visual collections are isolated.
+                co.hide_render=(co.name not in {layer_name, '60_LIGHTS', '70_CAMERA'})
         scene.render.film_transparent=True
         scene.render.image_settings.file_format='PNG'
         scene.render.image_settings.color_mode='RGBA'
@@ -270,7 +273,7 @@ def main():
             bpy.ops.render.render(animation=True)
         if args.layer_posters or args.render_passes:
             for name in COLLECTIONS:
-                if name in ('00_WORLD','90_SOURCE_ANIMATIONS_HIDDEN'):continue
+                if name in ('00_WORLD','60_LIGHTS','70_CAMERA','90_SOURCE_ANIMATIONS_HIDDEN'):continue
                 render_pass(bpy,scene,name,out/'passes'/entry['id']/name,full_sequence=args.render_passes)
         manifest.append({'scene':entry['id'],'blend':blend.name,'frames':entry['duration_frames'],
                          'media_files':([entry['video_texture']['file']] if entry.get('video_texture') else []) +
