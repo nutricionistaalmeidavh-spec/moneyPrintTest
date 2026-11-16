@@ -1,0 +1,63 @@
+{
+  "topic": "4 sites para melhorar na programação (e quase ninguém fala)",
+  "source": "auto",
+  "photo_mode": "same",
+  "style": "reference",
+  "photo_terms": [
+    "computer desk monitor laptop window",
+    "modern desk setup with monitor",
+    "home office desk with plants",
+    "desktop computer workstation"
+  ],
+  "brand": "ArtiSys",
+  "cta": "Salva este post para testar depois.",
+  "items": [
+    {
+      "name": "Roadmap.sh",
+      "url": "https://roadmap.sh",
+      "detail": "Roadmaps e trilhas de tecnologia"
+    },
+    {
+      "name": "Exercism",
+      "url": "https://exercism.org",
+      "detail": "Prática de programação"
+    },
+    {
+      "name": "DevDocs",
+      "url": "https://devdocs.io",
+      "detail": "Documentação pesquisável"
+    },
+    {
+      "name": "Regex101",
+      "url": "https://regex101.com",
+      "detail": "Testes interativos de expressões regulares"
+    }
+  ],
+  "slides": [
+    {
+      "title": "4 sites para te deixar melhor na programação",
+      "body": "(e quase ninguém fala)"
+    },
+    {
+      "title": "1. ROADMAP.SH",
+      "body": "Organize o que estudar com trilhas visuais."
+    },
+    {
+      "title": "2. EXERCISM",
+      "body": "Aprenda programando, com exercícios gratuitos."
+    },
+    {
+      "title": "3. DEVDOCS",
+      "body": "Documentação de linguagens e bibliotecas."
+    },
+    {
+      "title": "4. REGEX101",
+      "body": "Teste expressões regulares de forma visual."
+    },
+    {
+      "title": "SALVA ESSE POST",
+      "body": "E segue a ArtiSys para descobrir mais!"
+    }
+  ],
+  "aspect": "4:5"
+}
