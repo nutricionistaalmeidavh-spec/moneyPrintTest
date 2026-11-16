@@ -1,0 +1,51 @@
+{
+  "stage": "P5 scene05 Blender validation",
+  "pilot": "PDV ArtiSys Cardápio digital",
+  "storyboard_scenes": 12,
+  "pilot_frames": 210,
+  "pilot_duration_seconds": 7,
+  "fps": 30,
+  "screen_texture": {
+    "source": "assets/cliente-qr.mp4",
+    "derived": "assets/cliente-qr-cena05-clean.mp4",
+    "authentic_media": true,
+    "cropped_black_borders": true,
+    "omitted_tutorial_caption_intervals": true,
+    "source_segments_seconds": [
+      [
+        3,
+        6
+      ],
+      [
+        12,
+        16
+      ]
+    ],
+    "frames_verified": 210,
+    "size": [
+      1080,
+      1920
+    ]
+  },
+  "qa": {
+    "python_tests_passed": 37,
+    "python_tests_failed": 0,
+    "ffprobe": "passed",
+    "contact_sheet": "qa/pilot05_contact.png",
+    "layer_render_controls": "fixed_and_unit_tested"
+  },
+  "runtime": {
+    "blender_executable_available": false,
+    "quaternius_standard_assets_present": false,
+    "blender_3d_render_completed": false,
+    "blend_files_created": 0,
+    "mp4_3d_created": 0,
+    "run_attempt_log": "qa/blender_attempt.log"
+  },
+  "core": {
+    "paid_required": false,
+    "self_hosted": true,
+    "auto_publish": false
+  },
+  "next_acceptance": "Run Blender with Quaternius Standard, inspect 3D character acting and screen material, export .blend plus transparent passes."
+}
