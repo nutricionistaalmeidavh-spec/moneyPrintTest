@@ -22,6 +22,8 @@ def parse_args():
     p=argparse.ArgumentParser(description='Build 3D scenes; render MP4/stills only when explicitly requested')
     p.add_argument('--scene',default='05',help='Scene ID 01-12 or all')
     p.add_argument('--quality',choices=['preview','final'],default='preview')
+    p.add_argument('--character-mode',choices=['quaternius_standard','procedural_preview'],default=None)
+    p.add_argument('--animation-clip',default=None,help='Optional actual Quaternius Standard clip name (never invents missing clip)')
     p.add_argument('--still',action='store_true',help='Render one PNG preview at mid-scene')
     p.add_argument('--animate',action='store_true',help='Render full scene MP4 (CPU intensive)')
     p.add_argument('--dry-run',action='store_true',help='Validate assets/contract without bpy')
@@ -59,7 +61,7 @@ def validate_plan(project,folder=ROOT,*,require_media=True):
             'video_textures':sum(bool(s.get('video_texture')) for s in scenes)}
 
 
-def make_blender_scene(project,scene_data,quality,output_dir,still=False,animate=False):
+def make_blender_scene(project,scene_data,quality,output_dir,still=False,animate=False,*,character_mode=None,selected_animation=None):
     try:import bpy
     except ModuleNotFoundError as e:raise RuntimeError('Blender is required to create .blend and render output') from e
     from mathutils import Vector
@@ -282,10 +284,23 @@ def make_blender_scene(project,scene_data,quality,output_dir,still=False,animate
 
     # Actor positions share a consistent stage and can be retargeted to CC0 skinned rigs later.
     actors=scene_data['actors'];count=len(actors)
+    mode=character_mode or project.get('character_mode','procedural_preview')
+    if mode not in ('quaternius_standard','procedural_preview'):
+        raise ValueError('Unknown character mode')
     actor_x={1:[-1.45],2:[-1.65,-.1],3:[-1.65,-.2,1.30]}[count]
     for i,(spec,x) in enumerate(zip(actors,actor_x)):
-        rig=rig_parts(spec['role'],i,x,.2 if count==1 else 0,scale=.97 if count<3 else .85)
-        action(rig,spec['action'],scene_data['duration_frames'])
+        if mode=='quaternius_standard':
+            if str(ROOT) not in sys.path:sys.path.insert(0,str(ROOT))
+            from importlib import import_module
+            package = 'scripts.blender_pdv' if HERE.parent.name == 'blender_pdv' else 'scripts'
+            import_quaternius_actor = import_module(package + '.quaternius_blender').import_quaternius_actor
+            import_quaternius_actor(root=ROOT,role=spec['role'],index=i,x=x,
+                y=.2 if count==1 else 0,scale=.97 if count<3 else .85,
+                frame_count=scene_data['duration_frames'],action_name=spec['action'],
+                selected_animation=selected_animation)
+        else:
+            rig=rig_parts(spec['role'],i,x,.2 if count==1 else 0,scale=.97 if count<3 else .85)
+            action(rig,spec['action'],scene_data['duration_frames'])
 
     def make_video_material(path,offset_seconds):
         from subprocess import check_output
@@ -351,7 +366,7 @@ def make_blender_scene(project,scene_data,quality,output_dir,still=False,animate
 
     bpy.ops.object.camera_add(location=(0,-10,4.3))
     camera=bpy.context.object;camera.name=f'CAMERA_{shot}';scene.camera=camera
-    camera.data.type='ORTHO';camera.data.ortho_scale=7.8
+    camera.data.type='ORTHO';camera.data.ortho_scale=6.2 if shot=='05' else 7.8
     target=Vector((0,0,2.05))
     for f,position in [(1,(-.10,-10.2,4.36)),(max(2,scene_data['duration_frames']//2),(0,-9.7,4.22)),(scene_data['duration_frames'],(.10,-9.3,4.13))]:
         camera.location=position
@@ -384,12 +399,24 @@ def main():
     if opt.contract_only and not opt.dry_run:raise SystemExit('--contract-only cannot be used for actual render')
     scenes=project['scenes'] if opt.scene=='all' else [s for s in project['scenes'] if s['id']==opt.scene]
     if not scenes:raise SystemExit(f'Unknown scene: {opt.scene}')
+    character_mode=opt.character_mode or project.get('character_mode','procedural_preview')
+    if character_mode=='quaternius_standard' and not opt.contract_only:
+        if str(ROOT) not in sys.path:sys.path.insert(0,str(ROOT))
+        from importlib import import_module
+        package = 'scripts.blender_pdv' if HERE.parent.name == 'blender_pdv' else 'scripts'
+        assetmod = import_module(package + '.quaternius_assets')
+        find_standard_assets, select_animation = assetmod.find_standard_assets, assetmod.select_animation
+        library=find_standard_assets(ROOT/'assets/quaternius')
+        clip=select_animation(library['clips'],[opt.animation_clip] if opt.animation_clip else ['Sitting_Idle','Sit_Idle','Idle'])
+        print('Verified Quaternius Standard assets. Base:',library['model'],'Animation:',library['animation'],'Clip:',clip)
     if opt.dry_run:
         print(json.dumps({'valid':True,'plan':info,'selected':[s['id'] for s in scenes],
-          'blender_required_for_blend_and_render':True,'media_checked':not opt.contract_only,'paid_services':False},indent=2))
+          'blender_required_for_blend_and_render':True,'character_mode':character_mode,
+          'media_checked':not opt.contract_only,'paid_services':False},indent=2))
         return
     for s in scenes:
         print('Building Blender scene',s['id'],flush=True)
-        print(make_blender_scene(project,s,opt.quality,Path(opt.output_dir),opt.still,opt.animate),flush=True)
+        print(make_blender_scene(project,s,opt.quality,Path(opt.output_dir),opt.still,opt.animate,
+            character_mode=character_mode,selected_animation=opt.animation_clip),flush=True)
 
 if __name__=='__main__':main()
