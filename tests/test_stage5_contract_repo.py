@@ -5,7 +5,10 @@ Does not access private footage or require Blender or commercial services.
 from pathlib import Path
 import json
 import unittest
-from scripts.blender_pdv.build_blender import validate_plan
+try:
+    from scripts.blender_pdv.build_blender import validate_plan
+except ModuleNotFoundError:  # local ZIP keeps scripts/ flat
+    from scripts.build_blender import validate_plan
 
 ROOT=Path(__file__).resolve().parents[1]
 
@@ -29,7 +32,9 @@ class Stage5PublicContractTests(unittest.TestCase):
         self.assertEqual(v['offset_seconds'],0)
 
     def test_renderer_does_not_hide_camera_or_light_during_visual_pass(self):
-        script=(ROOT/'scripts/blender_pdv/layered_scene.py').read_text(encoding='utf8')
+        path=ROOT/'scripts/blender_pdv/layered_scene.py'
+        if not path.is_file():path=ROOT/'scripts/layered_scene.py'
+        script=path.read_text(encoding='utf8')
         self.assertIn("co.name not in {layer_name, '60_LIGHTS', '70_CAMERA'}",script)
         self.assertIn("if layer_name in ('00_WORLD','60_LIGHTS','70_CAMERA'",script)
         self.assertIn('scene.render.film_transparent=True',script)
