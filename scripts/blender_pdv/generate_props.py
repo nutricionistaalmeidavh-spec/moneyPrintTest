@@ -3,7 +3,8 @@
 import trimesh
 import numpy as np
 from pathlib import Path
-ROOT=Path(__file__).resolve().parents[1]; DEST=ROOT/'assets'/'models';DEST.mkdir(exist_ok=True,parents=True)
+HERE=Path(__file__).resolve()
+ROOT=HERE.parents[2] if HERE.parent.name=='blender_pdv' else HERE.parents[1]; DEST=ROOT/'assets'/'models';DEST.mkdir(exist_ok=True,parents=True)
 
 def color(hexcode):return np.array([int(hexcode[i:i+2],16) for i in (1,3,5)]+[255],dtype=np.uint8)
 
