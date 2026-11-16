@@ -32,6 +32,15 @@ O instalador valida SHA-256 para versões conhecidas e protege contra extração
 
 ## Criar a cena-piloto no Blender (local / self-hosted)
 
+Após baixar os dois ZIPs Standard e instalar Blender/FFmpeg, também existe o comando único, com QA automático:
+
+```sh
+python scripts/pilot_05.py --characters-zip '/caminho/Universal Base Characters[Standard].zip' --animations-zip '/caminho/Universal Animation Library[Standard].zip' --quality preview
+```
+
+Esse comando gera (se o Blender e os arquivos reais existirem) o `.blend`, o quadro de inspeção, o MP4 e o JSON de QA; **não publica**. No repositório GitHub, os scripts ficam em `scripts/blender_pdv/` em vez de `scripts/`.
+
+
 Instale Blender 4.2+ (GPL), FFmpeg e rode:
 
 ```sh
