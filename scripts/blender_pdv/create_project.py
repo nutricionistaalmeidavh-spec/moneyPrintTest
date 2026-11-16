@@ -4,7 +4,8 @@ from __future__ import annotations
 import json
 from pathlib import Path
 
-ROOT = Path(__file__).resolve().parents[1]
+HERE=Path(__file__).resolve()
+ROOT=HERE.parents[2] if HERE.parent.name=='blender_pdv' else HERE.parents[1]
 FPS=30
 ROLES=('desenvolvedor','garcom','cliente','cozinheiro','caixa','gerente')
 SCENES=[
