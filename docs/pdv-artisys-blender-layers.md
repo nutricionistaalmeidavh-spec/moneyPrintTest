@@ -1,6 +1,6 @@
 # MoneyPrint — PDV ArtiSys em Blender 3D, entregue por camadas
 
-**Estado verificado:** 12 cenas, 82s, 30 fps, projeto para render 9:16; 23 atuações de personagens e 21 superfícies de vídeo-textura vinculadas a 13 vídeos reais. Os 28 testes de contrato locais passaram. **Nenhum arquivo `.blend` ou MP4 Blender foi renderizado nesta sessão**: Blender não está instalado e o acesso ao download dos pacotes Standard Quaternius está bloqueado. O projeto não depende de serviços pagos.
+**Estado verificado:** 12 cenas, 82s, 30 fps, projeto para render 9:16; 23 atuações de personagens e 21 superfícies de vídeo-textura vinculadas a 13 vídeos reais. Os 32 testes de contrato locais passaram. **Nenhum arquivo `.blend` ou MP4 Blender foi renderizado nesta sessão**: Blender não está instalado e o acesso ao download dos pacotes Standard Quaternius está bloqueado. O projeto não depende de serviços pagos.
 
 ## Direção
 
