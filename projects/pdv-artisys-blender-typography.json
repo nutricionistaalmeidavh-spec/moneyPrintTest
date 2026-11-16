@@ -1,0 +1,1346 @@
+{
+  "01": [
+    {
+      "id": "eyebrow",
+      "file": "overlays/scene_01/eyebrow.png",
+      "start_seconds": 0.0,
+      "duration_seconds": 6.0,
+      "opacity_curve": [
+        {
+          "t": 0.0,
+          "v": 0
+        },
+        {
+          "t": 0.35,
+          "v": 1
+        }
+      ],
+      "position": {
+        "x": 80,
+        "y": 75
+      },
+      "editable_text": "SISTEMAS QUE CONSTRUÍ",
+      "alpha": true
+    },
+    {
+      "id": "title",
+      "file": "overlays/scene_01/title.png",
+      "start_seconds": 0.3,
+      "duration_seconds": 5.7,
+      "opacity_curve": [
+        {
+          "t": 0.3,
+          "v": 0
+        },
+        {
+          "t": 0.6499999999999999,
+          "v": 1
+        }
+      ],
+      "position": {
+        "x": 70,
+        "y": 135
+      },
+      "editable_text": "Criei meu próprio sistema de PDV.",
+      "alpha": true
+    },
+    {
+      "id": "accent",
+      "file": "overlays/scene_01/accent.png",
+      "start_seconds": 1.25,
+      "duration_seconds": 4.75,
+      "opacity_curve": [
+        {
+          "t": 1.25,
+          "v": 0
+        },
+        {
+          "t": 1.6,
+          "v": 1
+        }
+      ],
+      "position": {
+        "x": 76,
+        "y": 385
+      },
+      "editable_text": "Do salão à cozinha.",
+      "alpha": true
+    },
+    {
+      "id": "footer",
+      "file": "overlays/scene_01/footer.png",
+      "start_seconds": 0,
+      "duration_seconds": 6.0,
+      "opacity_curve": [
+        {
+          "t": 0,
+          "v": 0
+        },
+        {
+          "t": 0.35,
+          "v": 1
+        }
+      ],
+      "position": {
+        "x": 76,
+        "y": 1784
+      },
+      "editable_text": "ARTISYS / PDV ARTISYS",
+      "alpha": true
+    },
+    {
+      "id": "scene_number",
+      "file": "overlays/scene_01/scene_number.png",
+      "start_seconds": 0,
+      "duration_seconds": 6.0,
+      "opacity_curve": [
+        {
+          "t": 0,
+          "v": 0
+        },
+        {
+          "t": 0.35,
+          "v": 1
+        }
+      ],
+      "position": {
+        "x": 910,
+        "y": 72
+      },
+      "editable_text": "01 / 12",
+      "alpha": true
+    }
+  ],
+  "02": [
+    {
+      "id": "eyebrow",
+      "file": "overlays/scene_02/eyebrow.png",
+      "start_seconds": 0.0,
+      "duration_seconds": 7.0,
+      "opacity_curve": [
+        {
+          "t": 0.0,
+          "v": 0
+        },
+        {
+          "t": 0.35,
+          "v": 1
+        }
+      ],
+      "position": {
+        "x": 80,
+        "y": 75
+      },
+      "editable_text": "SISTEMAS QUE CONSTRUÍ",
+      "alpha": true
+    },
+    {
+      "id": "title",
+      "file": "overlays/scene_02/title.png",
+      "start_seconds": 0.3,
+      "duration_seconds": 6.7,
+      "opacity_curve": [
+        {
+          "t": 0.3,
+          "v": 0
+        },
+        {
+          "t": 0.6499999999999999,
+          "v": 1
+        }
+      ],
+      "position": {
+        "x": 70,
+        "y": 135
+      },
+      "editable_text": "O problema",
+      "alpha": true
+    },
+    {
+      "id": "accent",
+      "file": "overlays/scene_02/accent.png",
+      "start_seconds": 1.25,
+      "duration_seconds": 5.75,
+      "opacity_curve": [
+        {
+          "t": 1.25,
+          "v": 0
+        },
+        {
+          "t": 1.6,
+          "v": 1
+        }
+      ],
+      "position": {
+        "x": 76,
+        "y": 385
+      },
+      "editable_text": "Ferramentas separadas atrasam o atendimento.",
+      "alpha": true
+    },
+    {
+      "id": "footer",
+      "file": "overlays/scene_02/footer.png",
+      "start_seconds": 0,
+      "duration_seconds": 7.0,
+      "opacity_curve": [
+        {
+          "t": 0,
+          "v": 0
+        },
+        {
+          "t": 0.35,
+          "v": 1
+        }
+      ],
+      "position": {
+        "x": 76,
+        "y": 1784
+      },
+      "editable_text": "ARTISYS / PDV ARTISYS",
+      "alpha": true
+    },
+    {
+      "id": "scene_number",
+      "file": "overlays/scene_02/scene_number.png",
+      "start_seconds": 0,
+      "duration_seconds": 7.0,
+      "opacity_curve": [
+        {
+          "t": 0,
+          "v": 0
+        },
+        {
+          "t": 0.35,
+          "v": 1
+        }
+      ],
+      "position": {
+        "x": 910,
+        "y": 72
+      },
+      "editable_text": "02 / 12",
+      "alpha": true
+    }
+  ],
+  "03": [
+    {
+      "id": "eyebrow",
+      "file": "overlays/scene_03/eyebrow.png",
+      "start_seconds": 0.0,
+      "duration_seconds": 7.0,
+      "opacity_curve": [
+        {
+          "t": 0.0,
+          "v": 0
+        },
+        {
+          "t": 0.35,
+          "v": 1
+        }
+      ],
+      "position": {
+        "x": 80,
+        "y": 75
+      },
+      "editable_text": "SISTEMAS QUE CONSTRUÍ",
+      "alpha": true
+    },
+    {
+      "id": "title",
+      "file": "overlays/scene_03/title.png",
+      "start_seconds": 0.3,
+      "duration_seconds": 6.7,
+      "opacity_curve": [
+        {
+          "t": 0.3,
+          "v": 0
+        },
+        {
+          "t": 0.6499999999999999,
+          "v": 1
+        }
+      ],
+      "position": {
+        "x": 70,
+        "y": 135
+      },
+      "editable_text": "A solução",
+      "alpha": true
+    },
+    {
+      "id": "accent",
+      "file": "overlays/scene_03/accent.png",
+      "start_seconds": 1.25,
+      "duration_seconds": 5.75,
+      "opacity_curve": [
+        {
+          "t": 1.25,
+          "v": 0
+        },
+        {
+          "t": 1.6,
+          "v": 1
+        }
+      ],
+      "position": {
+        "x": 76,
+        "y": 385
+      },
+      "editable_text": "Tudo em um só sistema.",
+      "alpha": true
+    },
+    {
+      "id": "footer",
+      "file": "overlays/scene_03/footer.png",
+      "start_seconds": 0,
+      "duration_seconds": 7.0,
+      "opacity_curve": [
+        {
+          "t": 0,
+          "v": 0
+        },
+        {
+          "t": 0.35,
+          "v": 1
+        }
+      ],
+      "position": {
+        "x": 76,
+        "y": 1784
+      },
+      "editable_text": "ARTISYS / PDV ARTISYS",
+      "alpha": true
+    },
+    {
+      "id": "scene_number",
+      "file": "overlays/scene_03/scene_number.png",
+      "start_seconds": 0,
+      "duration_seconds": 7.0,
+      "opacity_curve": [
+        {
+          "t": 0,
+          "v": 0
+        },
+        {
+          "t": 0.35,
+          "v": 1
+        }
+      ],
+      "position": {
+        "x": 910,
+        "y": 72
+      },
+      "editable_text": "03 / 12",
+      "alpha": true
+    }
+  ],
+  "04": [
+    {
+      "id": "eyebrow",
+      "file": "overlays/scene_04/eyebrow.png",
+      "start_seconds": 0.0,
+      "duration_seconds": 6.0,
+      "opacity_curve": [
+        {
+          "t": 0.0,
+          "v": 0
+        },
+        {
+          "t": 0.35,
+          "v": 1
+        }
+      ],
+      "position": {
+        "x": 80,
+        "y": 75
+      },
+      "editable_text": "SISTEMAS QUE CONSTRUÍ",
+      "alpha": true
+    },
+    {
+      "id": "title",
+      "file": "overlays/scene_04/title.png",
+      "start_seconds": 0.3,
+      "duration_seconds": 5.7,
+      "opacity_curve": [
+        {
+          "t": 0.3,
+          "v": 0
+        },
+        {
+          "t": 0.6499999999999999,
+          "v": 1
+        }
+      ],
+      "position": {
+        "x": 70,
+        "y": 135
+      },
+      "editable_text": "Operação no salão",
+      "alpha": true
+    },
+    {
+      "id": "accent",
+      "file": "overlays/scene_04/accent.png",
+      "start_seconds": 1.25,
+      "duration_seconds": 4.75,
+      "opacity_curve": [
+        {
+          "t": 1.25,
+          "v": 0
+        },
+        {
+          "t": 1.6,
+          "v": 1
+        }
+      ],
+      "position": {
+        "x": 76,
+        "y": 385
+      },
+      "editable_text": "Mesas, comandas e pedidos em tempo real.",
+      "alpha": true
+    },
+    {
+      "id": "footer",
+      "file": "overlays/scene_04/footer.png",
+      "start_seconds": 0,
+      "duration_seconds": 6.0,
+      "opacity_curve": [
+        {
+          "t": 0,
+          "v": 0
+        },
+        {
+          "t": 0.35,
+          "v": 1
+        }
+      ],
+      "position": {
+        "x": 76,
+        "y": 1784
+      },
+      "editable_text": "ARTISYS / PDV ARTISYS",
+      "alpha": true
+    },
+    {
+      "id": "scene_number",
+      "file": "overlays/scene_04/scene_number.png",
+      "start_seconds": 0,
+      "duration_seconds": 6.0,
+      "opacity_curve": [
+        {
+          "t": 0,
+          "v": 0
+        },
+        {
+          "t": 0.35,
+          "v": 1
+        }
+      ],
+      "position": {
+        "x": 910,
+        "y": 72
+      },
+      "editable_text": "04 / 12",
+      "alpha": true
+    }
+  ],
+  "05": [
+    {
+      "id": "eyebrow",
+      "file": "overlays/scene_05/eyebrow.png",
+      "start_seconds": 0.0,
+      "duration_seconds": 7.0,
+      "opacity_curve": [
+        {
+          "t": 0.0,
+          "v": 0
+        },
+        {
+          "t": 0.35,
+          "v": 1
+        }
+      ],
+      "position": {
+        "x": 80,
+        "y": 75
+      },
+      "editable_text": "SISTEMAS QUE CONSTRUÍ",
+      "alpha": true
+    },
+    {
+      "id": "title",
+      "file": "overlays/scene_05/title.png",
+      "start_seconds": 0.3,
+      "duration_seconds": 6.7,
+      "opacity_curve": [
+        {
+          "t": 0.3,
+          "v": 0
+        },
+        {
+          "t": 0.6499999999999999,
+          "v": 1
+        }
+      ],
+      "position": {
+        "x": 70,
+        "y": 135
+      },
+      "editable_text": "Cardápio digital",
+      "alpha": true
+    },
+    {
+      "id": "accent",
+      "file": "overlays/scene_05/accent.png",
+      "start_seconds": 1.25,
+      "duration_seconds": 5.75,
+      "opacity_curve": [
+        {
+          "t": 1.25,
+          "v": 0
+        },
+        {
+          "t": 1.6,
+          "v": 1
+        }
+      ],
+      "position": {
+        "x": 76,
+        "y": 385
+      },
+      "editable_text": "O cliente faz o pedido pelo celular.",
+      "alpha": true
+    },
+    {
+      "id": "footer",
+      "file": "overlays/scene_05/footer.png",
+      "start_seconds": 0,
+      "duration_seconds": 7.0,
+      "opacity_curve": [
+        {
+          "t": 0,
+          "v": 0
+        },
+        {
+          "t": 0.35,
+          "v": 1
+        }
+      ],
+      "position": {
+        "x": 76,
+        "y": 1784
+      },
+      "editable_text": "ARTISYS / PDV ARTISYS",
+      "alpha": true
+    },
+    {
+      "id": "scene_number",
+      "file": "overlays/scene_05/scene_number.png",
+      "start_seconds": 0,
+      "duration_seconds": 7.0,
+      "opacity_curve": [
+        {
+          "t": 0,
+          "v": 0
+        },
+        {
+          "t": 0.35,
+          "v": 1
+        }
+      ],
+      "position": {
+        "x": 910,
+        "y": 72
+      },
+      "editable_text": "05 / 12",
+      "alpha": true
+    }
+  ],
+  "06": [
+    {
+      "id": "eyebrow",
+      "file": "overlays/scene_06/eyebrow.png",
+      "start_seconds": 0.0,
+      "duration_seconds": 7.0,
+      "opacity_curve": [
+        {
+          "t": 0.0,
+          "v": 0
+        },
+        {
+          "t": 0.35,
+          "v": 1
+        }
+      ],
+      "position": {
+        "x": 80,
+        "y": 75
+      },
+      "editable_text": "SISTEMAS QUE CONSTRUÍ",
+      "alpha": true
+    },
+    {
+      "id": "title",
+      "file": "overlays/scene_06/title.png",
+      "start_seconds": 0.3,
+      "duration_seconds": 6.7,
+      "opacity_curve": [
+        {
+          "t": 0.3,
+          "v": 0
+        },
+        {
+          "t": 0.6499999999999999,
+          "v": 1
+        }
+      ],
+      "position": {
+        "x": 70,
+        "y": 135
+      },
+      "editable_text": "Garçom conectado",
+      "alpha": true
+    },
+    {
+      "id": "accent",
+      "file": "overlays/scene_06/accent.png",
+      "start_seconds": 1.25,
+      "duration_seconds": 5.75,
+      "opacity_curve": [
+        {
+          "t": 1.25,
+          "v": 0
+        },
+        {
+          "t": 1.6,
+          "v": 1
+        }
+      ],
+      "position": {
+        "x": 76,
+        "y": 385
+      },
+      "editable_text": "Pedidos e chamados em tempo real.",
+      "alpha": true
+    },
+    {
+      "id": "footer",
+      "file": "overlays/scene_06/footer.png",
+      "start_seconds": 0,
+      "duration_seconds": 7.0,
+      "opacity_curve": [
+        {
+          "t": 0,
+          "v": 0
+        },
+        {
+          "t": 0.35,
+          "v": 1
+        }
+      ],
+      "position": {
+        "x": 76,
+        "y": 1784
+      },
+      "editable_text": "ARTISYS / PDV ARTISYS",
+      "alpha": true
+    },
+    {
+      "id": "scene_number",
+      "file": "overlays/scene_06/scene_number.png",
+      "start_seconds": 0,
+      "duration_seconds": 7.0,
+      "opacity_curve": [
+        {
+          "t": 0,
+          "v": 0
+        },
+        {
+          "t": 0.35,
+          "v": 1
+        }
+      ],
+      "position": {
+        "x": 910,
+        "y": 72
+      },
+      "editable_text": "06 / 12",
+      "alpha": true
+    }
+  ],
+  "07": [
+    {
+      "id": "eyebrow",
+      "file": "overlays/scene_07/eyebrow.png",
+      "start_seconds": 0.0,
+      "duration_seconds": 7.0,
+      "opacity_curve": [
+        {
+          "t": 0.0,
+          "v": 0
+        },
+        {
+          "t": 0.35,
+          "v": 1
+        }
+      ],
+      "position": {
+        "x": 80,
+        "y": 75
+      },
+      "editable_text": "SISTEMAS QUE CONSTRUÍ",
+      "alpha": true
+    },
+    {
+      "id": "title",
+      "file": "overlays/scene_07/title.png",
+      "start_seconds": 0.3,
+      "duration_seconds": 6.7,
+      "opacity_curve": [
+        {
+          "t": 0.3,
+          "v": 0
+        },
+        {
+          "t": 0.6499999999999999,
+          "v": 1
+        }
+      ],
+      "position": {
+        "x": 70,
+        "y": 135
+      },
+      "editable_text": "Cozinha organizada",
+      "alpha": true
+    },
+    {
+      "id": "accent",
+      "file": "overlays/scene_07/accent.png",
+      "start_seconds": 1.25,
+      "duration_seconds": 5.75,
+      "opacity_curve": [
+        {
+          "t": 1.25,
+          "v": 0
+        },
+        {
+          "t": 1.6,
+          "v": 1
+        }
+      ],
+      "position": {
+        "x": 76,
+        "y": 385
+      },
+      "editable_text": "Da comanda ao KDS.",
+      "alpha": true
+    },
+    {
+      "id": "footer",
+      "file": "overlays/scene_07/footer.png",
+      "start_seconds": 0,
+      "duration_seconds": 7.0,
+      "opacity_curve": [
+        {
+          "t": 0,
+          "v": 0
+        },
+        {
+          "t": 0.35,
+          "v": 1
+        }
+      ],
+      "position": {
+        "x": 76,
+        "y": 1784
+      },
+      "editable_text": "ARTISYS / PDV ARTISYS",
+      "alpha": true
+    },
+    {
+      "id": "scene_number",
+      "file": "overlays/scene_07/scene_number.png",
+      "start_seconds": 0,
+      "duration_seconds": 7.0,
+      "opacity_curve": [
+        {
+          "t": 0,
+          "v": 0
+        },
+        {
+          "t": 0.35,
+          "v": 1
+        }
+      ],
+      "position": {
+        "x": 910,
+        "y": 72
+      },
+      "editable_text": "07 / 12",
+      "alpha": true
+    }
+  ],
+  "08": [
+    {
+      "id": "eyebrow",
+      "file": "overlays/scene_08/eyebrow.png",
+      "start_seconds": 0.0,
+      "duration_seconds": 7.0,
+      "opacity_curve": [
+        {
+          "t": 0.0,
+          "v": 0
+        },
+        {
+          "t": 0.35,
+          "v": 1
+        }
+      ],
+      "position": {
+        "x": 80,
+        "y": 75
+      },
+      "editable_text": "SISTEMAS QUE CONSTRUÍ",
+      "alpha": true
+    },
+    {
+      "id": "title",
+      "file": "overlays/scene_08/title.png",
+      "start_seconds": 0.3,
+      "duration_seconds": 6.7,
+      "opacity_curve": [
+        {
+          "t": 0.3,
+          "v": 0
+        },
+        {
+          "t": 0.6499999999999999,
+          "v": 1
+        }
+      ],
+      "position": {
+        "x": 70,
+        "y": 135
+      },
+      "editable_text": "Do pedido ao caixa",
+      "alpha": true
+    },
+    {
+      "id": "accent",
+      "file": "overlays/scene_08/accent.png",
+      "start_seconds": 1.25,
+      "duration_seconds": 5.75,
+      "opacity_curve": [
+        {
+          "t": 1.25,
+          "v": 0
+        },
+        {
+          "t": 1.6,
+          "v": 1
+        }
+      ],
+      "position": {
+        "x": 76,
+        "y": 385
+      },
+      "editable_text": "Pagamento sem retrabalho.",
+      "alpha": true
+    },
+    {
+      "id": "footer",
+      "file": "overlays/scene_08/footer.png",
+      "start_seconds": 0,
+      "duration_seconds": 7.0,
+      "opacity_curve": [
+        {
+          "t": 0,
+          "v": 0
+        },
+        {
+          "t": 0.35,
+          "v": 1
+        }
+      ],
+      "position": {
+        "x": 76,
+        "y": 1784
+      },
+      "editable_text": "ARTISYS / PDV ARTISYS",
+      "alpha": true
+    },
+    {
+      "id": "scene_number",
+      "file": "overlays/scene_08/scene_number.png",
+      "start_seconds": 0,
+      "duration_seconds": 7.0,
+      "opacity_curve": [
+        {
+          "t": 0,
+          "v": 0
+        },
+        {
+          "t": 0.35,
+          "v": 1
+        }
+      ],
+      "position": {
+        "x": 910,
+        "y": 72
+      },
+      "editable_text": "08 / 12",
+      "alpha": true
+    }
+  ],
+  "09": [
+    {
+      "id": "eyebrow",
+      "file": "overlays/scene_09/eyebrow.png",
+      "start_seconds": 0.0,
+      "duration_seconds": 6.0,
+      "opacity_curve": [
+        {
+          "t": 0.0,
+          "v": 0
+        },
+        {
+          "t": 0.35,
+          "v": 1
+        }
+      ],
+      "position": {
+        "x": 80,
+        "y": 75
+      },
+      "editable_text": "SISTEMAS QUE CONSTRUÍ",
+      "alpha": true
+    },
+    {
+      "id": "title",
+      "file": "overlays/scene_09/title.png",
+      "start_seconds": 0.3,
+      "duration_seconds": 5.7,
+      "opacity_curve": [
+        {
+          "t": 0.3,
+          "v": 0
+        },
+        {
+          "t": 0.6499999999999999,
+          "v": 1
+        }
+      ],
+      "position": {
+        "x": 70,
+        "y": 135
+      },
+      "editable_text": "Equipe e permissões",
+      "alpha": true
+    },
+    {
+      "id": "accent",
+      "file": "overlays/scene_09/accent.png",
+      "start_seconds": 1.25,
+      "duration_seconds": 4.75,
+      "opacity_curve": [
+        {
+          "t": 1.25,
+          "v": 0
+        },
+        {
+          "t": 1.6,
+          "v": 1
+        }
+      ],
+      "position": {
+        "x": 76,
+        "y": 385
+      },
+      "editable_text": "Cada pessoa com seu acesso.",
+      "alpha": true
+    },
+    {
+      "id": "footer",
+      "file": "overlays/scene_09/footer.png",
+      "start_seconds": 0,
+      "duration_seconds": 6.0,
+      "opacity_curve": [
+        {
+          "t": 0,
+          "v": 0
+        },
+        {
+          "t": 0.35,
+          "v": 1
+        }
+      ],
+      "position": {
+        "x": 76,
+        "y": 1784
+      },
+      "editable_text": "ARTISYS / PDV ARTISYS",
+      "alpha": true
+    },
+    {
+      "id": "scene_number",
+      "file": "overlays/scene_09/scene_number.png",
+      "start_seconds": 0,
+      "duration_seconds": 6.0,
+      "opacity_curve": [
+        {
+          "t": 0,
+          "v": 0
+        },
+        {
+          "t": 0.35,
+          "v": 1
+        }
+      ],
+      "position": {
+        "x": 910,
+        "y": 72
+      },
+      "editable_text": "09 / 12",
+      "alpha": true
+    }
+  ],
+  "10": [
+    {
+      "id": "eyebrow",
+      "file": "overlays/scene_10/eyebrow.png",
+      "start_seconds": 0.0,
+      "duration_seconds": 7.0,
+      "opacity_curve": [
+        {
+          "t": 0.0,
+          "v": 0
+        },
+        {
+          "t": 0.35,
+          "v": 1
+        }
+      ],
+      "position": {
+        "x": 80,
+        "y": 75
+      },
+      "editable_text": "SISTEMAS QUE CONSTRUÍ",
+      "alpha": true
+    },
+    {
+      "id": "title",
+      "file": "overlays/scene_10/title.png",
+      "start_seconds": 0.3,
+      "duration_seconds": 6.7,
+      "opacity_curve": [
+        {
+          "t": 0.3,
+          "v": 0
+        },
+        {
+          "t": 0.6499999999999999,
+          "v": 1
+        }
+      ],
+      "position": {
+        "x": 70,
+        "y": 135
+      },
+      "editable_text": "Estoque e cardápio",
+      "alpha": true
+    },
+    {
+      "id": "accent",
+      "file": "overlays/scene_10/accent.png",
+      "start_seconds": 1.25,
+      "duration_seconds": 5.75,
+      "opacity_curve": [
+        {
+          "t": 1.25,
+          "v": 0
+        },
+        {
+          "t": 1.6,
+          "v": 1
+        }
+      ],
+      "position": {
+        "x": 76,
+        "y": 385
+      },
+      "editable_text": "Ficha técnica, produtos e estoque conectados.",
+      "alpha": true
+    },
+    {
+      "id": "footer",
+      "file": "overlays/scene_10/footer.png",
+      "start_seconds": 0,
+      "duration_seconds": 7.0,
+      "opacity_curve": [
+        {
+          "t": 0,
+          "v": 0
+        },
+        {
+          "t": 0.35,
+          "v": 1
+        }
+      ],
+      "position": {
+        "x": 76,
+        "y": 1784
+      },
+      "editable_text": "ARTISYS / PDV ARTISYS",
+      "alpha": true
+    },
+    {
+      "id": "scene_number",
+      "file": "overlays/scene_10/scene_number.png",
+      "start_seconds": 0,
+      "duration_seconds": 7.0,
+      "opacity_curve": [
+        {
+          "t": 0,
+          "v": 0
+        },
+        {
+          "t": 0.35,
+          "v": 1
+        }
+      ],
+      "position": {
+        "x": 910,
+        "y": 72
+      },
+      "editable_text": "10 / 12",
+      "alpha": true
+    }
+  ],
+  "11": [
+    {
+      "id": "eyebrow",
+      "file": "overlays/scene_11/eyebrow.png",
+      "start_seconds": 0.0,
+      "duration_seconds": 6.0,
+      "opacity_curve": [
+        {
+          "t": 0.0,
+          "v": 0
+        },
+        {
+          "t": 0.35,
+          "v": 1
+        }
+      ],
+      "position": {
+        "x": 80,
+        "y": 75
+      },
+      "editable_text": "SISTEMAS QUE CONSTRUÍ",
+      "alpha": true
+    },
+    {
+      "id": "title",
+      "file": "overlays/scene_11/title.png",
+      "start_seconds": 0.3,
+      "duration_seconds": 5.7,
+      "opacity_curve": [
+        {
+          "t": 0.3,
+          "v": 0
+        },
+        {
+          "t": 0.6499999999999999,
+          "v": 1
+        }
+      ],
+      "position": {
+        "x": 70,
+        "y": 135
+      },
+      "editable_text": "Por trás do produto",
+      "alpha": true
+    },
+    {
+      "id": "accent",
+      "file": "overlays/scene_11/accent.png",
+      "start_seconds": 1.25,
+      "duration_seconds": 4.75,
+      "opacity_curve": [
+        {
+          "t": 1.25,
+          "v": 0
+        },
+        {
+          "t": 1.6,
+          "v": 1
+        }
+      ],
+      "position": {
+        "x": 76,
+        "y": 385
+      },
+      "editable_text": "Código, testes e evolução.",
+      "alpha": true
+    },
+    {
+      "id": "footer",
+      "file": "overlays/scene_11/footer.png",
+      "start_seconds": 0,
+      "duration_seconds": 6.0,
+      "opacity_curve": [
+        {
+          "t": 0,
+          "v": 0
+        },
+        {
+          "t": 0.35,
+          "v": 1
+        }
+      ],
+      "position": {
+        "x": 76,
+        "y": 1784
+      },
+      "editable_text": "ARTISYS / PDV ARTISYS",
+      "alpha": true
+    },
+    {
+      "id": "scene_number",
+      "file": "overlays/scene_11/scene_number.png",
+      "start_seconds": 0,
+      "duration_seconds": 6.0,
+      "opacity_curve": [
+        {
+          "t": 0,
+          "v": 0
+        },
+        {
+          "t": 0.35,
+          "v": 1
+        }
+      ],
+      "position": {
+        "x": 910,
+        "y": 72
+      },
+      "editable_text": "11 / 12",
+      "alpha": true
+    }
+  ],
+  "12": [
+    {
+      "id": "eyebrow",
+      "file": "overlays/scene_12/eyebrow.png",
+      "start_seconds": 0.0,
+      "duration_seconds": 9.0,
+      "opacity_curve": [
+        {
+          "t": 0.0,
+          "v": 0
+        },
+        {
+          "t": 0.35,
+          "v": 1
+        }
+      ],
+      "position": {
+        "x": 80,
+        "y": 75
+      },
+      "editable_text": "SISTEMAS QUE CONSTRUÍ",
+      "alpha": true
+    },
+    {
+      "id": "title",
+      "file": "overlays/scene_12/title.png",
+      "start_seconds": 0.3,
+      "duration_seconds": 8.7,
+      "opacity_curve": [
+        {
+          "t": 0.3,
+          "v": 0
+        },
+        {
+          "t": 0.6499999999999999,
+          "v": 1
+        }
+      ],
+      "position": {
+        "x": 70,
+        "y": 135
+      },
+      "editable_text": "Curtiu o projeto?",
+      "alpha": true
+    },
+    {
+      "id": "accent",
+      "file": "overlays/scene_12/accent.png",
+      "start_seconds": 1.25,
+      "duration_seconds": 7.75,
+      "opacity_curve": [
+        {
+          "t": 1.25,
+          "v": 0
+        },
+        {
+          "t": 1.6,
+          "v": 1
+        }
+      ],
+      "position": {
+        "x": 76,
+        "y": 385
+      },
+      "editable_text": "Segue e salva para ver os próximos sistemas.",
+      "alpha": true
+    },
+    {
+      "id": "footer",
+      "file": "overlays/scene_12/footer.png",
+      "start_seconds": 0,
+      "duration_seconds": 9.0,
+      "opacity_curve": [
+        {
+          "t": 0,
+          "v": 0
+        },
+        {
+          "t": 0.35,
+          "v": 1
+        }
+      ],
+      "position": {
+        "x": 76,
+        "y": 1784
+      },
+      "editable_text": "ARTISYS / PDV ARTISYS",
+      "alpha": true
+    },
+    {
+      "id": "scene_number",
+      "file": "overlays/scene_12/scene_number.png",
+      "start_seconds": 0,
+      "duration_seconds": 9.0,
+      "opacity_curve": [
+        {
+          "t": 0,
+          "v": 0
+        },
+        {
+          "t": 0.35,
+          "v": 1
+        }
+      ],
+      "position": {
+        "x": 910,
+        "y": 72
+      },
+      "editable_text": "12 / 12",
+      "alpha": true
+    }
+  ]
+}

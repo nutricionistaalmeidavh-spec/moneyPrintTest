@@ -1,0 +1,658 @@
+{
+  "schema_version": 1,
+  "project": "pdv-artisys-blender-v1",
+  "fps": 30,
+  "aspect": "9:16",
+  "resolution": {
+    "preview": [
+      540,
+      960
+    ],
+    "final": [
+      1080,
+      1920
+    ]
+  },
+  "total_frames": 2460,
+  "duration_seconds": 82.0,
+  "autopublish": false,
+  "no_paid_dependencies": true,
+  "character_mode": "procedural_preview",
+  "character_quality_note": "Rig 3D procedural é protótipo técnico, não arte final. Para produção substituir pelos modelos CC0 rigged por personagem com licença verificada.",
+  "assets_policy": {
+    "real_pdv_footage": "local original from Drive",
+    "external_characters": "optional verified CC0 (explicit import)",
+    "paid_services": "none"
+  },
+  "character_library": [
+    {
+      "id": "desenvolvedor",
+      "preferred_source": "Quaternius Universal Base Characters + Universal Animation Library",
+      "license": "CC0 (check each asset version)"
+    },
+    {
+      "id": "garcom",
+      "preferred_source": "Quaternius Universal Base Characters + Universal Animation Library",
+      "license": "CC0 (check each asset version)"
+    },
+    {
+      "id": "cliente",
+      "preferred_source": "Quaternius Universal Base Characters + Universal Animation Library",
+      "license": "CC0 (check each asset version)"
+    },
+    {
+      "id": "cozinheiro",
+      "preferred_source": "Quaternius Universal Base Characters + Universal Animation Library",
+      "license": "CC0 (check each asset version)"
+    },
+    {
+      "id": "caixa",
+      "preferred_source": "Quaternius Universal Base Characters + Universal Animation Library",
+      "license": "CC0 (check each asset version)"
+    },
+    {
+      "id": "gerente",
+      "preferred_source": "Quaternius Universal Base Characters + Universal Animation Library",
+      "license": "CC0 (check each asset version)"
+    }
+  ],
+  "prop_library": [
+    "laptop",
+    "tablet",
+    "phone",
+    "monitor_KDS",
+    "balcao",
+    "mesa",
+    "cadeira",
+    "prato",
+    "QR_code",
+    "comanda",
+    "luminaria",
+    "plantas"
+  ],
+  "scenes": [
+    {
+      "id": "01",
+      "title": "Abertura",
+      "kind": "full_3d",
+      "start_frame": 0,
+      "duration_frames": 180,
+      "end_frame": 180,
+      "actors": [
+        {
+          "id": "01-desenvolvedor",
+          "role": "desenvolvedor",
+          "action": "present",
+          "animation": {
+            "start_frame": 8,
+            "end_frame": 171,
+            "head_turn_degrees": 12,
+            "arm_gesture_degrees": 36
+          },
+          "render_asset": "rigged_character"
+        }
+      ],
+      "video_texture": {
+        "file": "assets/balcao.mp4",
+        "device": "laptop",
+        "offset_seconds": 2,
+        "clip_original": true
+      },
+      "direction": "Apresentação do ecossistema PDV; começa com personagem e termina em notebook com tela real.",
+      "composition": {
+        "render": "blender",
+        "text_overlay": "MoneyPrint",
+        "audio": "MoneyPrint"
+      },
+      "camera": {
+        "type": "orthographic",
+        "move": "dolly_in"
+      },
+      "background": "software_studio"
+    },
+    {
+      "id": "02",
+      "title": "O problema",
+      "kind": "full_3d",
+      "start_frame": 180,
+      "duration_frames": 210,
+      "end_frame": 390,
+      "actors": [
+        {
+          "id": "02-garcom",
+          "role": "garcom",
+          "action": "confused",
+          "animation": {
+            "start_frame": 8,
+            "end_frame": 201,
+            "head_turn_degrees": 12,
+            "arm_gesture_degrees": 36
+          },
+          "render_asset": "rigged_character"
+        },
+        {
+          "id": "02-cozinheiro",
+          "role": "cozinheiro",
+          "action": "waiting",
+          "animation": {
+            "start_frame": 8,
+            "end_frame": 201,
+            "head_turn_degrees": 12,
+            "arm_gesture_degrees": 36
+          },
+          "render_asset": "rigged_character"
+        },
+        {
+          "id": "02-caixa",
+          "role": "caixa",
+          "action": "check",
+          "animation": {
+            "start_frame": 8,
+            "end_frame": 201,
+            "head_turn_degrees": 12,
+            "arm_gesture_degrees": 36
+          },
+          "render_asset": "rigged_character"
+        }
+      ],
+      "video_texture": null,
+      "direction": "Garçom procura a comanda, cozinheiro espera, caixa tenta localizar pedido; atuações independentes, objetos desalinhados.",
+      "composition": {
+        "render": "blender",
+        "text_overlay": "MoneyPrint",
+        "audio": "MoneyPrint"
+      },
+      "camera": {
+        "type": "orthographic",
+        "move": "orbit_subtle"
+      },
+      "background": "restaurant"
+    },
+    {
+      "id": "03",
+      "title": "A solução",
+      "kind": "transition_3d",
+      "start_frame": 390,
+      "duration_frames": 210,
+      "end_frame": 600,
+      "actors": [
+        {
+          "id": "03-gerente",
+          "role": "gerente",
+          "action": "present",
+          "animation": {
+            "start_frame": 8,
+            "end_frame": 201,
+            "head_turn_degrees": 12,
+            "arm_gesture_degrees": 36
+          },
+          "render_asset": "rigged_character"
+        },
+        {
+          "id": "03-garcom",
+          "role": "garcom",
+          "action": "relief",
+          "animation": {
+            "start_frame": 8,
+            "end_frame": 201,
+            "head_turn_degrees": 12,
+            "arm_gesture_degrees": 36
+          },
+          "render_asset": "rigged_character"
+        }
+      ],
+      "video_texture": {
+        "file": "assets/balcao.mp4",
+        "device": "laptop",
+        "offset_seconds": 2,
+        "clip_original": true
+      },
+      "direction": "Os personagens reorganizam a operação e a câmera termina na interface real.",
+      "composition": {
+        "render": "blender",
+        "text_overlay": "MoneyPrint",
+        "audio": "MoneyPrint"
+      },
+      "camera": {
+        "type": "orthographic",
+        "move": "dolly_in"
+      },
+      "background": "restaurant"
+    },
+    {
+      "id": "04",
+      "title": "Operação no salão",
+      "kind": "hybrid_3d",
+      "start_frame": 600,
+      "duration_frames": 180,
+      "end_frame": 780,
+      "actors": [
+        {
+          "id": "04-garcom",
+          "role": "garcom",
+          "action": "walk_point",
+          "animation": {
+            "start_frame": 8,
+            "end_frame": 171,
+            "head_turn_degrees": 12,
+            "arm_gesture_degrees": 36
+          },
+          "render_asset": "rigged_character"
+        },
+        {
+          "id": "04-cliente",
+          "role": "cliente",
+          "action": "scan",
+          "animation": {
+            "start_frame": 8,
+            "end_frame": 171,
+            "head_turn_degrees": 12,
+            "arm_gesture_degrees": 36
+          },
+          "render_asset": "rigged_character"
+        }
+      ],
+      "video_texture": {
+        "file": "assets/mesas.mp4",
+        "device": "tablet",
+        "offset_seconds": 2,
+        "clip_original": true
+      },
+      "direction": "Garçom chega à mesa; cliente lê QR; mesa muda de status no material real.",
+      "composition": {
+        "render": "blender",
+        "text_overlay": "MoneyPrint",
+        "audio": "MoneyPrint"
+      },
+      "camera": {
+        "type": "orthographic",
+        "move": "dolly_in"
+      },
+      "background": "restaurant"
+    },
+    {
+      "id": "05",
+      "title": "Cardápio digital",
+      "kind": "full_3d",
+      "start_frame": 780,
+      "duration_frames": 210,
+      "end_frame": 990,
+      "actors": [
+        {
+          "id": "05-cliente",
+          "role": "cliente",
+          "action": "phone_tap",
+          "animation": {
+            "start_frame": 8,
+            "end_frame": 201,
+            "head_turn_degrees": 12,
+            "arm_gesture_degrees": 36
+          },
+          "render_asset": "rigged_character"
+        }
+      ],
+      "video_texture": {
+        "file": "assets/cliente-qr.mp4",
+        "device": "phone",
+        "offset_seconds": 4,
+        "clip_original": true
+      },
+      "direction": "Cliente pega o celular e toca na tela; cardápio verdadeiro reproduzido no display.",
+      "composition": {
+        "render": "blender",
+        "text_overlay": "MoneyPrint",
+        "audio": "MoneyPrint"
+      },
+      "camera": {
+        "type": "orthographic",
+        "move": "dolly_in"
+      },
+      "background": "restaurant"
+    },
+    {
+      "id": "06",
+      "title": "Garçom conectado",
+      "kind": "hybrid_3d",
+      "start_frame": 990,
+      "duration_frames": 210,
+      "end_frame": 1200,
+      "actors": [
+        {
+          "id": "06-garcom",
+          "role": "garcom",
+          "action": "notification",
+          "animation": {
+            "start_frame": 8,
+            "end_frame": 201,
+            "head_turn_degrees": 12,
+            "arm_gesture_degrees": 36
+          },
+          "render_asset": "rigged_character"
+        }
+      ],
+      "video_texture": {
+        "file": "assets/garcom.mp4",
+        "device": "phone",
+        "offset_seconds": 3,
+        "clip_original": true
+      },
+      "direction": "Garçom recebe e confere o pedido, com toque e resposta facial.",
+      "composition": {
+        "render": "blender",
+        "text_overlay": "MoneyPrint",
+        "audio": "MoneyPrint"
+      },
+      "camera": {
+        "type": "orthographic",
+        "move": "dolly_in"
+      },
+      "background": "restaurant"
+    },
+    {
+      "id": "07",
+      "title": "Cozinha e KDS",
+      "kind": "full_3d",
+      "start_frame": 1200,
+      "duration_frames": 210,
+      "end_frame": 1410,
+      "actors": [
+        {
+          "id": "07-cozinheiro",
+          "role": "cozinheiro",
+          "action": "cook",
+          "animation": {
+            "start_frame": 8,
+            "end_frame": 201,
+            "head_turn_degrees": 12,
+            "arm_gesture_degrees": 36
+          },
+          "render_asset": "rigged_character"
+        }
+      ],
+      "video_texture": {
+        "file": "assets/kds.mp4",
+        "device": "monitor",
+        "offset_seconds": 4,
+        "clip_original": true
+      },
+      "direction": "Cozinheiro mexe no preparo, olha para o KDS real e confirma pedido pronto.",
+      "composition": {
+        "render": "blender",
+        "text_overlay": "MoneyPrint",
+        "audio": "MoneyPrint"
+      },
+      "camera": {
+        "type": "orthographic",
+        "move": "dolly_in"
+      },
+      "background": "restaurant"
+    },
+    {
+      "id": "08",
+      "title": "Comanda e caixa",
+      "kind": "hybrid_3d",
+      "start_frame": 1410,
+      "duration_frames": 210,
+      "end_frame": 1620,
+      "actors": [
+        {
+          "id": "08-caixa",
+          "role": "caixa",
+          "action": "checkout",
+          "animation": {
+            "start_frame": 8,
+            "end_frame": 201,
+            "head_turn_degrees": 12,
+            "arm_gesture_degrees": 36
+          },
+          "render_asset": "rigged_character"
+        },
+        {
+          "id": "08-cliente",
+          "role": "cliente",
+          "action": "relief",
+          "animation": {
+            "start_frame": 8,
+            "end_frame": 201,
+            "head_turn_degrees": 12,
+            "arm_gesture_degrees": 36
+          },
+          "render_asset": "rigged_character"
+        }
+      ],
+      "video_texture": {
+        "file": "assets/caixa.mp4",
+        "device": "laptop",
+        "offset_seconds": 4,
+        "clip_original": true
+      },
+      "direction": "Operadora localiza a comanda e fecha a conta; cliente reage.",
+      "composition": {
+        "render": "blender",
+        "text_overlay": "MoneyPrint",
+        "audio": "MoneyPrint"
+      },
+      "camera": {
+        "type": "orthographic",
+        "move": "dolly_in"
+      },
+      "background": "restaurant"
+    },
+    {
+      "id": "09",
+      "title": "Equipe e permissões",
+      "kind": "hybrid_3d",
+      "start_frame": 1620,
+      "duration_frames": 180,
+      "end_frame": 1800,
+      "actors": [
+        {
+          "id": "09-gerente",
+          "role": "gerente",
+          "action": "assign_roles",
+          "animation": {
+            "start_frame": 8,
+            "end_frame": 171,
+            "head_turn_degrees": 12,
+            "arm_gesture_degrees": 36
+          },
+          "render_asset": "rigged_character"
+        },
+        {
+          "id": "09-garcom",
+          "role": "garcom",
+          "action": "nod",
+          "animation": {
+            "start_frame": 8,
+            "end_frame": 171,
+            "head_turn_degrees": 12,
+            "arm_gesture_degrees": 36
+          },
+          "render_asset": "rigged_character"
+        },
+        {
+          "id": "09-caixa",
+          "role": "caixa",
+          "action": "confirm",
+          "animation": {
+            "start_frame": 8,
+            "end_frame": 171,
+            "head_turn_degrees": 12,
+            "arm_gesture_degrees": 36
+          },
+          "render_asset": "rigged_character"
+        }
+      ],
+      "video_texture": {
+        "file": "assets/equipe.mp4",
+        "device": "monitor",
+        "offset_seconds": 2,
+        "clip_original": true
+      },
+      "direction": "Gestor distribui perfis; visualização real do gerenciamento de acessos.",
+      "composition": {
+        "render": "blender",
+        "text_overlay": "MoneyPrint",
+        "audio": "MoneyPrint"
+      },
+      "camera": {
+        "type": "orthographic",
+        "move": "orbit_subtle"
+      },
+      "background": "restaurant"
+    },
+    {
+      "id": "10",
+      "title": "Estoque e cardápio",
+      "kind": "hybrid_3d",
+      "start_frame": 1800,
+      "duration_frames": 210,
+      "end_frame": 2010,
+      "actors": [
+        {
+          "id": "10-cozinheiro",
+          "role": "cozinheiro",
+          "action": "cook",
+          "animation": {
+            "start_frame": 8,
+            "end_frame": 201,
+            "head_turn_degrees": 12,
+            "arm_gesture_degrees": 36
+          },
+          "render_asset": "rigged_character"
+        },
+        {
+          "id": "10-gerente",
+          "role": "gerente",
+          "action": "point",
+          "animation": {
+            "start_frame": 8,
+            "end_frame": 201,
+            "head_turn_degrees": 12,
+            "arm_gesture_degrees": 36
+          },
+          "render_asset": "rigged_character"
+        }
+      ],
+      "video_texture": {
+        "file": "assets/ficha.mp4",
+        "device": "tablet",
+        "offset_seconds": 3,
+        "clip_original": true
+      },
+      "direction": "Cozinheiro monta prato, gestor confere ficha técnica real.",
+      "composition": {
+        "render": "blender",
+        "text_overlay": "MoneyPrint",
+        "audio": "MoneyPrint"
+      },
+      "camera": {
+        "type": "orthographic",
+        "move": "dolly_in"
+      },
+      "background": "restaurant"
+    },
+    {
+      "id": "11",
+      "title": "Bastidores",
+      "kind": "full_3d",
+      "start_frame": 2010,
+      "duration_frames": 180,
+      "end_frame": 2190,
+      "actors": [
+        {
+          "id": "11-desenvolvedor",
+          "role": "desenvolvedor",
+          "action": "type",
+          "animation": {
+            "start_frame": 8,
+            "end_frame": 171,
+            "head_turn_degrees": 12,
+            "arm_gesture_degrees": 36
+          },
+          "render_asset": "rigged_character"
+        }
+      ],
+      "video_texture": {
+        "file": "assets/relatorio.mp4",
+        "device": "laptop",
+        "offset_seconds": 2,
+        "clip_original": true
+      },
+      "direction": "Dev digita, confere execução e ajusta produto; não divulgar repositório privado.",
+      "composition": {
+        "render": "blender",
+        "text_overlay": "MoneyPrint",
+        "audio": "MoneyPrint"
+      },
+      "camera": {
+        "type": "orthographic",
+        "move": "dolly_in"
+      },
+      "background": "software_studio"
+    },
+    {
+      "id": "12",
+      "title": "Encerramento",
+      "kind": "transition_3d",
+      "start_frame": 2190,
+      "duration_frames": 270,
+      "end_frame": 2460,
+      "actors": [
+        {
+          "id": "12-desenvolvedor",
+          "role": "desenvolvedor",
+          "action": "wave",
+          "animation": {
+            "start_frame": 8,
+            "end_frame": 261,
+            "head_turn_degrees": 12,
+            "arm_gesture_degrees": 36
+          },
+          "render_asset": "rigged_character"
+        },
+        {
+          "id": "12-garcom",
+          "role": "garcom",
+          "action": "nod",
+          "animation": {
+            "start_frame": 8,
+            "end_frame": 261,
+            "head_turn_degrees": 12,
+            "arm_gesture_degrees": 36
+          },
+          "render_asset": "rigged_character"
+        },
+        {
+          "id": "12-cliente",
+          "role": "cliente",
+          "action": "relief",
+          "animation": {
+            "start_frame": 8,
+            "end_frame": 261,
+            "head_turn_degrees": 12,
+            "arm_gesture_degrees": 36
+          },
+          "render_asset": "rigged_character"
+        }
+      ],
+      "video_texture": {
+        "file": "assets/balcao.mp4",
+        "device": "laptop",
+        "offset_seconds": 2,
+        "clip_original": true
+      },
+      "direction": "Equipe e dispositivos convergem, foco na aplicação real, CTA sobreposto somente na montagem do MoneyPrint.",
+      "composition": {
+        "render": "blender",
+        "text_overlay": "MoneyPrint",
+        "audio": "MoneyPrint"
+      },
+      "camera": {
+        "type": "orthographic",
+        "move": "dolly_in"
+      },
+      "background": "restaurant"
+    }
+  ]
+}

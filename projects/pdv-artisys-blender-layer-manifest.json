@@ -1,0 +1,680 @@
+{
+  "schema": "moneyprint-pdv-layered-3d-v1",
+  "project_file": "projects/pdv-artisys-quaternius-v1.json",
+  "fps": 30,
+  "canvas": [
+    1080,
+    1920
+  ],
+  "duration_seconds": 82,
+  "total_frames": 2460,
+  "scene_count": 12,
+  "character_instances": 23,
+  "screen_instances": 21,
+  "collection_names": [
+    "00_WORLD",
+    "10_RESTAURANT_SET",
+    "20_ACTORS_QUATERNIUS_CC0",
+    "30_HAND_PROPS",
+    "40_DEVICES_3D",
+    "41_REAL_PDV_MOVIE_TEXTURES",
+    "50_FLOATING_INFO",
+    "60_LIGHTS",
+    "70_CAMERA",
+    "90_SOURCE_ANIMATIONS_HIDDEN",
+    "95_MONEYPRINT_TEXT_OVERLAYS",
+    "96_MONEYPRINT_SOUND"
+  ],
+  "media_sources": {
+    "assets/balcao.mp4": {
+      "relative_path": "assets/balcao.mp4",
+      "sha256": "041e03cf6aad736cc8f5e5decb4ce3f5304af5ab33a25dbb66529791d9c4b865",
+      "bytes": 1306810,
+      "dimensions": [
+        1920,
+        1080
+      ],
+      "fps": "30/1",
+      "duration_seconds": 52.3,
+      "provenance": "Tutorial de operação PDV ArtiSys, Google Drive do proprietário",
+      "redistribution": "Somente no pacote privado do proprietário"
+    },
+    "assets/caixa.mp4": {
+      "relative_path": "assets/caixa.mp4",
+      "sha256": "fca38de2bd4812a8674284d0d647c62641ac4bf3f01b9e8203b1fca23578b8e3",
+      "bytes": 1134861,
+      "dimensions": [
+        1920,
+        1080
+      ],
+      "fps": "30/1",
+      "duration_seconds": 30.0,
+      "provenance": "Tutorial de operação PDV ArtiSys, Google Drive do proprietário",
+      "redistribution": "Somente no pacote privado do proprietário"
+    },
+    "assets/cardapio.mp4": {
+      "relative_path": "assets/cardapio.mp4",
+      "sha256": "b90991175d38d49cc01e2f3a1af4bdcb23fcf018ca23514380c2e6343d02f711",
+      "bytes": 779067,
+      "dimensions": [
+        1920,
+        1080
+      ],
+      "fps": "30/1",
+      "duration_seconds": 22.0,
+      "provenance": "Tutorial de operação PDV ArtiSys, Google Drive do proprietário",
+      "redistribution": "Somente no pacote privado do proprietário"
+    },
+    "assets/cliente-qr.mp4": {
+      "relative_path": "assets/cliente-qr.mp4",
+      "sha256": "6068cabee911906019f19af33aa40c421b4676e1492c0243a986746e9684356d",
+      "bytes": 691090,
+      "dimensions": [
+        1080,
+        1920
+      ],
+      "fps": "30/1",
+      "duration_seconds": 28.0,
+      "provenance": "Tutorial de operação PDV ArtiSys, Google Drive do proprietário",
+      "redistribution": "Somente no pacote privado do proprietário"
+    },
+    "assets/equipe.mp4": {
+      "relative_path": "assets/equipe.mp4",
+      "sha256": "c68b9fcfcff0c70808d42c412a0a97e9c3597eb5b76fe26ef5d9ebbc351ff9a9",
+      "bytes": 507542,
+      "dimensions": [
+        1920,
+        1080
+      ],
+      "fps": "30/1",
+      "duration_seconds": 24.0,
+      "provenance": "Tutorial de operação PDV ArtiSys, Google Drive do proprietário",
+      "redistribution": "Somente no pacote privado do proprietário"
+    },
+    "assets/ficha.mp4": {
+      "relative_path": "assets/ficha.mp4",
+      "sha256": "1880328f8d319f93e8701e7f3aec42c34e6aa69f03800f9357233656363df81b",
+      "bytes": 927996,
+      "dimensions": [
+        1920,
+        1080
+      ],
+      "fps": "30/1",
+      "duration_seconds": 30.0,
+      "provenance": "Tutorial de operação PDV ArtiSys, Google Drive do proprietário",
+      "redistribution": "Somente no pacote privado do proprietário"
+    },
+    "assets/financeiro.mp4": {
+      "relative_path": "assets/financeiro.mp4",
+      "sha256": "31ba145e1fb7ae6ebc8156c0f3633150f26b06c630a40d3ff8cde40c09e82104",
+      "bytes": 645013,
+      "dimensions": [
+        1920,
+        1080
+      ],
+      "fps": "30/1",
+      "duration_seconds": 21.967,
+      "provenance": "Tutorial de operação PDV ArtiSys, Google Drive do proprietário",
+      "redistribution": "Somente no pacote privado do proprietário"
+    },
+    "assets/garcom.mp4": {
+      "relative_path": "assets/garcom.mp4",
+      "sha256": "34db9ade31a52c52cddf8d4057b2357c8380f8b2ba26d64ea9448af4b33da59a",
+      "bytes": 482698,
+      "dimensions": [
+        1080,
+        1920
+      ],
+      "fps": "30/1",
+      "duration_seconds": 25.967,
+      "provenance": "Tutorial de operação PDV ArtiSys, Google Drive do proprietário",
+      "redistribution": "Somente no pacote privado do proprietário"
+    },
+    "assets/gerar-qr.mp4": {
+      "relative_path": "assets/gerar-qr.mp4",
+      "sha256": "5d95a1e79787d1845149406b0624072106cfe1c9c5e567de926c2e84e5e2ce75",
+      "bytes": 628543,
+      "dimensions": [
+        1920,
+        1080
+      ],
+      "fps": "30/1",
+      "duration_seconds": 21.967,
+      "provenance": "Tutorial de operação PDV ArtiSys, Google Drive do proprietário",
+      "redistribution": "Somente no pacote privado do proprietário"
+    },
+    "assets/kds-sync.mp4": {
+      "relative_path": "assets/kds-sync.mp4",
+      "sha256": "738668c3b5d421220e209cba641026fcdaeb96cb81724400fae28a601b164143",
+      "bytes": 545503,
+      "dimensions": [
+        1920,
+        1080
+      ],
+      "fps": "30/1",
+      "duration_seconds": 30.0,
+      "provenance": "Tutorial de operação PDV ArtiSys, Google Drive do proprietário",
+      "redistribution": "Somente no pacote privado do proprietário"
+    },
+    "assets/kds.mp4": {
+      "relative_path": "assets/kds.mp4",
+      "sha256": "2f9ca371fbaa8a51edb43fe0f0f384ca2817d5ca3aead65ceac2ff647db40c07",
+      "bytes": 364184,
+      "dimensions": [
+        1920,
+        1080
+      ],
+      "fps": "30/1",
+      "duration_seconds": 25.967,
+      "provenance": "Tutorial de operação PDV ArtiSys, Google Drive do proprietário",
+      "redistribution": "Somente no pacote privado do proprietário"
+    },
+    "assets/mesas.mp4": {
+      "relative_path": "assets/mesas.mp4",
+      "sha256": "268e9641ff74bb5b34b26c6a5b6ea1e10dd9e3432243e212473de763c85927c8",
+      "bytes": 779066,
+      "dimensions": [
+        1920,
+        1080
+      ],
+      "fps": "30/1",
+      "duration_seconds": 24.0,
+      "provenance": "Tutorial de operação PDV ArtiSys, Google Drive do proprietário",
+      "redistribution": "Somente no pacote privado do proprietário"
+    },
+    "assets/relatorio.mp4": {
+      "relative_path": "assets/relatorio.mp4",
+      "sha256": "93a82e13ff5e031bf8099d2f61dcbc00ced7693fc9005934a252cb80de16fd61",
+      "bytes": 829755,
+      "dimensions": [
+        1920,
+        1080
+      ],
+      "fps": "30/1",
+      "duration_seconds": 21.967,
+      "provenance": "Tutorial de operação PDV ArtiSys, Google Drive do proprietário",
+      "redistribution": "Somente no pacote privado do proprietário"
+    }
+  },
+  "scene_layers": [
+    {
+      "id": "01",
+      "frames": 180,
+      "start_frame": 0,
+      "end_frame": 180,
+      "character_actions": [
+        {
+          "role": "desenvolvedor",
+          "action": "present",
+          "start_frame": 1,
+          "end_frame": 180,
+          "action_source": "Quaternius Standard UAL base + manually authored bone keyframes"
+        }
+      ],
+      "screen_mappings": [
+        "assets/balcao.mp4",
+        "assets/cliente-qr.mp4",
+        "assets/garcom.mp4"
+      ],
+      "layers": [
+        "00_WORLD",
+        "10_RESTAURANT_SET",
+        "20_ACTORS_QUATERNIUS_CC0",
+        "30_HAND_PROPS",
+        "40_DEVICES_3D",
+        "41_REAL_PDV_MOVIE_TEXTURES",
+        "50_FLOATING_INFO",
+        "60_LIGHTS",
+        "70_CAMERA",
+        "90_SOURCE_ANIMATIONS_HIDDEN",
+        "95_MONEYPRINT_TEXT_OVERLAYS",
+        "96_MONEYPRINT_SOUND"
+      ]
+    },
+    {
+      "id": "02",
+      "frames": 210,
+      "start_frame": 180,
+      "end_frame": 390,
+      "character_actions": [
+        {
+          "role": "garcom",
+          "action": "confused",
+          "start_frame": 1,
+          "end_frame": 210,
+          "action_source": "Quaternius Standard UAL base + manually authored bone keyframes"
+        },
+        {
+          "role": "cozinheiro",
+          "action": "waiting",
+          "start_frame": 1,
+          "end_frame": 210,
+          "action_source": "Quaternius Standard UAL base + manually authored bone keyframes"
+        },
+        {
+          "role": "caixa",
+          "action": "check",
+          "start_frame": 1,
+          "end_frame": 210,
+          "action_source": "Quaternius Standard UAL base + manually authored bone keyframes"
+        }
+      ],
+      "screen_mappings": [],
+      "layers": [
+        "00_WORLD",
+        "10_RESTAURANT_SET",
+        "20_ACTORS_QUATERNIUS_CC0",
+        "30_HAND_PROPS",
+        "40_DEVICES_3D",
+        "41_REAL_PDV_MOVIE_TEXTURES",
+        "50_FLOATING_INFO",
+        "60_LIGHTS",
+        "70_CAMERA",
+        "90_SOURCE_ANIMATIONS_HIDDEN",
+        "95_MONEYPRINT_TEXT_OVERLAYS",
+        "96_MONEYPRINT_SOUND"
+      ]
+    },
+    {
+      "id": "03",
+      "frames": 210,
+      "start_frame": 390,
+      "end_frame": 600,
+      "character_actions": [
+        {
+          "role": "gerente",
+          "action": "present",
+          "start_frame": 1,
+          "end_frame": 210,
+          "action_source": "Quaternius Standard UAL base + manually authored bone keyframes"
+        },
+        {
+          "role": "garcom",
+          "action": "relief",
+          "start_frame": 1,
+          "end_frame": 210,
+          "action_source": "Quaternius Standard UAL base + manually authored bone keyframes"
+        }
+      ],
+      "screen_mappings": [
+        "assets/balcao.mp4",
+        "assets/mesas.mp4"
+      ],
+      "layers": [
+        "00_WORLD",
+        "10_RESTAURANT_SET",
+        "20_ACTORS_QUATERNIUS_CC0",
+        "30_HAND_PROPS",
+        "40_DEVICES_3D",
+        "41_REAL_PDV_MOVIE_TEXTURES",
+        "50_FLOATING_INFO",
+        "60_LIGHTS",
+        "70_CAMERA",
+        "90_SOURCE_ANIMATIONS_HIDDEN",
+        "95_MONEYPRINT_TEXT_OVERLAYS",
+        "96_MONEYPRINT_SOUND"
+      ]
+    },
+    {
+      "id": "04",
+      "frames": 180,
+      "start_frame": 600,
+      "end_frame": 780,
+      "character_actions": [
+        {
+          "role": "garcom",
+          "action": "walk_point",
+          "start_frame": 1,
+          "end_frame": 180,
+          "action_source": "Quaternius Standard UAL base + manually authored bone keyframes"
+        },
+        {
+          "role": "cliente",
+          "action": "scan",
+          "start_frame": 1,
+          "end_frame": 180,
+          "action_source": "Quaternius Standard UAL base + manually authored bone keyframes"
+        }
+      ],
+      "screen_mappings": [
+        "assets/mesas.mp4",
+        "assets/gerar-qr.mp4"
+      ],
+      "layers": [
+        "00_WORLD",
+        "10_RESTAURANT_SET",
+        "20_ACTORS_QUATERNIUS_CC0",
+        "30_HAND_PROPS",
+        "40_DEVICES_3D",
+        "41_REAL_PDV_MOVIE_TEXTURES",
+        "50_FLOATING_INFO",
+        "60_LIGHTS",
+        "70_CAMERA",
+        "90_SOURCE_ANIMATIONS_HIDDEN",
+        "95_MONEYPRINT_TEXT_OVERLAYS",
+        "96_MONEYPRINT_SOUND"
+      ]
+    },
+    {
+      "id": "05",
+      "frames": 210,
+      "start_frame": 780,
+      "end_frame": 990,
+      "character_actions": [
+        {
+          "role": "cliente",
+          "action": "phone_tap",
+          "start_frame": 1,
+          "end_frame": 210,
+          "action_source": "Quaternius Standard UAL base + manually authored bone keyframes"
+        }
+      ],
+      "screen_mappings": [
+        "assets/cliente-qr.mp4"
+      ],
+      "layers": [
+        "00_WORLD",
+        "10_RESTAURANT_SET",
+        "20_ACTORS_QUATERNIUS_CC0",
+        "30_HAND_PROPS",
+        "40_DEVICES_3D",
+        "41_REAL_PDV_MOVIE_TEXTURES",
+        "50_FLOATING_INFO",
+        "60_LIGHTS",
+        "70_CAMERA",
+        "90_SOURCE_ANIMATIONS_HIDDEN",
+        "95_MONEYPRINT_TEXT_OVERLAYS",
+        "96_MONEYPRINT_SOUND"
+      ]
+    },
+    {
+      "id": "06",
+      "frames": 210,
+      "start_frame": 990,
+      "end_frame": 1200,
+      "character_actions": [
+        {
+          "role": "garcom",
+          "action": "notification",
+          "start_frame": 1,
+          "end_frame": 210,
+          "action_source": "Quaternius Standard UAL base + manually authored bone keyframes"
+        }
+      ],
+      "screen_mappings": [
+        "assets/garcom.mp4",
+        "assets/mesas.mp4"
+      ],
+      "layers": [
+        "00_WORLD",
+        "10_RESTAURANT_SET",
+        "20_ACTORS_QUATERNIUS_CC0",
+        "30_HAND_PROPS",
+        "40_DEVICES_3D",
+        "41_REAL_PDV_MOVIE_TEXTURES",
+        "50_FLOATING_INFO",
+        "60_LIGHTS",
+        "70_CAMERA",
+        "90_SOURCE_ANIMATIONS_HIDDEN",
+        "95_MONEYPRINT_TEXT_OVERLAYS",
+        "96_MONEYPRINT_SOUND"
+      ]
+    },
+    {
+      "id": "07",
+      "frames": 210,
+      "start_frame": 1200,
+      "end_frame": 1410,
+      "character_actions": [
+        {
+          "role": "cozinheiro",
+          "action": "cook",
+          "start_frame": 1,
+          "end_frame": 210,
+          "action_source": "Quaternius Standard UAL base + manually authored bone keyframes"
+        },
+        {
+          "role": "garcom",
+          "action": "deliver_plate",
+          "start_frame": 1,
+          "end_frame": 210,
+          "action_source": "Quaternius Standard UAL base + manually authored bone keyframes"
+        }
+      ],
+      "screen_mappings": [
+        "assets/kds.mp4",
+        "assets/kds-sync.mp4"
+      ],
+      "layers": [
+        "00_WORLD",
+        "10_RESTAURANT_SET",
+        "20_ACTORS_QUATERNIUS_CC0",
+        "30_HAND_PROPS",
+        "40_DEVICES_3D",
+        "41_REAL_PDV_MOVIE_TEXTURES",
+        "50_FLOATING_INFO",
+        "60_LIGHTS",
+        "70_CAMERA",
+        "90_SOURCE_ANIMATIONS_HIDDEN",
+        "95_MONEYPRINT_TEXT_OVERLAYS",
+        "96_MONEYPRINT_SOUND"
+      ]
+    },
+    {
+      "id": "08",
+      "frames": 210,
+      "start_frame": 1410,
+      "end_frame": 1620,
+      "character_actions": [
+        {
+          "role": "caixa",
+          "action": "checkout",
+          "start_frame": 1,
+          "end_frame": 210,
+          "action_source": "Quaternius Standard UAL base + manually authored bone keyframes"
+        },
+        {
+          "role": "cliente",
+          "action": "relief",
+          "start_frame": 1,
+          "end_frame": 210,
+          "action_source": "Quaternius Standard UAL base + manually authored bone keyframes"
+        }
+      ],
+      "screen_mappings": [
+        "assets/caixa.mp4",
+        "assets/balcao.mp4"
+      ],
+      "layers": [
+        "00_WORLD",
+        "10_RESTAURANT_SET",
+        "20_ACTORS_QUATERNIUS_CC0",
+        "30_HAND_PROPS",
+        "40_DEVICES_3D",
+        "41_REAL_PDV_MOVIE_TEXTURES",
+        "50_FLOATING_INFO",
+        "60_LIGHTS",
+        "70_CAMERA",
+        "90_SOURCE_ANIMATIONS_HIDDEN",
+        "95_MONEYPRINT_TEXT_OVERLAYS",
+        "96_MONEYPRINT_SOUND"
+      ]
+    },
+    {
+      "id": "09",
+      "frames": 180,
+      "start_frame": 1620,
+      "end_frame": 1800,
+      "character_actions": [
+        {
+          "role": "gerente",
+          "action": "assign_roles",
+          "start_frame": 1,
+          "end_frame": 180,
+          "action_source": "Quaternius Standard UAL base + manually authored bone keyframes"
+        },
+        {
+          "role": "garcom",
+          "action": "nod",
+          "start_frame": 1,
+          "end_frame": 180,
+          "action_source": "Quaternius Standard UAL base + manually authored bone keyframes"
+        },
+        {
+          "role": "caixa",
+          "action": "confirm",
+          "start_frame": 1,
+          "end_frame": 180,
+          "action_source": "Quaternius Standard UAL base + manually authored bone keyframes"
+        }
+      ],
+      "screen_mappings": [
+        "assets/equipe.mp4"
+      ],
+      "layers": [
+        "00_WORLD",
+        "10_RESTAURANT_SET",
+        "20_ACTORS_QUATERNIUS_CC0",
+        "30_HAND_PROPS",
+        "40_DEVICES_3D",
+        "41_REAL_PDV_MOVIE_TEXTURES",
+        "50_FLOATING_INFO",
+        "60_LIGHTS",
+        "70_CAMERA",
+        "90_SOURCE_ANIMATIONS_HIDDEN",
+        "95_MONEYPRINT_TEXT_OVERLAYS",
+        "96_MONEYPRINT_SOUND"
+      ]
+    },
+    {
+      "id": "10",
+      "frames": 210,
+      "start_frame": 1800,
+      "end_frame": 2010,
+      "character_actions": [
+        {
+          "role": "cozinheiro",
+          "action": "cook",
+          "start_frame": 1,
+          "end_frame": 210,
+          "action_source": "Quaternius Standard UAL base + manually authored bone keyframes"
+        },
+        {
+          "role": "gerente",
+          "action": "point",
+          "start_frame": 1,
+          "end_frame": 210,
+          "action_source": "Quaternius Standard UAL base + manually authored bone keyframes"
+        }
+      ],
+      "screen_mappings": [
+        "assets/ficha.mp4",
+        "assets/cardapio.mp4"
+      ],
+      "layers": [
+        "00_WORLD",
+        "10_RESTAURANT_SET",
+        "20_ACTORS_QUATERNIUS_CC0",
+        "30_HAND_PROPS",
+        "40_DEVICES_3D",
+        "41_REAL_PDV_MOVIE_TEXTURES",
+        "50_FLOATING_INFO",
+        "60_LIGHTS",
+        "70_CAMERA",
+        "90_SOURCE_ANIMATIONS_HIDDEN",
+        "95_MONEYPRINT_TEXT_OVERLAYS",
+        "96_MONEYPRINT_SOUND"
+      ]
+    },
+    {
+      "id": "11",
+      "frames": 180,
+      "start_frame": 2010,
+      "end_frame": 2190,
+      "character_actions": [
+        {
+          "role": "desenvolvedor",
+          "action": "type",
+          "start_frame": 1,
+          "end_frame": 180,
+          "action_source": "Quaternius Standard UAL base + manually authored bone keyframes"
+        }
+      ],
+      "screen_mappings": [
+        "assets/relatorio.mp4"
+      ],
+      "layers": [
+        "00_WORLD",
+        "10_RESTAURANT_SET",
+        "20_ACTORS_QUATERNIUS_CC0",
+        "30_HAND_PROPS",
+        "40_DEVICES_3D",
+        "41_REAL_PDV_MOVIE_TEXTURES",
+        "50_FLOATING_INFO",
+        "60_LIGHTS",
+        "70_CAMERA",
+        "90_SOURCE_ANIMATIONS_HIDDEN",
+        "95_MONEYPRINT_TEXT_OVERLAYS",
+        "96_MONEYPRINT_SOUND"
+      ]
+    },
+    {
+      "id": "12",
+      "frames": 270,
+      "start_frame": 2190,
+      "end_frame": 2460,
+      "character_actions": [
+        {
+          "role": "desenvolvedor",
+          "action": "wave",
+          "start_frame": 1,
+          "end_frame": 270,
+          "action_source": "Quaternius Standard UAL base + manually authored bone keyframes"
+        },
+        {
+          "role": "garcom",
+          "action": "nod",
+          "start_frame": 1,
+          "end_frame": 270,
+          "action_source": "Quaternius Standard UAL base + manually authored bone keyframes"
+        },
+        {
+          "role": "cliente",
+          "action": "relief",
+          "start_frame": 1,
+          "end_frame": 270,
+          "action_source": "Quaternius Standard UAL base + manually authored bone keyframes"
+        }
+      ],
+      "screen_mappings": [
+        "assets/balcao.mp4",
+        "assets/cliente-qr.mp4",
+        "assets/garcom.mp4"
+      ],
+      "layers": [
+        "00_WORLD",
+        "10_RESTAURANT_SET",
+        "20_ACTORS_QUATERNIUS_CC0",
+        "30_HAND_PROPS",
+        "40_DEVICES_3D",
+        "41_REAL_PDV_MOVIE_TEXTURES",
+        "50_FLOATING_INFO",
+        "60_LIGHTS",
+        "70_CAMERA",
+        "90_SOURCE_ANIMATIONS_HIDDEN",
+        "95_MONEYPRINT_TEXT_OVERLAYS",
+        "96_MONEYPRINT_SOUND"
+      ]
+    }
+  ],
+  "render_status": "Blender not available in current runtime; editable source only",
+  "license_quaternius": "CC0-1.0 Standard only",
+  "requires": [
+    "Blender 4.2+",
+    "Universal Base Characters [Standard]",
+    "Universal Animation Library [Standard]",
+    "FFmpeg"
+  ],
+  "no_paid_dependencies": true,
+  "autopublish": false
+}

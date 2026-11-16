@@ -1,0 +1,23 @@
+{
+  "version": 1,
+  "name": "Blender / Quaternius 05",
+  "status": "pilot_source_implemented_render_not_executed",
+  "fps": 30,
+  "frames": 2460,
+  "selected_scene": "05",
+  "scene_frames": 210,
+  "actor_action": "phone_tap",
+  "source_video": "assets/cliente-qr.mp4",
+  "license": "CC0-1.0",
+  "asset_files_downloaded": false,
+  "blender_installed": false,
+  "render_validated": false,
+  "paid_required": false,
+  "tests_passed": 21,
+  "blocked_by": [
+    "Quaternius Standard ZIPs unavailable in runtime",
+    "Blender binary unavailable in runtime"
+  ],
+  "public_repo_ci_tests_passed": 13,
+  "offline_package_tests_passed": 21
+}
