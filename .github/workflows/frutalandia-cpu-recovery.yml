@@ -1,0 +1,99 @@
+name: Frutalândia — recuperação 3D via GitHub CPU (sem Kaggle)
+
+on:
+  push:
+    branches:
+      - feat/novelinha-frutas-openmontage-voicestudio
+    paths:
+      - triggers/produce-frutalandia-cpu.txt
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: frutalandia-recovery-cpu
+  cancel-in-progress: false
+
+jobs:
+  preflight:
+    runs-on: ubuntu-latest
+    timeout-minutes: 8
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+      - name: Testes de regressão e compilação
+        run: |
+          python -m unittest discover -s tests -v
+          python -m compileall -q scripts/
+
+  render:
+    needs: preflight
+    runs-on: ubuntu-latest
+    timeout-minutes: 90
+    env:
+      FRUTALANDIA_CPU_SAMPLES: "1"
+      PYTHONUNBUFFERED: "1"
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+      - name: Provisionar Blender e FFmpeg no runner do GitHub (não no Kaggle)
+        shell: bash
+        run: |
+          timeout 180s sudo apt-get update -qq
+          timeout 300s sudo apt-get install -y -qq blender ffmpeg fonts-dejavu-core
+          blender -b -noaudio --python-expr "import bpy; print('BLENDER_VERSION',bpy.app.version_string)"
+          ffprobe -version | head -1
+      - name: Provisionar voz open-source e validar modelo antes de gastar CPU no render
+        shell: bash
+        run: |
+          python -m pip install -q "piper-tts==1.8.0"
+          command -v piper
+          python - <<'PY'
+          from pathlib import Path
+          from scripts.frutalandia_episode_runner import fetch_piper
+          path=fetch_piper(Path("/tmp/frutalandia-piper-model"))
+          assert path.is_file() and path.stat().st_size>60_000_000
+          print("Piper pt_BR-faber-medium confirmado via SHA-256 oficial")
+          PY
+      - name: Renderizar episódio original 3D com logs por frame
+        shell: bash
+        run: |
+          mkdir -p outputs/frutalandia-cpu
+          python scripts/frutalandia_episode_runner.py \
+            --story stories/frutalandia/audio-do-amanha-ep01.json \
+            --output outputs/frutalandia-cpu 2>&1 | tee outputs/frutalandia-cpu/render-progress.log
+      - name: Verificar vídeo final real com áudio, tamanho e duração
+        shell: bash
+        run: |
+          test -s outputs/frutalandia-cpu/frutalandia-ep01.mp4
+          python - <<'PY'
+          from pathlib import Path
+          import json, subprocess
+          root=Path("outputs/frutalandia-cpu")
+          meta=json.loads((root/"manifest.json").read_text())
+          assert meta["status"]=="rendered"
+          assert meta["auto_publish"] is False
+          assert abs(meta["seconds"]-48)<1
+          assert meta["dimensions"]==[720,1280]
+          probe=json.loads(subprocess.run([
+              "ffprobe","-v","error","-show_streams","-show_format",
+              "-of","json",str(root/"frutalandia-ep01.mp4")
+          ],check=True,capture_output=True,text=True).stdout)
+          assert any(x["codec_type"]=="audio" for x in probe["streams"])
+          assert any(x["codec_type"]=="video" for x in probe["streams"])
+          assert abs(float(probe["format"]["duration"])-48)<1
+          print("VIDEO_48S_3D_CONFIRMED")
+          PY
+      - name: Disponibilizar vídeo e eventuais arquivos parciais para recuperação
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: frutalandia-cpu-recuperado-${{ github.run_id }}
+          path: outputs/frutalandia-cpu/
+          retention-days: 7
+          if-no-files-found: warn

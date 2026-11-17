@@ -1,0 +1,58 @@
+name: Diagnóstico Kaggle — O Áudio de Amanhã
+on:
+  push:
+    branches:
+      - feat/novelinha-frutas-openmontage-voicestudio
+    paths:
+      - ".github/workflows/kaggle-diagnostico.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  status:
+    runs-on: ubuntu-latest
+    timeout-minutes: 8
+    env:
+      KAGGLE_API_TOKEN: ${{ secrets.KAGGLE_API_TOKEN }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+      - name: Consultar estado real do kernel sem executar GPU
+        shell: bash
+        run: |
+          set -eo pipefail
+          test -n "$KAGGLE_API_TOKEN" || { echo "::error::Secret ausente"; exit 1; }
+          python -m pip install -q "kaggle>=2.2.4,<3" "kagglehub>=0.3,<1" "six>=1.16,<2"
+          python - <<'PY'
+          import os, re
+          from kagglehub.auth import whoami
+          username=whoami(verbose=False)["username"].lower()
+          if not re.fullmatch("[a-z0-9][a-z0-9_-]{1,39}",username):
+              raise ValueError("Username inválido")
+          with open(os.environ["GITHUB_ENV"],"a") as output:
+              output.write("KAGGLE_OWNER="+username+"\n")
+          print("Conta Kaggle autenticada (usuário não exposto)")
+          PY
+          mkdir -p outputs/diagnostics
+          echo "Verificando status de kernel privado existente, sem iniciar novo job GPU."
+          export KAGGLE_OWNER="$(sed -n 's/^KAGGLE_OWNER=//p' "$GITHUB_ENV" | tail -n 1)"
+          [[ "$KAGGLE_OWNER" =~ ^[a-z0-9][a-z0-9_-]{1,39}$ ]] || { echo "::error::Kaggle username inválido"; exit 1; }
+          echo "Usuário Kaggle confirmado para consulta."
+          kaggle kernels list --mine --csv | tee outputs/diagnostics/kernels-list.txt || true
+          echo "Consultar notebook esperado pelo nome informado:"
+          kaggle kernels status "$KAGGLE_OWNER/frutalandia-ep01" 2>&1 | tee outputs/diagnostics/kernel-status.txt || true
+          echo "Consultar logs (retorno truncado):"
+          kaggle kernels logs "$KAGGLE_OWNER/frutalandia-ep01" 2>&1 | tail -100 | tee outputs/diagnostics/kernel-logs.txt || true
+          echo "Diagnóstico completo."
+      - name: Anexar diagnóstico
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: kaggle-diagnostico-${{ github.run_id }}
+          path: outputs/diagnostics/
+          if-no-files-found: warn
+          retention-days: 2

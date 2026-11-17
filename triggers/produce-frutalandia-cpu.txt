@@ -1,0 +1,3 @@
+PRODUCE_FRUTALANDIA_CPU_RECOVERY
+Motivo: Kaggle DNS indisponível para apt-get e Accelerator None. Executar Blender/Piper/FFmpeg no GitHub Actions com validação do MP4.
+Não alterar secrets. Não publicar. Não fazer merge.
