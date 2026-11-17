@@ -27,7 +27,7 @@ jobs:
       - run: |
           sudo apt-get update -qq
           sudo apt-get install -y -qq espeak-ng libespeak-ng1
-          python -m pip install --disable-pip-version-check numpy soundfile onnxruntime 'misaki[pt]' phonemizer
+          python -m pip install --disable-pip-version-check numpy soundfile onnxruntime 'misaki[pt]' phonemizer espeakng-loader
       - name: Download free Apache-2.0 model for local inference (no API)
         run: |
           mkdir -p /tmp/paradee/onnx
