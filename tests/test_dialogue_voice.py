@@ -1,5 +1,6 @@
 import unittest,sys
 from pathlib import Path
+sys.path.insert(0,str(Path(__file__).resolve().parents[1] / 'scripts'))
 sys.path.insert(0,str(Path(__file__).resolve().parents[1]))
 from dialogue_voice import make_plan,split_for_tts,SCENES
 class PlanTests(unittest.TestCase):
@@ -9,7 +10,8 @@ class PlanTests(unittest.TestCase):
   p=make_plan();self.assertEqual(sum(len(x['lines']) for x in p),16)
   self.assertTrue(all(l['speaker'] in {'A','B'} for s in p for l in s['lines']))
  def test_no_silently_paid_dependency(self):
-  txt=Path(__file__).resolve().parents[1].joinpath('dialogue_voice.py').read_text()
+  root=Path(__file__).resolve().parents[1]
+  txt=(root/'scripts'/'dialogue_voice.py' if (root/'scripts'/'dialogue_voice.py').exists() else root/'dialogue_voice.py').read_text()
   self.assertNotIn('elevenlabs',txt.lower());self.assertNotIn('api_key',txt.lower())
  def test_split_keeps_every_word(self):
   txt=SCENES[1]['lines'][1][1]
