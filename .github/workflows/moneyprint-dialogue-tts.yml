@@ -38,7 +38,7 @@ jobs:
         run: python scripts/dialogue_voice.py outputs/dialogue_tts /tmp/paradee
       - name: Validate audio
         run: |
-          ffprobe -v error -show_entries format=duration -of default=noprint_wrappers=1 outputs/dialogue_tts/dialogo_narracao.wav
+          python -c "import soundfile as sf; i=sf.info('outputs/dialogue_tts/dialogo_narracao.wav'); print(i); assert i.duration > 70"
           python - <<'PY'
           import json
           p=json.load(open('outputs/dialogue_tts/speech_cues.json'))
