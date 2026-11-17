@@ -1,0 +1,53 @@
+name: MoneyPrint — Falas 2D ArtiSys (Paradee local)
+on:
+  pull_request:
+    paths:
+      - 'scripts/dialogue_voice.py'
+      - 'tests/test_dialogue_voice.py'
+      - '.github/workflows/moneyprint-dialogue-tts.yml'
+  workflow_dispatch:
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - run: python -m unittest discover -s tests -p 'test_dialogue_voice.py' -v
+  synth:
+    needs: test
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - run: |
+          sudo apt-get update -qq
+          sudo apt-get install -y -qq espeak-ng libespeak-ng1
+          python -m pip install --disable-pip-version-check numpy soundfile onnxruntime 'misaki[pt]'
+      - name: Download free Apache-2.0 model for local inference (no API)
+        run: |
+          mkdir -p /tmp/paradee/onnx
+          curl -fLsS --retry 4 -o /tmp/paradee/config.json 'https://huggingface.co/eraldohug/Paradee-8M-PtBr/resolve/main/config.json'
+          curl -fLsS --retry 4 -o /tmp/paradee/onnx/paradee_alex_int8.onnx 'https://huggingface.co/eraldohug/Paradee-8M-PtBr/resolve/main/onnx/paradee_alex_int8.onnx'
+          test $(wc -c </tmp/paradee/onnx/paradee_alex_int8.onnx) -gt 2000000
+      - name: Render dialogue to speech with timestamps
+        run: python scripts/dialogue_voice.py outputs/dialogue_tts /tmp/paradee
+      - name: Validate audio
+        run: |
+          ffprobe -v error -show_entries format=duration -of default=noprint_wrappers=1 outputs/dialogue_tts/dialogo_narracao.wav
+          python - <<'PY'
+          import json
+          p=json.load(open('outputs/dialogue_tts/speech_cues.json'))
+          assert len(p['scenes']) == 7
+          assert p['total_seconds'] >= 70
+          print(p['total_seconds'])
+          PY
+      - uses: actions/upload-artifact@v4
+        with:
+          name: artisys-dialogue-paradee-ptbr
+          path: outputs/dialogue_tts/
+          retention-days: 7
