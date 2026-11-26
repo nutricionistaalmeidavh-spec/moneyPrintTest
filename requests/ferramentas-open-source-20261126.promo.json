@@ -40,32 +40,24 @@
         },
         {
           "at": "Payload",
-          "kind": "slots",
+          "kind": "ring",
           "letter": "P",
-          "slots": [
-            "Páginas",
-            "Catálogo",
-            "Dados",
-            "API"
-          ],
-          "caption": "CMS open source"
+          "title": "CMS open source",
+          "serif": "seu painel de conteúdo"
         },
         {
           "at": "páginas",
-          "kind": "stack",
-          "title": "Tudo num painel",
-          "serif": "só.",
-          "items": [
-            [
-              "Páginas"
-            ],
-            [
-              "Catálogo"
-            ],
-            [
-              "Dados"
-            ]
-          ]
+          "kind": "callouts",
+          "letter": "P",
+          "labels": [
+            "Páginas",
+            "Catálogo",
+            "Dados",
+            "Painel",
+            "API",
+            "Usuários"
+          ],
+          "title": "Tudo num painel só"
         },
         {
           "at": "bônus",
@@ -169,6 +161,12 @@
           ]
         },
         {
+          "at": "responde",
+          "kind": "dots",
+          "title": "Responde enquanto digita",
+          "serif": "a cada letra"
+        },
+        {
           "at": "Serve",
           "kind": "stack",
           "title": "Serve pra",
@@ -225,6 +223,13 @@
               "financeiro"
             ]
           ]
+        },
+        {
+          "at": "controla",
+          "kind": "ring",
+          "letter": "I",
+          "title": "Quem acessa?",
+          "serif": "você controla"
         },
         {
           "at": "Salva",

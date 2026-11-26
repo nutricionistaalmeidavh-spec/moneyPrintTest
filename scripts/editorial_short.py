@@ -381,7 +381,123 @@ def cta(c, t, d, p):
         text(c, p["handle"], W / 2, 1258, "sans", 52, WHITE, a * out_cubic(k))
 
 
-BEATS = {"hero": hero, "slots": slots, "stack": stack, "flow": flow, "search": search, "alert": alert,
+
+PALETTE = [(226, 54, 54), (232, 96, 44), (240, 180, 40), (60, 170, 110), (46, 130, 220), (130, 90, 220)]
+
+
+def arc(c, cx, cy, r, a0, sweep, color, a=1.0, width=14):
+    if sweep <= 0.01:
+        return
+    rect = skia.Rect.MakeXYWH(cx - r, cy - r, 2 * r, 2 * r)
+    path = skia.Path()
+    path.addArc(rect, a0, sweep)
+    c.drawPath(path, paint(color, a, "stroke", width))
+
+
+def ring(c, t, d, p):
+    """Orbit HUD: segmented colour arcs sweeping in, tick ring pulsing, centre label."""
+    a = beat_alpha(t, d)
+    cx, cy, R = W / 2, 900, 330
+    k = out_cubic(prog(t, 0, 0.5))
+    c.drawCircle(cx, cy, R + 40, paint(WHITE, a * k))
+    c.drawCircle(cx, cy, R + 40, paint((20, 24, 40), 0.06 * a * k, "stroke", 2))
+    rot = t * 40
+    for i, colr in enumerate(PALETTE[:5]):
+        seg = 360 / 5
+        pr = out_cubic(prog(t, 0.1 + 0.12 * i, 0.7))
+        arc(c, cx, cy, R, rot + i * seg + 4, (seg - 8) * pr, colr, a, 16)
+    # tick ring with a travelling pulse
+    n = 72
+    for i in range(n):
+        ang = 2 * math.pi * i / n
+        pulse = 0.5 + 0.5 * math.cos((i / n - t * 0.5) * 2 * math.pi * 2)
+        r0, r1 = R - 52, R - 52 - 18 - 22 * pulse
+        c.drawLine(cx + r0 * math.cos(ang), cy + r0 * math.sin(ang), cx + r1 * math.cos(ang), cy + r1 * math.sin(ang),
+                   paint(ORANGE, a * k * (0.25 + 0.75 * pulse), "stroke", 4))
+    sc = 0.8 + 0.2 * out_back(prog(t, 0.3, 0.6))
+    tile(c, cx, cy, 200, p.get("letter", "•"), ORANGE, a * k, scale=sc)
+    if p.get("title"):
+        text(c, p["title"], W / 2, 1380, "sans", fit_size(p["title"], "sans", 84, 820), INK, a * out_cubic(prog(t, 0.5, 0.45)))
+    if p.get("serif"):
+        text(c, p["serif"], W / 2, 1460, "serif", 60, ORANGE, a * out_cubic(prog(t, 0.65, 0.45)))
+
+
+def callouts(c, t, d, p):
+    """Exploded-diagram look: central tile, thin lines drawing out to labels on both sides."""
+    a = beat_alpha(t, d)
+    cx, cy = W / 2, 900
+    k = out_cubic(prog(t, 0, 0.5))
+    tile(c, cx, cy, 220, p.get("letter", "•"), ORANGE, a * k, scale=0.8 + 0.2 * out_back(k))
+    labels = p["labels"]
+    for i, lb in enumerate(labels):
+        side = -1 if i % 2 == 0 else 1
+        row = i // 2
+        ly = cy - 260 + row * 190 + (60 if side == 1 else 0)
+        kk = prog(t, 0.3 + 0.28 * i, 0.5)
+        x_end = cx + side * 215
+        sx, sy = cx + side * 110, cy + (ly - cy) * 0.25
+        mid = cx + side * 165
+        pts = [(sx, sy), (mid, ly), (x_end, ly)]
+        path = skia.Path()
+        path.moveTo(*pts[0]); path.lineTo(*pts[1]); path.lineTo(*pts[2])
+        dst = skia.Path()
+        pm = skia.PathMeasure(path, False)
+        pm.getSegment(0, pm.getLength() * kk, dst, True)
+        c.drawPath(dst, paint(MUTED, a * 0.8, "stroke", 3))
+        if kk > 0.2:
+            c.drawCircle(sx, sy, 7, paint(ORANGE, a))
+        la = out_cubic(prog(kk, 0.55, 0.45))
+        text(c, lb, x_end + side * 16, ly + 13, "sansm", 36, INK, a * la, align="right" if side == -1 else "left")
+    if p.get("title"):
+        text(c, p["title"], W / 2, 1420, "sans", fit_size(p["title"], "sans", 76, 820), INK, a * out_cubic(prog(t, 0.4, 0.45)))
+
+
+def bar(c, t, d, p):
+    """Segmented bar that fills with staggered colours + a counting number."""
+    a = beat_alpha(t, d)
+    k = out_cubic(prog(t, 0, 0.45))
+    x0, y0, w_, h_ = 90, 760, 900, 300
+    rrect(c, x0, y0, w_, h_, 40, WHITE, a * k, scale=0.94 + 0.06 * out_back(k))
+    text(c, p["title"], x0 + 50, y0 + 84, "sansm", 38, MUTED, a * k, align="left")
+    cnt = out_cubic(prog(t, 0.3, 1.1))
+    value = p.get("value", "100%")
+    num = "".join(ch for ch in value if ch.isdigit() or ch == ".")
+    shown = (f"{float(num) * cnt:.0f}" if num else "") + "".join(ch for ch in value if not (ch.isdigit() or ch == "."))
+    text(c, shown, x0 + w_ - 50, y0 + 90, "sans", 58, INK, a * k, align="right")
+    bx, bw, by = x0 + 50, w_ - 100, y0 + 150
+    fracs = p.get("segments", [0.3, 0.25, 0.2, 0.25])
+    cur = 0.0
+    for i, f in enumerate(fracs):
+        pr = out_cubic(prog(t, 0.3 + 0.18 * i, 0.7))
+        c.drawRoundRect(skia.Rect.MakeXYWH(bx + bw * cur, by, max(2, bw * f * pr - 6), 70), 14, 14,
+                        paint(PALETTE[(i + 1) % len(PALETTE)], a * k))
+        cur += f
+    if p.get("caption"):
+        text(c, p["caption"], W / 2, 1180, "serif", 64, ORANGE, a * out_cubic(prog(t, 0.9, 0.5)))
+
+
+def dots(c, t, d, p):
+    """Staggered dot-grid wave rippling from the centre."""
+    a = beat_alpha(t, d)
+    n, gap = 11, 78
+    cx, cy = W / 2, 930
+    for i in range(n):
+        for j in range(n):
+            x = cx + (i - n // 2) * gap
+            y = cy + (j - n // 2) * gap
+            dist = math.hypot(i - n // 2, j - n // 2)
+            ph = (t * 1.6 - dist * 0.22)
+            s_ = 0.5 + 0.5 * math.sin(ph * 2 * math.pi * 0.6)
+            appear = out_cubic(prog(t, dist * 0.035, 0.4))
+            colr = ORANGE if dist < 4.2 else MUTED
+            c.drawCircle(x, y, (4 + 13 * s_) * appear, paint(colr, a * (0.35 + 0.65 * s_) * appear))
+    if p.get("title"):
+        text(c, p["title"], W / 2, 1450, "sans", fit_size(p["title"], "sans", 80, 820), INK, a * out_cubic(prog(t, 0.3, 0.45)))
+    if p.get("serif"):
+        text(c, p["serif"], W / 2, 1530, "serif", 58, ORANGE, a * out_cubic(prog(t, 0.45, 0.45)))
+
+BEATS = {"ring": ring, "callouts": callouts, "bar": bar, "dots": dots,
+         "hero": hero, "slots": slots, "stack": stack, "flow": flow, "search": search, "alert": alert,
          "vault": vault, "cta": cta}
 
 
@@ -494,8 +610,13 @@ def render(manifest, secs, work: Path, out: Path) -> Path:
             k = in_out((t - starts[ib]) / P.XF)
             c.drawImage(sa.makeImageSnapshot(), -W * k, 0)
             c.drawImage(sb.makeImageSnapshot(), W * (1 - k), 0)
-        # progress bar
-        c.drawRect(skia.Rect.MakeXYWH(0, 0, W * t / total, 10), paint(ORANGE))
+        # tick scrubber (timeline look) + playhead
+        rrect(c, 60, 64, W - 120, 56, 18, WHITE, 0.9, shadow=False)
+        for ti in range(61):
+            x = 90 + (W - 180) * ti / 60
+            near = abs(ti / 60 - t / total)
+            c.drawLine(x, 80, x, 80 + (22 if ti % 5 == 0 else 12), paint(INK if near < 0.02 else MUTED, 0.5 if near >= 0.02 else 1.0, "stroke", 3))
+        c.drawRoundRect(skia.Rect.MakeXYWH(90 + (W - 180) * t / total - 3, 72, 6, 40), 3, 3, paint(ORANGE))
         surf.readPixels(info, arr, W * 4)
         proc.stdin.write(arr.tobytes())
     proc.stdin.close()
