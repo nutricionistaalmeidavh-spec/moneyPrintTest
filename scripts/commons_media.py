@@ -14,6 +14,11 @@ import subprocess
 import time
 from urllib.parse import urlencode, urlsplit
 from urllib.request import Request, urlopen
+try:  # works both as ``scripts.<module>`` and as a plain script
+    from scripts import quality
+except ImportError:  # pragma: no cover
+    import quality  # type: ignore
+
 
 API_URL = "https://commons.wikimedia.org/w/api.php"
 USER_AGENT = ("MoneyPrintTest/0.2 (https://github.com/nutricionistaalmeidavh-spec/"
@@ -155,9 +160,10 @@ def transcode_video(source: Path, target: Path, seconds: int = 12):
     run = subprocess.run(
         ["ffmpeg", "-hide_banner", "-loglevel", "error", "-nostdin", "-y",
          "-i", str(source), "-t", str(seconds), "-an", "-vf",
-         "scale='min(720,iw)':-2,fps=24",
-         "-c:v", "libx264", "-preset", "veryfast", "-crf", "27",
-         "-pix_fmt", "yuv420p", str(target)],
+         # Keep the native resolution up to 1080p: capping at 720 and
+         # re-upscaling later was the main reason stock clips looked soft.
+         "scale='min(1920,iw)':-2:flags=lanczos,fps=30",
+         *quality.intermediate_args(), str(target)],
         check=False, stdout=subprocess.DEVNULL, stderr=subprocess.PIPE, timeout=180,
     )
     if run.returncode or not target.is_file() or target.stat().st_size < 4096:

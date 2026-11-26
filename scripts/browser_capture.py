@@ -17,6 +17,11 @@ class CaptureError(ValueError):
 
 OWNER = re.compile(r"[A-Za-z0-9](?:[A-Za-z0-9-]{0,38})\Z")
 REPO = re.compile(r"[A-Za-z0-9_.-]{1,100}\Z")
+try:
+    from . import quality
+except ImportError:  # pragma: no cover
+    import quality  # type: ignore
+
 ALLOWED_HOSTS = ("github.com", "githubassets.com", "githubusercontent.com")
 
 
@@ -82,9 +87,9 @@ def capture_repositories(urls: list[str], duration_seconds: int, output: Path, *
         try:
             for index, (url, seconds) in enumerate(plan, 1):
                 context = browser.new_context(
-                    viewport={"width": 1280, "height": 720},
+                    viewport={"width": 1920, "height": 1080},
                     record_video_dir=str(raw_dir),
-                    record_video_size={"width": 1280, "height": 720},
+                    record_video_size={"width": 1920, "height": 1080},
                     device_scale_factor=1,
                     accept_downloads=False,
                     service_workers="block",
@@ -158,9 +163,8 @@ def capture_repositories(urls: list[str], duration_seconds: int, output: Path, *
                 mp4 = output / f"repository_{index:02d}.mp4"
                 subprocess.run([
                     "ffmpeg", "-hide_banner", "-loglevel", "error", "-nostdin", "-y",
-                    "-i", str(webm), "-an", "-r", "24", "-vf", "scale=1280:720:flags=lanczos",
-                    "-c:v", "libx264", "-preset", "veryfast", "-crf", "26",
-                    "-pix_fmt", "yuv420p", "-movflags", "+faststart", str(mp4),
+                    "-i", str(webm), "-an", "-r", "30", "-vf", "scale=1920:1080:flags=lanczos",
+                    *quality.intermediate_args(), "-movflags", "+faststart", str(mp4),
                 ], check=True, timeout=240)
                 if not mp4.exists() or mp4.stat().st_size < 4096:
                     raise CaptureError(f"Captura de vídeo vazia: {url}")

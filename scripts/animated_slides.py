@@ -9,13 +9,26 @@ from __future__ import annotations
 
 import json
 import math
+import random
 import subprocess
 from dataclasses import dataclass
+from functools import lru_cache
 from pathlib import Path
 
-from PIL import Image, ImageDraw, ImageFont, ImageOps
+from PIL import Image, ImageChops, ImageDraw, ImageFilter, ImageFont, ImageOps
 
-W, H, FPS = 1920, 1080, 24
+try:  # works both as ``scripts.animated_slides`` and as a plain module
+    from scripts import quality
+except ImportError:  # pragma: no cover
+    import quality  # type: ignore
+
+W, H, FPS = 1920, 1080, 30
+# Slides are drawn at SUPERSAMPLE x the delivery size. FFmpeg then moves the
+# camera on that larger grid (half-pixel steps) and scales down, so text stays
+# sharp and the slow drift no longer "shimmers" on whole-pixel jumps.
+SUPERSAMPLE = 2
+GRAIN = 1  # source dither; delivery-size grain is added in FFmpeg (VIDEO_GRAIN)
+VIDEO_GRAIN = 3  # FFmpeg 'noise' strength applied after the downscale
 BG = (11, 15, 30)
 PANEL = (21, 27, 49)
 INK = (238, 239, 252)
@@ -88,20 +101,49 @@ def _text(draw: ImageDraw.ImageDraw, xy: tuple[int,int],
         draw.text((xy[0],xy[1]+i*(size+12)),line,font=f,fill=color)
 
 
-def _canvas(size: tuple[int,int]):
-    # Muted indigo gradient. No fades-to-white, full-screen browser windows,
-    # overexposed stock "monitor" shots or unreadable neon fonts.
-    w,h=size
-    im=Image.new("RGB",size,BG)
-    d=ImageDraw.Draw(im)
-    for y in range(h):
-        v=y/max(1,h-1)
-        d.line((0,y,w,y),fill=(int(11+10*v),int(15+11*v),int(30+19*v)))
-    d.ellipse((int(.62*w),int(-.7*h),int(1.5*w),int(.48*h)),
-              fill=(25,29,57))
-    d.ellipse((int(-.48*w),int(.69*h),int(.16*w),int(1.37*h)),
-              fill=(18,26,48))
-    return im,d
+@lru_cache(maxsize=8)
+def _background(size: tuple[int, int]) -> Image.Image:
+    """Indigo gradient + soft glows, dithered so it cannot band.
+
+    A 10-20 level gradient over 1080 rows is exactly what 8-bit video bands on.
+    The glows are anti-aliased (drawn 2x, blurred) and +/-1 grain is added so the
+    encoder never sees long perfectly flat steps.
+    """
+    w, h = size
+    column = Image.new("RGB", (1, h))
+    column.putdata([(round(11 + 10 * y / max(1, h - 1)),
+                     round(15 + 11 * y / max(1, h - 1)),
+                     round(30 + 19 * y / max(1, h - 1))) for y in range(h)])
+    im = column.resize((w, h), Image.Resampling.NEAREST)
+
+    def glow(box, colour, radius):
+        mask = Image.new("L", (w // 4 or 1, h // 4 or 1), 0)
+        ImageDraw.Draw(mask).ellipse([int(v / 4) for v in box], fill=255)
+        mask = mask.filter(ImageFilter.GaussianBlur(max(1, radius / 4)))
+        mask = mask.resize((w, h), Image.Resampling.BICUBIC)
+        layer = Image.new("RGB", (w, h), colour)
+        return Image.composite(layer, im, mask)
+
+    im = glow((int(.62 * w), int(-.7 * h), int(1.5 * w), int(.48 * h)),
+              (25, 29, 57), 70 * w / 1920)
+    im = glow((int(-.48 * w), int(.69 * h), int(.16 * w), int(1.37 * h)),
+              (18, 26, 48), 60 * w / 1920)
+
+    # Light source dither only. Grain strong enough to survive H.264 has to be
+    # added at *delivery* size (the 2x->1x downscale averages it away), which
+    # is what the FFmpeg ``noise`` filter in _render_animated_video does.
+    rng = random.Random(1234)  # fixed seed: identical grain on every slide
+    def noise():
+        return Image.frombytes("L", (w, h), rng.randbytes(w * h)).point(
+            lambda v: v * (GRAIN + 1) // 256)  # uniform 0..GRAIN
+    grain = ImageChops.add(noise(), noise(), 1.0, 0)  # 0 .. 2*GRAIN
+    grain = Image.merge("RGB", (grain, grain, grain))
+    return ImageChops.add(im, grain, 1.0, -GRAIN)
+
+
+def _canvas(size: tuple[int, int]):
+    im = _background(tuple(size)).copy()
+    return im, ImageDraw.Draw(im)
 
 
 def _round_panel(d, box, fill=PANEL, radius=24, border=None):
@@ -253,10 +295,16 @@ def _render_animated_video(
         inputs+=["-loop","1","-framerate",str(fps),"-i",str(asset)]
         input_count+=1
         filters.append(
-            f"[{root}:v]scale={int(width*1.035)}:{int(height*1.035)}:flags=lanczos,"
-            f"crop={width}:{height}:"
-            "x='(in_w-out_w)/2+9*sin(t*0.9)':"
-            "y='(in_h-out_h)/2+7*cos(t*0.65)',"
+            # The PNG is SUPERSAMPLE x larger than the output. Crop a window
+            # 3.5% smaller than the frame (a gentle push-in) and drift it on
+            # the big grid, then scale to delivery size once, in BT.709.
+            f"[{root}:v]crop=iw/1.035:ih/1.035:"
+            "x='(iw-ow)/2*(1+0.85*sin(t*0.9))':"
+            "y='(ih-oh)/2*(1+0.85*cos(t*0.65))',"
+            f"scale={width}:{height}:{quality.SCALE_FLAGS},"
+            # Static (non-temporal) uniform grain: breaks up the dark-gradient
+            # bands that H.264 otherwise produces, cheap to encode.
+            f"noise=alls={VIDEO_GRAIN}:allf=u:all_seed=1234,"
             f"fps={fps},trim=duration={seconds:.5f},"
             f"setpts=PTS-STARTPTS,format=yuv420p[base{i}]")
         if clip and clip.is_file():
@@ -288,9 +336,8 @@ def _render_animated_video(
         "ffmpeg","-hide_banner","-loglevel","error","-nostdin","-y",
         *inputs,"-filter_complex",";".join(filters),"-map","[video]",
         "-map",f"{audio_index}:a:0","-t",f"{total:.3f}",
-        "-c:v","libx264","-preset","veryfast","-crf","23",
-        "-pix_fmt","yuv420p","-threads","2",
-        "-c:a","aac","-b:a","144k",
+        *quality.x264_args(threads=2),
+        "-c:a","aac","-b:a","192k","-ar","48000",
         "-movflags","+faststart",str(target)
     ],check=True,timeout=1800)
     if target.stat().st_size<10000:
@@ -322,7 +369,8 @@ def render_animated_section(section:dict,index:int,total:int,audio:Path,
         pic=(images[stage%len(images)] if images and kind=="mockup" else None)
         clip=(Path(video_assets[0]["path"]) if kind=="clip" and video_assets else None)
         file=folder/f"slide_{j:02d}.png"
-        make_slide(section,index,total,kind,file,stage=stage,picture=pic,size=size)
+        make_slide(section,index,total,kind,file,stage=stage,picture=pic,
+                   size=(size[0]*SUPERSAMPLE,size[1]*SUPERSAMPLE))
         slides.append((file,seconds,clip))
         records.append({"kind":kind,"stage":stage,"duration":round(seconds,3),
                         "screenshot":str(pic) if pic else None,

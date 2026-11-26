@@ -20,6 +20,11 @@ from scripts.ai_director import (
 )
 from scripts.browser_capture import capture_repositories
 from scripts.commons_media import find_free_videos
+try:  # works both as ``scripts.<module>`` and as a plain script
+    from scripts import quality
+except ImportError:  # pragma: no cover
+    import quality  # type: ignore
+
 
 WIDTH, HEIGHT, FPS = 1920, 1080, 24
 DARK = (10, 14, 30)
@@ -168,12 +173,18 @@ def render_section(section: dict, shots: list[tuple[Path, float]], overlay: Path
     for i, (media, seconds) in enumerate(shots):
         if media.suffix.lower() in (".png", ".jpg", ".jpeg"):
             inputs += ["-loop", "1", "-framerate", str(FPS), "-i", str(media)]
-            vf = (f"[{i}:v]scale={WIDTH}:{HEIGHT}:force_original_aspect_ratio=increase,"
-                  f"crop={WIDTH}:{HEIGHT},zoompan=z='min(zoom+0.0006,1.065)':"
+            # Work on a 2x canvas and centre the zoom. The old expression had no
+            # x/y, so zoompan pushed toward the top-left corner, and it ran on a
+            # 1x frame, which makes the pan jump in whole pixels (shimmer).
+            vf = (f"[{i}:v]scale={WIDTH*2}:{HEIGHT*2}:force_original_aspect_ratio=increase,"
+                  f"crop={WIDTH*2}:{HEIGHT*2},"
+                  f"zoompan=z='min(1+0.0006*on,1.065)':"
+                  f"x='iw/2-(iw/zoom/2)':y='ih/2-(ih/zoom/2)':"
                   f"d=1:s={WIDTH}x{HEIGHT}:fps={FPS},")
         else:
             inputs += ["-stream_loop", "-1", "-i", str(media)]
-            vf = (f"[{i}:v]scale={WIDTH}:{HEIGHT}:force_original_aspect_ratio=increase,"
+            vf = (f"[{i}:v]scale={WIDTH}:{HEIGHT}:force_original_aspect_ratio=increase:"
+                  f"{quality.SCALE_FLAGS},"
                   f"crop={WIDTH}:{HEIGHT},fps={FPS},")
         vf += (f"trim=duration={seconds:.5f},setpts=PTS-STARTPTS,"
                f"format=yuv420p[v{i}]")
@@ -188,9 +199,8 @@ def render_section(section: dict, shots: list[tuple[Path, float]], overlay: Path
     run_ffmpeg([
         *inputs, "-filter_complex", ";".join(filters),
         "-map", "[finished]", "-map", f"{oidx+1}:a:0",
-        "-t", f"{duration:.4f}", "-r", str(FPS), "-c:v", "libx264",
-        "-preset", "veryfast", "-crf", "23", "-pix_fmt", "yuv420p",
-        "-threads", "2", "-c:a", "aac", "-b:a", "144k",
+        "-t", f"{duration:.4f}", "-r", str(FPS),
+        *quality.x264_args(threads=2), "-c:a", "aac", "-b:a", "192k",
         "-ar", "48000", "-ac", "2", "-movflags", "+faststart", str(target)
     ], timeout=1800)
     if not target.is_file() or target.stat().st_size < 8192:
@@ -296,8 +306,7 @@ def render_cinematic(request: dict, dest: Path, runtime: Path, env: dict) -> dic
                         "-an", "-vf", "fps=24,scale=1280:720:"
                                      "force_original_aspect_ratio=decrease,"
                                      "pad=1280:720:(ow-iw)/2:(oh-ih)/2",
-                        "-c:v", "libx264", "-preset", "veryfast", "-crf", "25",
-                        "-pix_fmt", "yuv420p", str(converted)], timeout=160)
+                        *quality.intermediate_args(), str(converted)], timeout=160)
                     candidate = converted
                 assets.append({"id": f"own_{n}_{k}", "kind": "user_video",
                                "path": str(candidate)})

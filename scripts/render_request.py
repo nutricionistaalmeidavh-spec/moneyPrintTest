@@ -14,6 +14,11 @@ import urllib.error
 import urllib.request
 from pathlib import Path
 
+try:
+    from . import quality
+except ImportError:  # run as a plain script: python scripts/render_request.py
+    import quality
+
 PIPER_MODEL = "pt_BR-faber-medium"
 PIPER_BASE = "https://huggingface.co/rhasspy/piper-voices/resolve/main/pt/pt_BR/faber/medium/"
 PIPER_SHA256 = "858555e3a064209c57088fe6bd70c4c3dc54d03eaa00c45d5ecaf43a33f95aa7"
@@ -206,7 +211,7 @@ def build_config(template: dict, env: dict) -> dict:
         "coverr_api_keys": [], "video_source": "local",
         "subtitle_provider": "whisper", "material_concurrency": 1,
     })
-    result["whisper"].update({"model_size": "tiny", "device": "cpu", "compute_type": "int8"})
+    result["whisper"].update({"model_size": "base", "device": "cpu", "compute_type": "int8"})
     return result
 
 
@@ -545,8 +550,7 @@ def render_one(path: Path, output: Path, runtime: Path, env: dict):
                         "-t", "12", "-an", "-vf",
                         "fps=24,scale=1280:720:force_original_aspect_ratio=decrease,"
                         "pad=1280:720:(ow-iw)/2:(oh-ih)/2",
-                        "-c:v", "libx264", "-preset", "veryfast", "-crf", "24",
-                        "-pix_fmt", "yuv420p", str(converted)], check=True, timeout=120)
+                        *quality.intermediate_args(), str(converted)], check=True, timeout=120)
                     candidate = converted
                 brolls.setdefault(idx, []).append(candidate)
                 media_sources.setdefault(str(idx), []).append("user_supplied")

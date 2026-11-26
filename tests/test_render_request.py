@@ -107,7 +107,7 @@ class RenderTests(unittest.TestCase):
         self.assertEqual(config["app"]["llm_provider"], "ollama")
         self.assertEqual(config["app"]["pexels_api_keys"], ["testing"])
         self.assertEqual(config["app"]["subtitle_provider"], "whisper")
-        self.assertEqual(config["whisper"]["model_size"], "tiny")
+        self.assertEqual(config["whisper"]["model_size"], "base")
 
     def test_manifest_uses_only_local_voice_and_no_paid_music(self):
         request = validate_request({"topic": "Ferramentas gratuitas"})

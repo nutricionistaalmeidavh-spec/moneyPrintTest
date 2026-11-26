@@ -11,6 +11,11 @@ import re
 import subprocess
 from pathlib import Path
 from urllib.parse import urlsplit
+try:  # works both as ``scripts.<module>`` and as a plain script
+    from scripts import quality as quality_mod
+except ImportError:  # pragma: no cover
+    import quality as quality_mod  # type: ignore
+
 
 # Professional editorial typography with distro font fallbacks.
 FONT_FAMILY = "Inter"
@@ -197,7 +202,7 @@ def render_cinematic(source: Path, target: Path, repo_urls: list[str], *,
                      broll_paths: dict[int, Path | list[Path]] | None = None,
                      news_records: dict | None = None,
                      chapter_starts: list[float] | None = None,
-                     size=(1920,1080), quality="veryfast") -> dict:
+                     size=(1920,1080), quality: str | None = None) -> dict:
     source,target=Path(source),Path(target)
     if not source.is_file():
         raise CinematicError("Vídeo original ausente")
@@ -209,7 +214,7 @@ def render_cinematic(source: Path, target: Path, repo_urls: list[str], *,
     ass=target.parent/"cinematic_titles.ass"
     ass.write_text(build_ass(plan,duration,size,news_records=news_records),encoding="utf-8")
     width,height=size
-    filters=[f"[0:v]scale={width}:{height}:flags=lanczos,setsar=1,format=yuv420p[base]"]
+    filters=[f"[0:v]scale={width}:{height}:{quality_mod.SCALE_FLAGS},setsar=1,format=yuv420p[base]"]
     current="base"
     inputs=["-i",str(source)]
     broll_paths=broll_paths or {}
@@ -250,8 +255,8 @@ def render_cinematic(source: Path, target: Path, repo_urls: list[str], *,
     filters.append(f"[{current}]ass=filename='{escaped}',format=yuv420p[out]")
     cmd=["ffmpeg","-hide_banner","-loglevel","error","-nostdin","-y",*inputs,
          "-filter_complex",";".join(filters),"-map","[out]","-map","0:a?",
-         "-t",f"{duration:.3f}","-c:v","libx264","-preset",quality,"-crf","22",
-         "-pix_fmt","yuv420p","-c:a","aac","-b:a","160k",
+         "-t",f"{duration:.3f}",*quality_mod.x264_args(preset_value=quality),
+         "-c:a","aac","-b:a","192k",
          "-movflags","+faststart",str(target)]
     try:
         subprocess.run(cmd,check=True,timeout=2400)

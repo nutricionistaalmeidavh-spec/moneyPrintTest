@@ -20,8 +20,10 @@ from pathlib import Path
 
 try:
     from .browser_capture import validate_repo_urls
+    from . import quality
 except ImportError:
     from browser_capture import validate_repo_urls
+    import quality
 
 AGENT_MODEL = "qwen2.5:1.5b"
 NEWS_RSS = "https://news.google.com/rss/search?"
@@ -174,8 +176,7 @@ def official_repo_gif(repo: str, output: Path) -> str | None:
                 "-stream_loop", "-1", "-i", str(gif), "-t", "8", "-an",
                 "-vf", "fps=24,scale=1280:720:force_original_aspect_ratio=decrease,"
                        "pad=1280:720:(ow-iw)/2:(oh-ih)/2",
-                "-c:v", "libx264", "-preset", "veryfast", "-crf", "25",
-                "-pix_fmt", "yuv420p", str(target),
+                *quality.intermediate_args(), str(target),
             ], check=True, timeout=90)
             gif.unlink(missing_ok=True)
             if target.stat().st_size > 4096:

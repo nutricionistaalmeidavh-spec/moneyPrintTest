@@ -215,6 +215,20 @@ A pesquisa no Commons limita arquivos a **CC0** ou **CC BY** com metadados de li
 
 Não há scraping do Pexels/Pixabay. A emissão de novas chaves do Pexels está suspensa desde 2026; Pixabay requer chave para sua API.
 
+### Qualidade de vídeo (preset, CRF e cor)
+
+Todos os renderizadores usam `scripts/quality.py`: H.264 `medium`, CRF 18,
+`aq-mode=3` (menos faixas em fundos escuros) e cor BT.709 marcada. Os slides são
+desenhados em 2x e a câmera se move nessa grade antes do downscale, com grão
+estático leve para evitar *banding*. Em runners lentos, ajuste sem mexer no código:
+
+```sh
+MONEYPRINT_X264_PRESET=veryfast MONEYPRINT_X264_CRF=21 python scripts/render_request.py ...
+```
+
+Arquivos intermediários (capturas, GIFs convertidos, clipes do Commons) usam CRF 16
+para não perder qualidade a cada reencode. Legendas usam Whisper `base`.
+
 ### Rodar novamente
 
 Em **Actions → Gerar vídeo MoneyPrinterTurbo → Run workflow**, informe o caminho exato de um pedido existente como `requests/demo.json`. Alterar um arquivo antigo não reexecuta automaticamente; crie um novo JSON para novo vídeo.

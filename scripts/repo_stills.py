@@ -48,7 +48,7 @@ def capture_repo_stills(urls: list[str], output: Path, *, width=1440, height=900
         try:
             for index, url in enumerate(urls, 1):
                 context = browser.new_context(viewport={"width":width, "height":height},
-                                              device_scale_factor=1,
+                                              device_scale_factor=2,  # 2x: crisp text when the mockup scales the shot
                                               color_scheme="dark",
                                               reduced_motion="reduce",
                                               service_workers="block",
