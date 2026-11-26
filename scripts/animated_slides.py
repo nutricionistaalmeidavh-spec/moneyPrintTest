@@ -204,7 +204,7 @@ def make_slide(section:dict, index:int, total:int, kind:str, target:Path, *,
     headline,steps,summary=story_for(section)
     _header(d,section["title"],index,total,size)
     if kind=="intro":
-        _text(d,(int(98*s),int(345*s)),"8 REPOSITÓRIOS",int(94*s),INK,weight=True)
+        _text(d,(int(98*s),int(345*s)),f"{total} REPOSITÓRIOS",int(94*s),INK,weight=True)
         _text(d,(int(100*s),int(488*s)),"Uma ideia vira software.",int(49*s),ACCENT)
         _text(d,(int(105*s),int(590*s)),"Demonstrações reais e aplicações práticas.",
               int(36*s),MUTED)
