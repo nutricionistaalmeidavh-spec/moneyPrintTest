@@ -271,3 +271,12 @@ Ambos usam legendas palavra a palavra sincronizadas pelo áudio real, barra de p
 transição. O `short` é um layout vertical nativo (orbs animados, moldura flutuante com push-in,
 pílulas de tópicos); o `video` reaproveita os slides animados e adiciona a camada compartilhada.
 Saída em `outputs/promo/` (cache em `_work/`).
+
+### Estilo editorial (vertical, quadro a quadro com Skia)
+
+```bash
+python -m scripts.editorial_short --manifest requests/<nome>.promo.json --out outputs/promo [--only 1]
+```
+Cada seção do `.promo.json` tem `beats`: `{"at": "<palavra da narração>", "kind": ...}`. O beat começa quando a
+palavra é dita (tempo vem do áudio real). Tipos: `hero`, `slots`, `stack`, `flow`, `search`, `alert`, `vault`, `cta`.
+Requer `pip install skia-python`.

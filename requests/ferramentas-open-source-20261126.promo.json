@@ -2,16 +2,239 @@
   "request": "requests/ferramentas-open-source-20261126.json",
   "asset_dir": "assets/promo/ferramentas-open-source",
   "handle": "@artisysdev",
-  "outro": {"title": ["SALVE", "PARA TESTAR"], "subtitle": ["1 ferramenta por semana.", "Open source."]},
+  "outro": {
+    "title": [
+      "SALVE",
+      "PARA TESTAR"
+    ],
+    "subtitle": [
+      "1 ferramenta por semana.",
+      "Open source."
+    ]
+  },
   "sections": [
-    {"title": "Payload CMS", "voice": "voice/s0.mp3", "stills": ["payload_card.png", "payload_card.png"], "media": null,
-     "note": "Exemplo ilustrativo de configuração",
-     "bullets": ["CMS open source", "Painel único", "API pronta"]},
-    {"title": "Flowise", "voice": "voice/s1.mp3", "stills": ["fl_a.png", "fl_b.png"], "media": "flowise.mp4",
-     "bullets": ["Arrasta blocos", "Chatbot com IA", "Testa na hora"]},
-    {"title": "Meilisearch", "voice": "voice/s2.mp3", "stills": ["me_a.png", "me_b.png"], "media": "meili.mp4",
-     "bullets": ["Busca instantânea", "Perdoa erro de digitação", "Loja, estoque, docs"]},
-    {"title": "Infisical", "voice": "voice/s3.mp3", "stills": ["infisical.png", "inf_b.png"], "media": null,
-     "bullets": ["Cofre de segredos", "Controle de acesso", "Fora do código"]}
+    {
+      "title": "Payload CMS",
+      "voice": "voice/s0.mp3",
+      "stills": [
+        "payload_card.png",
+        "payload_card.png"
+      ],
+      "media": null,
+      "note": "Exemplo ilustrativo de configuração",
+      "bullets": [
+        "CMS open source",
+        "Painel único",
+        "API pronta"
+      ],
+      "beats": [
+        {
+          "at": "Pare",
+          "kind": "hero",
+          "lines": [
+            "Pare de pagar"
+          ],
+          "serif": "mensalidade?",
+          "visual": "price",
+          "price": "mensalidade"
+        },
+        {
+          "at": "Payload",
+          "kind": "slots",
+          "letter": "P",
+          "slots": [
+            "Páginas",
+            "Catálogo",
+            "Dados",
+            "API"
+          ],
+          "caption": "CMS open source"
+        },
+        {
+          "at": "páginas",
+          "kind": "stack",
+          "title": "Tudo num painel",
+          "serif": "só.",
+          "items": [
+            [
+              "Páginas"
+            ],
+            [
+              "Catálogo"
+            ],
+            [
+              "Dados"
+            ]
+          ]
+        },
+        {
+          "at": "bônus",
+          "kind": "flow",
+          "title": "De bônus",
+          "nodes": [
+            "Painel",
+            "API pronta",
+            "Seu sistema"
+          ]
+        }
+      ]
+    },
+    {
+      "title": "Flowise",
+      "voice": "voice/s1.mp3",
+      "stills": [
+        "fl_a.png",
+        "fl_b.png"
+      ],
+      "media": "flowise.mp4",
+      "bullets": [
+        "Arrasta blocos",
+        "Chatbot com IA",
+        "Testa na hora"
+      ],
+      "beats": [
+        {
+          "at": "Quer",
+          "kind": "hero",
+          "lines": [
+            "Chatbot com IA"
+          ],
+          "serif": "sem programar do zero?",
+          "visual": "bubbles",
+          "bubbles": [
+            "Oi, preciso de ajuda",
+            "Claro! Como posso ajudar?",
+            "Qual o prazo de entrega?"
+          ]
+        },
+        {
+          "at": "Flowise",
+          "kind": "flow",
+          "title": "Arrasta blocos",
+          "nodes": [
+            "Entrada",
+            "Modelo",
+            "Resposta"
+          ]
+        },
+        {
+          "at": "Monta",
+          "kind": "stack",
+          "items": [
+            [
+              "Monta o fluxo"
+            ],
+            [
+              "Testa na hora"
+            ],
+            [
+              "Vê o caminho dos dados"
+            ]
+          ]
+        }
+      ]
+    },
+    {
+      "title": "Meilisearch",
+      "voice": "voice/s2.mp3",
+      "stills": [
+        "me_a.png",
+        "me_b.png"
+      ],
+      "media": "meili.mp4",
+      "bullets": [
+        "Busca instantânea",
+        "Perdoa erro de digitação",
+        "Loja, estoque, docs"
+      ],
+      "beats": [
+        {
+          "at": "Catálogo",
+          "kind": "hero",
+          "lines": [
+            "Catálogo cheio"
+          ],
+          "serif": "ninguém acha nada?"
+        },
+        {
+          "at": "Meilisearch",
+          "kind": "search",
+          "typed": "celuar",
+          "fixed": "celular",
+          "pill": "erro perdoado",
+          "results": [
+            "Celular Samsung",
+            "Capa para celular",
+            "Carregador de celular"
+          ]
+        },
+        {
+          "at": "Serve",
+          "kind": "stack",
+          "title": "Serve pra",
+          "items": [
+            [
+              "Loja"
+            ],
+            [
+              "Estoque"
+            ],
+            [
+              "Documentos"
+            ]
+          ]
+        }
+      ]
+    },
+    {
+      "title": "Infisical",
+      "voice": "voice/s3.mp3",
+      "stills": [
+        "infisical.png",
+        "inf_b.png"
+      ],
+      "media": null,
+      "bullets": [
+        "Cofre de segredos",
+        "Controle de acesso",
+        "Fora do código"
+      ],
+      "beats": [
+        {
+          "at": "Senha",
+          "kind": "alert",
+          "text": "senha dentro do código",
+          "title": "Problema",
+          "serif": "esperando pra acontecer."
+        },
+        {
+          "at": "Infisical",
+          "kind": "vault",
+          "name": "cofre de segredos",
+          "secrets": [
+            [
+              "API_KEY",
+              "time dev"
+            ],
+            [
+              "DB_URL",
+              "só infra"
+            ],
+            [
+              "STRIPE_KEY",
+              "financeiro"
+            ]
+          ]
+        },
+        {
+          "at": "Salva",
+          "kind": "hero",
+          "lines": [
+            "Salve e teste"
+          ],
+          "serif": "1 ferramenta por semana"
+        }
+      ]
+    }
   ]
 }
