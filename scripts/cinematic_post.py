@@ -137,7 +137,7 @@ def build_ass(plan: list[dict], duration: float, size=(1920,1080), news_records:
         events.append(f"Dialogue: 0,{ass_timestamp(a)},{ass_timestamp(b)},{style},,0,0,0,,{body}")
     event(.2,min(duration,5.2),"Title",
           r"{\an7\pos("+str(x)+","+str(y)+r")\fad(250,250)}"
-          +ass_safe("8 PROJETOS. MUITAS POSSIBILIDADES."))
+          +ass_safe(f"{len(plan)} PROJETOS. MUITAS POSSIBILIDADES."))
     for item in plan:
         start,end=item["start"],item["end"]
         length=end-start

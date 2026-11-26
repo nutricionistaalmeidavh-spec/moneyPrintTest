@@ -251,7 +251,10 @@ def make_slide(section:dict, index:int, total:int, kind:str, target:Path, *,
         _text(d,(int(100*s),int(366*s)),"NA PRÁTICA" if kind in ("mockup","demo","clip") else "USO REAL",int(29*s),ACCENT,weight=True)
         _text(d,(int(100*s),int(470*s)),headline,int(42*s),INK,weight=True,
               max_width=int(330*s),max_lines=4)
-        _text(d,(int(100*s),int(720*s)),"Interface e documentação oficiais",
+        # Optional per-section note, e.g. when the picture is an illustration
+        # rather than an official screenshot.
+        _text(d,(int(100*s),int(720*s)),
+              str(section.get("note") or "Interface e documentação oficiais"),
               int(25*s),MUTED,max_width=int(320*s))
         _mockup(im,picture,size)
     elif kind=="use":
