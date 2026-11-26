@@ -256,3 +256,18 @@ python -m unittest discover -s tests -v
 ```
 
 A duração em segundos orienta a geração do roteiro, e há validação de quantidade de palavras, mas o MP4 final segue a duração real da narração. O Ollama local pode falhar em produzir texto adequado (nesse caso a tarefa encerra com erro). Para máxima confiabilidade, peça ao ChatGPT para fornecer roteiro e termos no arquivo do pedido. Whisper tiny também pode errar legendas. O teste unitário não substitui o teste real de renderização no GitHub.
+
+## Dois workflows: Short (9:16) e Vídeo (16:9)
+
+```bash
+python -m scripts.promo_build --manifest requests/<nome>.promo.json --format short   # TikTok/Reels/Shorts
+python -m scripts.promo_build --manifest requests/<nome>.promo.json --format video   # YouTube/16:9
+python -m scripts.promo_build --manifest requests/<nome>.promo.json                  # os dois
+```
+
+O `.promo.json` aponta para o request (narrações) e define, por seção, o áudio da voz
+(`voice`, qualquer MP3/WAV, ex.: ElevenLabs), `stills`, `media` (clipe opcional) e `bullets`.
+Ambos usam legendas palavra a palavra sincronizadas pelo áudio real, barra de progresso e sons de
+transição. O `short` é um layout vertical nativo (orbs animados, moldura flutuante com push-in,
+pílulas de tópicos); o `video` reaproveita os slides animados e adiciona a camada compartilhada.
+Saída em `outputs/promo/` (cache em `_work/`).

@@ -1,0 +1,17 @@
+{
+  "request": "requests/ferramentas-open-source-20261126.json",
+  "asset_dir": "assets/promo/ferramentas-open-source",
+  "handle": "@artisysdev",
+  "outro": {"title": ["SALVE", "PARA TESTAR"], "subtitle": ["1 ferramenta por semana.", "Open source."]},
+  "sections": [
+    {"title": "Payload CMS", "voice": "voice/s0.mp3", "stills": ["payload_card.png", "payload_card.png"], "media": null,
+     "note": "Exemplo ilustrativo de configuração",
+     "bullets": ["CMS open source", "Painel único", "API pronta"]},
+    {"title": "Flowise", "voice": "voice/s1.mp3", "stills": ["fl_a.png", "fl_b.png"], "media": "flowise.mp4",
+     "bullets": ["Arrasta blocos", "Chatbot com IA", "Testa na hora"]},
+    {"title": "Meilisearch", "voice": "voice/s2.mp3", "stills": ["me_a.png", "me_b.png"], "media": "meili.mp4",
+     "bullets": ["Busca instantânea", "Perdoa erro de digitação", "Loja, estoque, docs"]},
+    {"title": "Infisical", "voice": "voice/s3.mp3", "stills": ["infisical.png", "inf_b.png"], "media": null,
+     "bullets": ["Cofre de segredos", "Controle de acesso", "Fora do código"]}
+  ]
+}
