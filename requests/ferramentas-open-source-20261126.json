@@ -1,0 +1,39 @@
+{
+  "topic": "4 ferramentas open source que valem ouro para o seu negócio",
+  "duration_seconds": 60,
+  "aspect": "16:9",
+  "visual_mode": "github_cinematic",
+  "include_verified_news": false,
+  "repo_urls": [
+    "https://github.com/payloadcms/payload",
+    "https://github.com/FlowiseAI/Flowise",
+    "https://github.com/meilisearch/meilisearch",
+    "https://github.com/Infisical/infisical"
+  ],
+  "sections": [
+    {
+      "repo_url": "https://github.com/payloadcms/payload",
+      "title": "Payload CMS",
+      "narration": "Pare de pagar mensalidade para editar o site da sua empresa. O Payload é um CMS open source: você controla páginas, catálogos e dados em um painel só, e ainda ganha uma API pronta para integrar com o resto do sistema.",
+      "broll_query": "person editing website content"
+    },
+    {
+      "repo_url": "https://github.com/FlowiseAI/Flowise",
+      "title": "Flowise",
+      "narration": "Quer um chatbot com inteligência artificial sem escrever tudo do zero? No Flowise você monta o fluxo arrastando blocos: entrada, modelo, resposta. Dá para testar na hora e entender o caminho de cada dado.",
+      "broll_query": "chatbot artificial intelligence"
+    },
+    {
+      "repo_url": "https://github.com/meilisearch/meilisearch",
+      "title": "Meilisearch",
+      "narration": "Catálogo cheio de produtos e ninguém acha nada? O Meilisearch entrega uma busca rápida, que tolera erro de digitação e responde enquanto a pessoa digita. Perfeito para loja, sistema de estoque ou base de documentos.",
+      "broll_query": "online shopping search"
+    },
+    {
+      "repo_url": "https://github.com/Infisical/infisical",
+      "title": "Infisical",
+      "narration": "Senha e chave de API esquecida dentro do código é problema esperando para acontecer. O Infisical guarda os segredos em um cofre, controla quem acessa e mantém suas chaves fora do repositório. Salve este vídeo e teste um por semana.",
+      "broll_query": "cyber security lock"
+    }
+  ]
+}
